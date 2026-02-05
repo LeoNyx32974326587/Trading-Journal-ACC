@@ -3,148 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Journal Pro</title>
+    <title>Trading Journal Ultimate</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
-            --bg-dark: #121212; --card-bg: #1e1e1e; --text-main: #e0e0e0; 
-            --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #333; 
+            --bg-dark: #0f0f0f; --card-bg: #1a1a1a; --text-main: #e0e0e0; 
+            --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #2c2c2c; 
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); margin: 0; color: var(--text-main); overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); margin: 0; color: var(--text-main); }
         .hidden { display: none !important; }
 
-        /* Navigation */
-        header { 
-            display: flex; align-items: center; padding: 15px 25px; 
-            background: #1a1a1a; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
-        }
-        .menu-btn { cursor: pointer; font-size: 1.5rem; color: var(--accent); margin-right: 20px; background: none; border: none; }
+        header { display: flex; align-items: center; padding: 12px 20px; background: #161616; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .menu-btn { cursor: pointer; font-size: 1.4rem; color: var(--accent); background: none; border: none; padding: 10px; }
         
-        .nav-drawer {
-            position: fixed; top: 0; left: -250px; width: 250px; height: 100%;
-            background: #1a1a1a; border-right: 1px solid var(--border);
-            transition: 0.3s; z-index: 200; padding-top: 60px;
-        }
+        .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; padding-top: 60px; }
         .nav-drawer.open { left: 0; }
-        .nav-drawer button {
-            display: block; width: 100%; padding: 15px 25px; text-align: left;
-            background: none; border: none; color: var(--text-main); font-size: 1rem; cursor: pointer;
-        }
-        .nav-drawer button:hover { background: #252525; color: var(--accent); }
+        .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); font-size: 0.95rem; cursor: pointer; }
+        .nav-drawer button:hover { background: #222; color: var(--accent); }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
         
-        /* Auth Screen */
-        #auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #121212; display:flex; justify-content:center; align-items:center; z-index:1000; }
-        .auth-box { background: #1e1e1e; padding: 30px; border-radius: 10px; border: 1px solid var(--accent); width: 320px; text-align: center; }
-        .auth-box input { width: 100%; margin-bottom: 12px; padding: 12px; background: #000; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+        #auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); display:flex; justify-content:center; align-items:center; z-index:1000; }
+        .auth-box { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--accent); width: 320px; text-align: center; }
+        .auth-box input { width: 100%; margin-bottom: 12px; padding: 12px; background: #000; border: 1px solid var(--border); color: white; border-radius: 8px; box-sizing: border-box; }
 
-        /* Ansichten */
-        .view-section { display: none; }
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Formular & Stats */
-        .stat-card { background: #252525; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border); margin-bottom: 20px; }
-        .form-card { background: #252525; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        .stat-val { font-size: 1.6rem; font-weight: bold; margin-top: 8px; }
+        .stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        .empty-state { color: #555; font-style: italic; text-align: center; padding: 20px; font-size: 0.9rem; }
+
         .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        input, select, textarea { background: #121212; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; }
 
-        /* Filter-Bar */
-        .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; }
-        .filter-btn { padding: 8px 15px; font-size: 0.8rem; background: #333; border: none; color: white; cursor: pointer; border-radius: 4px; }
+        .btn-primary { background: var(--accent); color: black; padding: 12px; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; }
+        .btn-edit { background: none; border: 1px solid #444; color: #aaa; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-right: 5px; }
+        .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-delete { background: none; border: 1px solid #444; color: var(--danger); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+        
+        .filter-btn { padding: 8px 14px; font-size: 0.75rem; background: #222; border: none; color: white; cursor: pointer; border-radius: 6px; }
         .filter-btn.active { background: var(--accent); color: black; }
 
-        /* Tabelle */
-        .table-container { overflow-x: auto; background: #1e1e1e; border-radius: 10px; border: 1px solid var(--border); }
+        .table-container { overflow-x: auto; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { color: #888; font-size: 0.75rem; text-transform: uppercase; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         .profit { color: var(--success); } .loss { color: var(--danger); }
+        .tag-open { background: rgba(3, 218, 198, 0.1); color: var(--success); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; border: 1px solid var(--success); }
     </style>
 </head>
 <body>
 
 <div id="auth-overlay">
     <div class="auth-box">
-        <h2 style="color: var(--accent)">Journal Login</h2>
+        <h2 style="color: var(--accent)">TradeCloud</h2>
         <input type="email" id="email" placeholder="E-Mail">
         <input type="password" id="password" placeholder="Passwort">
-        <button onclick="handleLogin()" style="width:100%; background: var(--accent); color:black; padding:12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Login</button>
-        <button onclick="handleGoogleLogin()" style="width:100%; background:white; color:black; padding:12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:10px;">Mit Google anmelden</button>
-        <p id="auth-error" style="color: var(--danger); font-size: 0.8rem; margin-top:10px;"></p>
+        <button onclick="handleLogin()" class="btn-primary">Login</button>
+        <button onclick="handleGoogleLogin()" style="width:100%; background:white; color:black; padding:12px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google Login
+        </button>
+        <p id="auth-error" style="color: var(--danger); font-size: 0.75rem; margin-top:15px;"></p>
     </div>
 </div>
 
 <header id="main-header" class="hidden">
     <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
-    <h3 style="color: var(--accent); margin: 0; flex-grow: 1;">Trading Journal</h3>
+    <h3 id="view-title" style="color: var(--accent); margin: 0; flex-grow: 1; font-weight: 500;">ÜBERSICHT</h3>
     <button class="filter-btn" onclick="auth.signOut()">Logout</button>
 </header>
 
 <nav class="nav-drawer" id="navDrawer">
+    <button onclick="showView('overview')">🏠 Übersicht</button>
     <button onclick="showView('entry')">➕ Neuer Trade</button>
     <button onclick="showView('history')">📜 Trade Historie</button>
-    <button onclick="showView('stats')">📊 Statistiken</button>
 </nav>
 
 <div id="app-content" class="container hidden">
     
-    <section id="view-entry" class="view-section active">
-        <h2>Neuen Trade eintragen</h2>
-        <div class="form-card">
-            <div class="input-group">
-                <input type="date" id="date">
-                <input type="text" id="asset" placeholder="Asset (z.B. EURUSD)">
+    <section id="view-overview" class="view-section active">
+        <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--success);">
+            <div class="stat-label" style="display: flex; justify-content: space-between; align-items: center;">
+                Aktuelle Positionen 
+                <span id="openCountTag" class="tag-open hidden">0 Aktiv</span>
             </div>
-            <div class="input-group">
-                <select id="status">
-                    <option value="Aktiv">Offen (Laufend)</option>
-                    <option value="Geschlossen">Geschlossen</option>
-                </select>
-                <input type="number" id="pnl" step="0.01" placeholder="Gewinn/Verlust (€)">
+            <div id="openTradesContainer">
+                <div class="empty-state">Aktuell keine offenen Trades</div>
             </div>
-            <textarea id="note" placeholder="Deine Analyse..." rows="3" style="margin-bottom: 15px;"></textarea>
-            <button id="submitBtn" onclick="saveTrade()" style="width:100%; background: var(--accent); color:black; padding:15px; border:none; font-weight:bold; cursor:pointer; border-radius:6px;">Trade Speichern</button>
+        </div>
+        <div class="dashboard-grid">
+            <div class="card"><div class="stat-label">Gesamt P&L</div><div id="ovTotal" class="stat-val">0.00 €</div></div>
+            <div class="card"><div class="stat-label">Win Rate</div><div id="ovWinRate" class="stat-val">0%</div></div>
+        </div>
+        <div class="card" style="margin-bottom: 20px; height: 260px;"><canvas id="ovChart"></canvas></div>
+    </section>
+
+    <section id="view-entry" class="view-section">
+        <h2 id="entry-headline" style="font-weight: 400;">Neuer Eintrag</h2>
+        <div class="card">
+            <input type="hidden" id="editId">
+            <div class="input-group"><input type="date" id="date"><input type="text" id="asset" placeholder="Symbol (z.B. BTCUSD)"></div>
+            <div class="input-group">
+                <select id="status"><option value="Aktiv">Offen (Laufend)</option><option value="Geschlossen" selected>Geschlossen</option></select>
+                <input type="number" id="pnl" step="0.01" placeholder="P&L (€)">
+            </div>
+            <textarea id="note" placeholder="Notizen..." rows="3" style="margin-bottom: 15px;"></textarea>
+            <button id="submitBtn" onclick="saveTrade()" class="btn-primary">Trade Speichern</button>
+            <button id="cancelEditBtn" onclick="resetForm(); showView('history');" class="hidden" style="background:none; border:none; color:#888; width:100%; margin-top:10px; cursor:pointer;">Abbrechen</button>
         </div>
     </section>
 
     <section id="view-history" class="view-section">
-        <h2>Trade Historie</h2>
-        
-        <div class="filter-bar">
-            <div style="display:flex; gap:5px;">
-                <button class="filter-btn active" onclick="setPeriod('all', this)">Alles</button>
-                <button class="filter-btn" onclick="setPeriod('day', this)">Heute</button>
-                <button class="filter-btn" onclick="setPeriod('week', this)">Woche</button>
-                <button class="filter-btn" onclick="setPeriod('month', this)">Monat</button>
-                <button class="filter-btn" onclick="setPeriod('year', this)">Jahr</button>
-            </div>
-            <select id="sortOrder" onchange="renderUI()" style="width:auto; padding:5px; font-size:0.8rem;">
-                <option value="desc">Neu zuerst</option>
-                <option value="asc">Alt zuerst</option>
-            </select>
-        </div>
-
+        <h2 style="font-weight: 400;">Historie</h2>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr><th>Datum</th><th>Asset</th><th>Status</th><th>P&L</th><th>Notiz</th><th>Aktion</th></tr>
-                </thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>Status</th><th>P&L</th><th style="text-align:right">Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
-    </section>
-
-    <section id="view-stats" class="view-section">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div class="stat-card"><h3>Gesamt Profit</h3><p id="statTotal" style="font-size:2rem; font-weight:bold;">0.00 €</p></div>
-            <div class="stat-card"><h3>Win Rate</h3><p id="statWinRate" style="font-size:2rem; font-weight:bold;">0%</p></div>
-        </div>
-        <div class="chart-container"><canvas id="equityChart"></canvas></div>
     </section>
 </div>
 
@@ -164,27 +148,17 @@
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
     let trades = [];
-    let currentPeriod = 'all';
-    let chart;
+    let ovChart;
 
-    // --- NAVIGATION & UI ---
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
-
     function showView(viewId) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
-        toggleMenu();
-        if(viewId === 'stats') renderUI();
-    }
-
-    function setPeriod(period, btn) {
-        currentPeriod = period;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        document.getElementById('view-title').innerText = viewId.toUpperCase();
+        if(document.getElementById('navDrawer').classList.contains('open')) toggleMenu();
         renderUI();
     }
 
-    // --- FIREBASE & AUTH ---
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('auth-overlay').classList.add('hidden');
@@ -201,29 +175,48 @@
     async function handleLogin() {
         const e = document.getElementById('email').value;
         const p = document.getElementById('password').value;
-        try { await auth.signInWithEmailAndPassword(e, p); } catch(e) { alert("Fehler!"); }
+        try { await auth.signInWithEmailAndPassword(e, p); } catch(e) { alert("Login fehlgeschlagen"); }
     }
-
-    async function handleGoogleLogin() {
-        try { await auth.signInWithPopup(googleProvider); } catch(e) { alert("Fehler!"); }
-    }
+    async function handleGoogleLogin() { try { await auth.signInWithPopup(googleProvider); } catch(e) {} }
 
     async function saveTrade() {
-        const trade = {
+        const id = document.getElementById('editId').value;
+        const t = {
             date: document.getElementById('date').value,
             asset: document.getElementById('asset').value.toUpperCase(),
             status: document.getElementById('status').value,
             pnl: parseFloat(document.getElementById('pnl').value) || 0,
             note: document.getElementById('note').value,
             userId: auth.currentUser.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            lastModified: firebase.firestore.FieldValue.serverTimestamp()
         };
-        if(!trade.asset) return alert("Asset eingeben!");
-        await db.collection('trades').add(trade);
-        alert("Gespeichert!");
-        resetForm();
-        loadTrades();
-        showView('history');
+
+        if(!t.asset || !t.date) return alert("Daten unvollständig!");
+
+        try {
+            if(id) {
+                await db.collection('trades').doc(id).update(t);
+            } else {
+                await db.collection('trades').add(t);
+            }
+            resetForm(); loadTrades(); showView('history');
+        } catch(e) { alert("Fehler beim Speichern"); }
+    }
+
+    function editTrade(id) {
+        const t = trades.find(item => item.id === id);
+        if(!t) return;
+        document.getElementById('editId').value = t.id;
+        document.getElementById('date').value = t.date;
+        document.getElementById('asset').value = t.asset;
+        document.getElementById('status').value = t.status;
+        document.getElementById('pnl').value = t.pnl;
+        document.getElementById('note').value = t.note;
+        
+        document.getElementById('entry-headline').innerText = "Trade bearbeiten";
+        document.getElementById('submitBtn').innerText = "Änderungen speichern";
+        document.getElementById('cancelEditBtn').classList.remove('hidden');
+        showView('entry');
     }
 
     async function loadTrades() {
@@ -232,72 +225,69 @@
         renderUI();
     }
 
-    async function deleteTrade(id) {
-        if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); }
-    }
-
-    // --- RENDER LOGIK ---
-    function filterByPeriod(data) {
-        if (currentPeriod === 'all') return data;
-        const now = new Date();
-        return data.filter(t => {
-            const tDate = new Date(t.date);
-            const diff = (now - tDate) / (1000 * 60 * 60 * 24);
-            if(currentPeriod === 'day') return diff < 1;
-            if(currentPeriod === 'week') return diff < 7;
-            if(currentPeriod === 'month') return diff < 30;
-            if(currentPeriod === 'year') return diff < 365;
-        });
-    }
+    async function deleteTrade(id) { if(confirm("Trade wirklich löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
 
     function renderUI() {
+        const openTrades = trades.filter(t => t.status === 'Aktiv');
+        const openContainer = document.getElementById('openTradesContainer');
+        const openTag = document.getElementById('openCountTag');
+
+        if(openTrades.length > 0) {
+            openTag.classList.remove('hidden');
+            openTag.innerText = `${openTrades.length} Aktiv`;
+            openContainer.innerHTML = `<table><tbody>${openTrades.map(t => `<tr><td>${t.date}</td><td><b>${t.asset}</b></td><td><button class="btn-edit" onclick="editTrade('${t.id}')">Schließen</button></td></tr>`).join('')}</tbody></table>`;
+        } else {
+            openTag.classList.add('hidden');
+            openContainer.innerHTML = `<div class="empty-state">Aktuell keine offenen Trades</div>`;
+        }
+
         const body = document.getElementById('tradeBody');
         body.innerHTML = '';
-        const sort = document.getElementById('sortOrder').value;
-        
-        let filtered = filterByPeriod(trades);
-        filtered.sort((a,b) => sort === 'desc' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
+        let total = 0, wins = 0, closed = 0;
 
-        let total = 0, wins = 0;
-        filtered.forEach(t => {
-            if(t.status === 'Geschlossen') {
-                total += t.pnl;
-                if(t.pnl > 0) wins++;
-            }
-            body.innerHTML += `
-                <tr>
-                    <td>${t.date}</td>
-                    <td><b>${t.asset}</b></td>
-                    <td>${t.status}</td>
-                    <td class="${t.pnl >= 0 ? 'profit' : 'loss'}">${t.pnl.toFixed(2)}€</td>
-                    <td style="font-size:0.75rem; color:#888;">${t.note}</td>
-                    <td><button onclick="deleteTrade('${t.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;">X</button></td>
-                </tr>`;
+        [...trades].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+            if(t.status === 'Geschlossen') { total += t.pnl; closed++; if(t.pnl > 0) wins++; }
+            body.innerHTML += `<tr>
+                <td>${t.date}</td>
+                <td><b>${t.asset}</b></td>
+                <td><span class="${t.status==='Aktiv'?'tag-open':''}">${t.status}</span></td>
+                <td class="${t.pnl>=0?'profit':'loss'}">${t.status==='Aktiv'?'-':t.pnl.toFixed(2)+'€'}</td>
+                <td style="text-align:right">
+                    <button class="btn-edit" onclick="editTrade('${t.id}')">✎</button>
+                    <button class="btn-delete" onclick="deleteTrade('${t.id}')">X</button>
+                </td>
+            </tr>`;
         });
 
-        document.getElementById('statTotal').innerText = total.toFixed(2) + " €";
-        document.getElementById('statWinRate').innerText = filtered.length ? (wins/filtered.length*100).toFixed(1) + "%" : "0%";
-        updateChart(filtered);
+        document.getElementById('ovTotal').innerText = total.toFixed(2) + " €";
+        document.getElementById('ovTotal').className = 'stat-val ' + (total >= 0 ? 'profit' : 'loss');
+        document.getElementById('ovWinRate').innerText = closed > 0 ? (wins/closed*100).toFixed(1) + "%" : "0%";
+        updateChart(trades.filter(t => t.status === 'Geschlossen'));
     }
 
     function updateChart(data) {
-        const ctx = document.getElementById('equityChart').getContext('2d');
+        const ctx = document.getElementById('ovChart').getContext('2d');
         const sorted = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
         let sum = 0;
         const points = sorted.map(t => { sum += t.pnl; return sum; });
-        if(chart) chart.destroy();
-        chart = new Chart(ctx, {
+        if(ovChart) ovChart.destroy();
+        ovChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: sorted.map(t => t.date), datasets: [{ data: points, borderColor: '#bb86fc', fill: true, tension: 0.3 }] },
-            options: { responsive: true, maintainAspectRatio: false }
+            data: { labels: sorted.map(t => t.date), datasets: [{ data: points, borderColor: '#bb86fc', backgroundColor: 'rgba(187,134,252,0.05)', fill: true, tension: 0.3, pointRadius: 2 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
         });
     }
 
     function resetForm() {
+        document.getElementById('editId').value = '';
         document.getElementById('asset').value = '';
         document.getElementById('pnl').value = '';
         document.getElementById('note').value = '';
         document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('status').value = 'Geschlossen';
+        document.getElementById('entry-headline').innerText = "Neuer Eintrag";
+        document.getElementById('submitBtn').innerText = "Trade Speichern";
+        document.getElementById('cancelEditBtn').classList.add('hidden');
     }
     document.getElementById('date').valueAsDate = new Date();
 </script>
