@@ -1,1 +1,346 @@
-<div><br class="Apple-interchange-newline"><!DOCTYPE html><br><html lang="de"><br><head><br>    <meta charset="UTF-8"><br>    <meta name="viewport" content="width=device-width, initial-scale=1.0"><br>    <title>TradeCloud Pro - Performance Journal</title><br>    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script><br>    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script><br>    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script><br>    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script><br>    <style><br>        :root { <br>            --bg-dark: #0f0f0f; --card-bg: #1a1a1a; --text-main: #e0e0e0; <br>            --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #2c2c2c; <br>        }<br>        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); margin: 0; color: var(--text-main); line-height: 1.6; }<br>        .hidden { display: none !important; }<br>        <br>        header { display: flex; align-items: center; padding: 15px 20px; background: #161616; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }<br>        .menu-btn { cursor: pointer; font-size: 1.6rem; color: var(--accent); background: none; border: none; padding: 10px; }<br>        <br>        h4 { <br>            color: var(--accent); <br>            font-weight: 600; <br>            text-transform: uppercase; <br>            font-size: 1.1rem; <br>            letter-spacing: 1.5px;<br>            margin-top: 0;<br>            margin-bottom: 25px;<br>        }<br><br>        #user-greeting {<br>            font-size: 2.2rem;<br>            font-weight: 800;<br>            margin-bottom: 30px;<br>            background: linear-gradient(45deg, var(--accent), #fff);<br>            -webkit-background-clip: text;<br>            -webkit-text-fill-color: transparent;<br>        }<br><br>        .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 200; padding-top: 80px; }<br>        .nav-drawer.open { left: 0; }<br>        .nav-drawer button { display: block; width: 100%; padding: 18px 25px; text-align: left; background: none; border: none; color: var(--text-main); font-size: 1.1rem; cursor: pointer; }<br>        <br>        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }<br>        <br>        #auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); display:flex; justify-content:center; align-items:center; z-index:1000; }<br>        .auth-box { background: var(--card-bg); padding: 50px; border-radius: 16px; border: 1px solid var(--accent); width: 350px; text-align: center; }<br>        <br>        .view-section { display: none; }<br>        .view-section.active { display: block; }<br>        .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }<br>        <br>        .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }<br>        .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }<br><br>        .active-trade-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #222; font-size: 1.1rem; }<br>        <br>        input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; font-size: 1rem; box-sizing: border-box; }<br>        .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; }<br>        <br>        table { width: 100%; border-collapse: collapse; }<br>        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }<br>        .img-preview { width: 50px; height: 35px; border-radius: 6px; object-fit: cover; border: 1px solid #333; cursor: pointer; }<br><br>        .member-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; }<br>        .btn-delete-small { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }<br><br>        /* Lot Rechner Styles */<br>        .calc-group { margin-bottom: 15px; }<br>        .calc-group label { display: block; font-size: 0.85rem; color: #888; margin-bottom: 5px; margin-left: 5px; }<br>        #lotResult { font-size: 2.5rem; font-weight: 900; color: var(--success); text-align: center; margin: 20px 0; }<br>    </style><br></head><br><body><br><br><div id="auth-overlay"><br>    <div class="auth-box"><br>        <h2 style="color: var(--accent); margin-bottom: 30px; font-size: 2rem;">TradeCloud</h2><br>        <button onclick="loginGoogle()" class="btn-primary" style="background:white; color:#444; display:flex; align-items:center; justify-content:center; gap:10px;"><br>            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Google Login<br>        </button><br>        <p id="auth-error" style="color: var(--danger); margin-top: 15px;" class="hidden"></p><br>    </div><br></div><br><br><header id="main-header" class="hidden"><br>    <button class="menu-btn" onclick="toggleMenu()">&#9776;</button><br>    <h3 id="view-title" style="margin-left: 20px; flex-grow: 1; color: var(--accent); font-weight: 700; font-size: 1.3rem;">ÜBERSICHT</h3><br>    <button onclick="auth.signOut()" style="background:none; border:none; color:#888; cursor:pointer; font-weight:bold;">Logout</button><br></header><br><br><nav class="nav-drawer" id="navDrawer"><br>    <button onclick="showView('overview')">🏠 Übersicht</button><br>    <button onclick="showView('calculator')">📊 Lot Rechner</button><br>    <button onclick="showView('news')">📰 News</button><br>    <button onclick="showView('entry')">➕ Trade erstellen</button><br>    <button onclick="showView('history')">📜 Historie</button><br>    <button id="admin-link" class="hidden" onclick="showView('settings')" style="color: #ffb74d;">⚙️ Einstellungen</button><br></nav><br><br><div id="app-content" class="container hidden"><br>    <section id="view-overview" class="view-section active"><br>        <h1 id="user-greeting">HALLO</h1><br>        <div id="activeTradesCard" class="card hidden"><br>            <h4>OFFENE POSITIONEN</h4><br>            <div id="activeTradesList"></div><br>        </div><br>        <div class="card"><br>            <h4>PERFORMANCE CHART</h4><br>            <div class="chart-controls" style="display: flex; gap: 8px; margin-bottom: 20px;"><br>                <button class="chart-btn" onclick="setChartFilter('today', this)">Heute</button><br>                <button class="chart-btn" onclick="setChartFilter('yesterday', this)">Gestern</button><br>                <button class="chart-btn" onclick="setChartFilter('week', this)">Woche</button><br>                <button class="chart-btn" onclick="setChartFilter('month', this)">Monat</button><br>                <button class="chart-btn active" onclick="setChartFilter('year', this)">Jahr</button><br>            </div><br>            <div style="height: 300px;"><canvas id="ovChart"></canvas></div><br>        </div><br>        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;"><br>            <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">GESAMT PROFIT</div><div id="ovTotal" style="font-size:2rem; font-weight:800;">0.00 €</div></div><br>            <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">WIN RATE</div><div id="ovWinRate" style="font-size:2rem; font-weight:800;">0%</div></div><br>        </div><br>    </section><br><br>    <section id="view-calculator" class="view-section"><br>        <div class="card"><br>            <h4>LOT RECHNER</h4><br>            <div class="calc-group"><br>                <label>Pair</label><br>                <select id="calcAsset"></select><br>            </div><br>            <div class="calc-group"><br>                <label>Kontogröße (€)</label><br>                <input type="number" id="calcBalance" value="10000" oninput="calculateLots()"><br>            </div><br>            <div class="calc-group"><br>                <label>Risiko (%)</label><br>                <input type="number" id="calcRisk" value="1" step="0.1" oninput="calculateLots()"><br>            </div><br>            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"><br>                <div class="calc-group"><br>                    <label>Einstiegspreis</label><br>                    <input type="number" id="calcEntry" step="0.00001" placeholder="1.0850" oninput="calculateLots()"><br>                </div><br>                <div class="calc-group"><br>                    <label>Stop Loss</label><br>                    <input type="number" id="calcStop" step="0.00001" placeholder="1.0800" oninput="calculateLots()"><br>                </div><br>            </div><br>            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;"><br>            <div style="text-align: center; color: #888; font-size: 0.85rem;">BERECHNETE LOTS</div><br>            <div id="lotResult">0.01</div><br>            <div style="text-align: center; color: var(--danger); font-size: 0.9rem;" id="calcRiskAmount">Risiko: 0.00 €</div><br>        </div><br>    </section><br><br>    <section id="view-news" class="view-section"><br>        <div class="card" style="padding: 10px; min-height: 600px; overflow: hidden;"><br>            <h4>NEWS (HIGH & MEDIUM IMPACT)</h4><br>            <div class="tradingview-widget-container" style="width: 100%; height: 550px;"><br>                <iframe src="https://www.tradingview-widget.com/embed-widget/events/?locale=de#%7B%22colorTheme%22%3A%22dark%22%2C%22isMaximized%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22550%22%2C%22importanceFilter%22%3A%220%2C1%22%2C%22currencyFilter%22%3A%22USD%2CEUR%2CGBP%2CJPY%2Caud%2Ccad%2Cchf%22%7D" style="width: 100%; height: 100%; border: none; border-radius: 8px;" frameborder="0"></iframe><br>            </div><br>        </div><br>    </section><br><br>    <section id="view-entry" class="view-section"><br>        <div class="card"><br>            <h4>TRADE DATEN ERFASSEN</h4><br>            <input type="hidden" id="editId"><br>            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"><br>                <input type="datetime-local" id="datetime"><br>                <select id="assetDropdown"></select><br>            </div><br>            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;"><br>                <select id="status" onchange="toggleOutcomeFields()"><br>                    <option value="Aktiv">Offen</option><br>                    <option value="Geschlossen">Geschlossen</option><br>                </select><br>                <select id="mindset"><br>                    <option value="Neutral">😐 Neutral</option><br>                    <option value="Sicher">😊 Sicher</option><br>                    <option value="Angst">😨 Angst</option><br>                    <option value="Wut">😡 Wut</option><br>                </select><br>            </div><br>            <div id="pnlWrapper" class="hidden" style="margin-top:15px;"><input type="number" id="pnl" step="0.01" placeholder="Gewinn / Verlust in €"></div><br>            <input type="url" id="imgSetup" placeholder="Setup URL (TradingView)" style="margin-top:15px;"><br>            <div id="outcomeWrapper" class="hidden" style="margin-top:15px;"><input type="url" id="imgResult" placeholder="Ergebnis URL (TradingView)"></div><br>            <textarea id="note" placeholder="Deine Notizen..." rows="5" style="margin-top:15px;"></textarea><br>            <button onclick="saveTrade()" class="btn-primary" style="margin-top:20px;">Trade speichern</button><br>        </div><br>    </section><br><br>    <section id="view-history" class="view-section"><br>        <div class="card" style="padding:0; overflow-x:auto;"><br>            <div style="padding: 25px 25px 0 25px;"><h4>KOMPLETTE HISTORIE</h4></div><br>            <table><br>                <thead><tr><th>Datum</th><th>Asset</th><th>Mood</th><th>Charts</th><th>P&L</th><th>Aktion</th></tr></thead><br>                <tbody id="tradeBody"></tbody><br>            </table><br>        </div><br>    </section><br><br>    <section id="view-settings" class="view-section"><br>        <div class="card"><br>            <h4>NEUES MITGLIED ZULASSEN</h4><br>            <div style="display: flex; gap: 15px; margin-bottom: 30px;"><br>                <input type="email" id="newMemberEmail" placeholder="beispiel@gmail.com"><br>                <button onclick="addMember()" class="btn-primary" style="width: auto; padding: 0 30px;">Add</button><br>            </div><br>            <h4>ZUGELASSENE NUTZER</h4><br>            <div id="memberList"></div><br>        </div><br>    </section><br></div><br><br><script><br>    const firebaseConfig = {<br>        apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",<br>        authDomain: "trading-journal-acc.firebaseapp.com",<br>        projectId: "trading-journal-acc",<br>        storageBucket: "trading-journal-acc.firebasestorage.app",<br>        messagingSenderId: "68601000570",<br>        appId: "1:68601000570:web:87d3ebd5e86416403e41c3"<br>    };<br><br>    firebase.initializeApp(firebaseConfig);<br>    const auth = firebase.auth();<br>    const db = firebase.firestore();<br>    const adminEmail = "leon.luca.lauterbach@gmail.com";<br><br>    let trades = [];<br>    let ovChart;<br>    const moodMap = { "Neutral": "😐", "Sicher": "😊", "Angst": "😨", "Wut": "😡" };<br>    const myAssets = ["BTCUSD", "ETHUSD", "EURUSD", "GBPUSD", "GOLD", "DAX", "NASDAQ"];<br><br>    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e => showAuthError(e.message)); }<br><br>    auth.onAuthStateChanged(async (user) => {<br>        if (user) {<br>            const firstName = user.displayName ? user.displayName.split(' ')[0] : "Trader";<br>            document.getElementById('user-greeting').innerText = `HALLO ${firstName.toUpperCase()}`;<br>            const email = user.email.toLowerCase();<br>            const memberDoc = await db.collection('members').doc(email).get();<br>            const isAdmin = (email === adminEmail);<br>            if (isAdmin || memberDoc.exists) {<br>                document.getElementById('auth-overlay').classList.add('hidden');<br>                document.getElementById('app-content').classList.remove('hidden');<br>                document.getElementById('main-header').classList.remove('hidden');<br>                isAdmin ? document.getElementById('admin-link').classList.remove('hidden') : null;<br>                loadTrades();<br>            } else { auth.signOut(); showAuthError("Zugriff verweigert."); }<br>        }<br>    });<br><br>    async function loadTrades() {<br>        const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();<br>        trades = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));<br>        renderUI();<br>    }<br><br>    function calculateLots() {<br>        const balance = parseFloat(document.getElementById('calcBalance').value);<br>        const riskPercent = parseFloat(document.getElementById('calcRisk').value);<br>        const entry = parseFloat(document.getElementById('calcEntry').value);<br>        const stop = parseFloat(document.getElementById('calcStop').value);<br>        const asset = document.getElementById('calcAsset').value;<br><br>        if (!balance || !riskPercent || !entry || !stop || entry === stop) {<br>            document.getElementById('lotResult').innerText = "0.01";<br>            return;<br>        }<br><br>        const riskAmount = balance * (riskPercent / 100);<br>        const pipsDiff = Math.abs(entry - stop);<br>        <br>        let lotSize = 0;<br>        if (asset.includes("USD") && asset !== "BTCUSD") {<br>            lotSize = riskAmount / (pipsDiff * 100000); <br>        } else if (asset === "GOLD") {<br>            lotSize = riskAmount / (pipsDiff * 100); <br>        } else if (asset === "BTCUSD") {<br>            lotSize = riskAmount / pipsDiff; <br>        } else {<br>            lotSize = riskAmount / pipsDiff; <br>        }<br><br>        // MINDESTLOT LOGIK: Immer mindestens 0.01<br>        const finalLot = Math.max(0.01, lotSize);<br><br>        document.getElementById('lotResult').innerText = finalLot.toFixed(2);<br>        document.getElementById('calcRiskAmount').innerText = `Risiko: ${riskAmount.toFixed(2)} €`;<br>    }<br><br>    function renderUI() {<br>        let totalPnl = 0, wins = 0, closed = 0;<br>        const body = document.getElementById('tradeBody');<br>        body.innerHTML = '';<br>        trades.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {<br>            if(t.status === 'Geschlossen') { totalPnl += t.pnl; closed++; if(t.pnl > 0) wins++; }<br>            body.innerHTML += `<tr><td>${t.date.split('T')[0]}</td><td><b>${t.asset}</b></td><td>${moodMap[t.mindset] || "😐"}</td><td>${t.imgSetup?'📸':''}</td><td style="font-weight:bold;">${t.pnl.toFixed(2)}€</td><td><button onclick="deleteTrade('${t.id}')">✘</button></td></tr>`;<br>        });<br>        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";<br>        document.getElementById('ovWinRate').innerText = closed > 0 ? (wins/closed*100).toFixed(1) + "%" : "0%";<br>        updateChart();<br>    }<br><br>    async function saveTrade() {<br>        const t = {<br>            date: document.getElementById('datetime').value,<br>            asset: document.getElementById('assetDropdown').value,<br>            status: document.getElementById('status').value,<br>            mindset: document.getElementById('mindset').value,<br>            pnl: parseFloat(document.getElementById('pnl').value) || 0,<br>            imgSetup: document.getElementById('imgSetup').value,<br>            userId: auth.currentUser.uid<br>        };<br>        await db.collection('trades').add(t);<br>        loadTrades(); showView('overview');<br>    }<br><br>    function showView(v) {<br>        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));<br>        document.getElementById('view-'+v).classList.add('active');<br>        document.getElementById('navDrawer').classList.remove('open');<br>        document.getElementById('view-title').innerText = v.toUpperCase();<br>    }<br><br>    function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }<br>    function toggleOutcomeFields() { document.getElementById('pnlWrapper').classList.toggle('hidden', document.getElementById('status').value !== 'Geschlossen'); }<br>    <br>    function updateChart() {<br>        const ctx = document.getElementById('ovChart').getContext('2d');<br>        const filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));<br>        let sum = 0; const points = filtered.map(t => { sum += t.pnl; return sum; });<br>        if(ovChart) ovChart.destroy();<br>        ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });<br>    }<br><br>    // Dropdowns füllen<br>    document.getElementById('assetDropdown').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');<br>    document.getElementById('calcAsset').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');<br></script><br></body><br></html></div>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeCloud Pro - Performance Journal</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --bg-dark: #0f0f0f; --card-bg: #1a1a1a; --text-main: #e0e0e0; 
+            --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #2c2c2c; 
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); margin: 0; color: var(--text-main); line-height: 1.6; }
+        .hidden { display: none !important; }
+        
+        header { display: flex; align-items: center; padding: 15px 20px; background: #161616; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .menu-btn { cursor: pointer; font-size: 1.6rem; color: var(--accent); background: none; border: none; padding: 10px; }
+        
+        h4 { 
+            color: var(--accent); 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            font-size: 1.1rem; 
+            letter-spacing: 1.5px;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        #user-greeting {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 200; padding-top: 80px; }
+        .nav-drawer.open { left: 0; }
+        .nav-drawer button { display: block; width: 100%; padding: 18px 25px; text-align: left; background: none; border: none; color: var(--text-main); font-size: 1.1rem; cursor: pointer; }
+        
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        
+        #auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); display:flex; justify-content:center; align-items:center; z-index:1000; }
+        .auth-box { background: var(--card-bg); padding: 50px; border-radius: 16px; border: 1px solid var(--accent); width: 350px; text-align: center; }
+        
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }
+        
+        .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+        .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
+
+        .active-trade-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #222; font-size: 1.1rem; }
+        
+        input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; font-size: 1rem; box-sizing: border-box; }
+        .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        .img-preview { width: 50px; height: 35px; border-radius: 6px; object-fit: cover; border: 1px solid #333; cursor: pointer; }
+
+        .member-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; }
+        .btn-delete-small { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+
+        /* Lot Rechner Styles */
+        .calc-group { margin-bottom: 15px; }
+        .calc-group label { display: block; font-size: 0.85rem; color: #888; margin-bottom: 5px; margin-left: 5px; }
+        #lotResult { font-size: 2.5rem; font-weight: 900; color: var(--success); text-align: center; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div id="auth-overlay">
+    <div class="auth-box">
+        <h2 style="color: var(--accent); margin-bottom: 30px; font-size: 2rem;">TradeCloud</h2>
+        <button onclick="loginGoogle()" class="btn-primary" style="background:white; color:#444; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Google Login
+        </button>
+        <p id="auth-error" style="color: var(--danger); margin-top: 15px;" class="hidden"></p>
+    </div>
+</div>
+
+<header id="main-header" class="hidden">
+    <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+    <h3 id="view-title" style="margin-left: 20px; flex-grow: 1; color: var(--accent); font-weight: 700; font-size: 1.3rem;">ÜBERSICHT</h3>
+    <button onclick="auth.signOut()" style="background:none; border:none; color:#888; cursor:pointer; font-weight:bold;">Logout</button>
+</header>
+
+<nav class="nav-drawer" id="navDrawer">
+    <button onclick="showView('overview')">🏠 Übersicht</button>
+    <button onclick="showView('calculator')">📊 Lot Rechner</button>
+    <button onclick="showView('news')">📰 News</button>
+    <button onclick="showView('entry')">➕ Trade erstellen</button>
+    <button onclick="showView('history')">📜 Historie</button>
+    <button id="admin-link" class="hidden" onclick="showView('settings')" style="color: #ffb74d;">⚙️ Einstellungen</button>
+</nav>
+
+<div id="app-content" class="container hidden">
+    <section id="view-overview" class="view-section active">
+        <h1 id="user-greeting">HALLO</h1>
+        <div id="activeTradesCard" class="card hidden">
+            <h4>OFFENE POSITIONEN</h4>
+            <div id="activeTradesList"></div>
+        </div>
+        <div class="card">
+            <h4>PERFORMANCE CHART</h4>
+            <div class="chart-controls" style="display: flex; gap: 8px; margin-bottom: 20px;">
+                <button class="chart-btn" onclick="setChartFilter('today', this)">Heute</button>
+                <button class="chart-btn" onclick="setChartFilter('yesterday', this)">Gestern</button>
+                <button class="chart-btn" onclick="setChartFilter('week', this)">Woche</button>
+                <button class="chart-btn" onclick="setChartFilter('month', this)">Monat</button>
+                <button class="chart-btn active" onclick="setChartFilter('year', this)">Jahr</button>
+            </div>
+            <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">GESAMT PROFIT</div><div id="ovTotal" style="font-size:2rem; font-weight:800;">0.00 €</div></div>
+            <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">WIN RATE</div><div id="ovWinRate" style="font-size:2rem; font-weight:800;">0%</div></div>
+        </div>
+    </section>
+
+    <section id="view-calculator" class="view-section">
+        <div class="card">
+            <h4>LOT RECHNER</h4>
+            <div class="calc-group">
+                <label>Pair</label>
+                <select id="calcAsset"></select>
+            </div>
+            <div class="calc-group">
+                <label>Kontogröße (€)</label>
+                <input type="number" id="calcBalance" value="10000" oninput="calculateLots()">
+            </div>
+            <div class="calc-group">
+                <label>Risiko (%)</label>
+                <input type="number" id="calcRisk" value="1" step="0.1" oninput="calculateLots()">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="calc-group">
+                    <label>Einstiegspreis</label>
+                    <input type="number" id="calcEntry" step="0.00001" placeholder="1.0850" oninput="calculateLots()">
+                </div>
+                <div class="calc-group">
+                    <label>Stop Loss</label>
+                    <input type="number" id="calcStop" step="0.00001" placeholder="1.0800" oninput="calculateLots()">
+                </div>
+            </div>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+            <div style="text-align: center; color: #888; font-size: 0.85rem;">BERECHNETE LOTS</div>
+            <div id="lotResult">0.01</div>
+            <div style="text-align: center; color: var(--danger); font-size: 0.9rem;" id="calcRiskAmount">Risiko: 0.00 €</div>
+        </div>
+    </section>
+
+    <section id="view-news" class="view-section">
+        <div class="card" style="padding: 10px; min-height: 600px; overflow: hidden;">
+            <h4>NEWS (HIGH & MEDIUM IMPACT)</h4>
+            <div class="tradingview-widget-container" style="width: 100%; height: 550px;">
+                <iframe src="https://www.tradingview-widget.com/embed-widget/events/?locale=de#%7B%22colorTheme%22%3A%22dark%22%2C%22isMaximized%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22550%22%2C%22importanceFilter%22%3A%220%2C1%22%2C%22currencyFilter%22%3A%22USD%2CEUR%2CGBP%2CJPY%2Caud%2Ccad%2Cchf%22%7D" style="width: 100%; height: 100%; border: none; border-radius: 8px;" frameborder="0"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-entry" class="view-section">
+        <div class="card">
+            <h4>TRADE DATEN ERFASSEN</h4>
+            <input type="hidden" id="editId">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <input type="datetime-local" id="datetime">
+                <select id="assetDropdown"></select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
+                <select id="status" onchange="toggleOutcomeFields()">
+                    <option value="Aktiv">Offen</option>
+                    <option value="Geschlossen">Geschlossen</option>
+                </select>
+                <select id="mindset">
+                    <option value="Neutral">😐 Neutral</option>
+                    <option value="Sicher">😊 Sicher</option>
+                    <option value="Angst">😨 Angst</option>
+                    <option value="Wut">😡 Wut</option>
+                </select>
+            </div>
+            <div id="pnlWrapper" class="hidden" style="margin-top:15px;"><input type="number" id="pnl" step="0.01" placeholder="Gewinn / Verlust in €"></div>
+            <input type="url" id="imgSetup" placeholder="Setup URL (TradingView)" style="margin-top:15px;">
+            <div id="outcomeWrapper" class="hidden" style="margin-top:15px;"><input type="url" id="imgResult" placeholder="Ergebnis URL (TradingView)"></div>
+            <textarea id="note" placeholder="Deine Notizen..." rows="5" style="margin-top:15px;"></textarea>
+            <button onclick="saveTrade()" class="btn-primary" style="margin-top:20px;">Trade speichern</button>
+        </div>
+    </section>
+
+    <section id="view-history" class="view-section">
+        <div class="card" style="padding:0; overflow-x:auto;">
+            <div style="padding: 25px 25px 0 25px;"><h4>KOMPLETTE HISTORIE</h4></div>
+            <table>
+                <thead><tr><th>Datum</th><th>Asset</th><th>Mood</th><th>Charts</th><th>P&L</th><th>Aktion</th></tr></thead>
+                <tbody id="tradeBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="view-settings" class="view-section">
+        <div class="card">
+            <h4>NEUES MITGLIED ZULASSEN</h4>
+            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                <input type="email" id="newMemberEmail" placeholder="beispiel@gmail.com">
+                <button onclick="addMember()" class="btn-primary" style="width: auto; padding: 0 30px;">Add</button>
+            </div>
+            <h4>ZUGELASSENE NUTZER</h4>
+            <div id="memberList"></div>
+        </div>
+    </section>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",
+        authDomain: "trading-journal-acc.firebaseapp.com",
+        projectId: "trading-journal-acc",
+        storageBucket: "trading-journal-acc.firebasestorage.app",
+        messagingSenderId: "68601000570",
+        appId: "1:68601000570:web:87d3ebd5e86416403e41c3"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const adminEmail = "leon.luca.lauterbach@gmail.com";
+
+    let trades = [];
+    let ovChart;
+    const moodMap = { "Neutral": "😐", "Sicher": "😊", "Angst": "😨", "Wut": "😡" };
+    const myAssets = ["BTCUSD", "ETHUSD", "EURUSD", "GBPUSD", "GOLD", "DAX", "NASDAQ"];
+
+    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e => showAuthError(e.message)); }
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const firstName = user.displayName ? user.displayName.split(' ')[0] : "Trader";
+            document.getElementById('user-greeting').innerText = `HALLO ${firstName.toUpperCase()}`;
+            const email = user.email.toLowerCase();
+            const memberDoc = await db.collection('members').doc(email).get();
+            const isAdmin = (email === adminEmail);
+            if (isAdmin || memberDoc.exists) {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('main-header').classList.remove('hidden');
+                isAdmin ? document.getElementById('admin-link').classList.remove('hidden') : null;
+                loadTrades();
+            } else { auth.signOut(); showAuthError("Zugriff verweigert."); }
+        }
+    });
+
+    async function loadTrades() {
+        const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
+        trades = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderUI();
+    }
+
+    function calculateLots() {
+        const balance = parseFloat(document.getElementById('calcBalance').value);
+        const riskPercent = parseFloat(document.getElementById('calcRisk').value);
+        const entry = parseFloat(document.getElementById('calcEntry').value);
+        const stop = parseFloat(document.getElementById('calcStop').value);
+        const asset = document.getElementById('calcAsset').value;
+
+        if (!balance || !riskPercent || !entry || !stop || entry === stop) {
+            document.getElementById('lotResult').innerText = "0.01";
+            return;
+        }
+
+        const riskAmount = balance * (riskPercent / 100);
+        const pipsDiff = Math.abs(entry - stop);
+        
+        let lotSize = 0;
+        if (asset.includes("USD") && asset !== "BTCUSD") {
+            lotSize = riskAmount / (pipsDiff * 100000); 
+        } else if (asset === "GOLD") {
+            lotSize = riskAmount / (pipsDiff * 100); 
+        } else if (asset === "BTCUSD") {
+            lotSize = riskAmount / pipsDiff; 
+        } else {
+            lotSize = riskAmount / pipsDiff; 
+        }
+
+        // MINDESTLOT LOGIK: Immer mindestens 0.01
+        const finalLot = Math.max(0.01, lotSize);
+
+        document.getElementById('lotResult').innerText = finalLot.toFixed(2);
+        document.getElementById('calcRiskAmount').innerText = `Risiko: ${riskAmount.toFixed(2)} €`;
+    }
+
+    function renderUI() {
+        let totalPnl = 0, wins = 0, closed = 0;
+        const body = document.getElementById('tradeBody');
+        body.innerHTML = '';
+        trades.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+            if(t.status === 'Geschlossen') { totalPnl += t.pnl; closed++; if(t.pnl > 0) wins++; }
+            body.innerHTML += `<tr><td>${t.date.split('T')[0]}</td><td><b>${t.asset}</b></td><td>${moodMap[t.mindset] || "😐"}</td><td>${t.imgSetup?'📸':''}</td><td style="font-weight:bold;">${t.pnl.toFixed(2)}€</td><td><button onclick="deleteTrade('${t.id}')">✘</button></td></tr>`;
+        });
+        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
+        document.getElementById('ovWinRate').innerText = closed > 0 ? (wins/closed*100).toFixed(1) + "%" : "0%";
+        updateChart();
+    }
+
+    async function saveTrade() {
+        const t = {
+            date: document.getElementById('datetime').value,
+            asset: document.getElementById('assetDropdown').value,
+            status: document.getElementById('status').value,
+            mindset: document.getElementById('mindset').value,
+            pnl: parseFloat(document.getElementById('pnl').value) || 0,
+            imgSetup: document.getElementById('imgSetup').value,
+            userId: auth.currentUser.uid
+        };
+        await db.collection('trades').add(t);
+        loadTrades(); showView('overview');
+    }
+
+    function showView(v) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('view-'+v).classList.add('active');
+        document.getElementById('navDrawer').classList.remove('open');
+        document.getElementById('view-title').innerText = v.toUpperCase();
+    }
+
+    function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
+    function toggleOutcomeFields() { document.getElementById('pnlWrapper').classList.toggle('hidden', document.getElementById('status').value !== 'Geschlossen'); }
+    
+    function updateChart() {
+        const ctx = document.getElementById('ovChart').getContext('2d');
+        const filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
+        let sum = 0; const points = filtered.map(t => { sum += t.pnl; return sum; });
+        if(ovChart) ovChart.destroy();
+        ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    }
+
+    // Dropdowns füllen
+    document.getElementById('assetDropdown').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+    document.getElementById('calcAsset').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+</script>
+</body>
+</html>
