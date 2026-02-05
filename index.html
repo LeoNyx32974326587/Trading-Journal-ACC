@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Performance Fix</title>
+    <title>TradeCloud Pro - Time Filters</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -29,9 +29,9 @@
         .view-section.active { display: block; }
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
         
-        .chart-controls { display: flex; gap: 5px; margin-bottom: 15px; }
-        .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
-        .chart-btn.active { background: var(--accent); color: black; }
+        .chart-controls { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+        .chart-btn.active { background: var(--accent); color: black; border-color: var(--accent); }
 
         .active-trade-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #222; }
         
@@ -43,8 +43,6 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
         .profit { color: var(--success); } .loss { color: var(--danger); }
         .img-preview { width: 40px; height: 28px; object-fit: cover; border-radius: 4px; border: 1px solid #333; cursor: pointer; margin-right: 4px; }
-        
-        /* Mood Tooltip */
         .mood-emoji { cursor: help; font-size: 1.2rem; }
     </style>
 </head>
@@ -81,6 +79,7 @@
         <div class="card">
             <div class="chart-controls">
                 <button class="chart-btn" onclick="setChartFilter('today', this)">Heute</button>
+                <button class="chart-btn" onclick="setChartFilter('yesterday', this)">Gestern</button>
                 <button class="chart-btn" onclick="setChartFilter('week', this)">Woche</button>
                 <button class="chart-btn" onclick="setChartFilter('month', this)">Monat</button>
                 <button class="chart-btn active" onclick="setChartFilter('year', this)">Jahr</button>
@@ -211,12 +210,10 @@
                 </div>`;
             }
 
-            const moodEmoji = moodMap[t.mindset] || "😐";
-
             body.innerHTML += `<tr>
                 <td>${t.date.split('T')[0]}</td>
                 <td><b>${t.asset}</b></td>
-                <td><span class="mood-emoji" title="${t.mindset}">${moodEmoji}</span></td>
+                <td><span class="mood-emoji" title="${t.mindset}">${moodMap[t.mindset] || "😐"}</span></td>
                 <td>
                     ${t.imgSetup ? `<img src="${t.imgSetup}" class="img-preview" onclick="window.open('${t.imgSetup}')">` : ''}
                     ${t.imgResult ? `<img src="${t.imgResult}" class="img-preview" onclick="window.open('${t.imgResult}')">` : ''}
@@ -238,11 +235,9 @@
     }
 
     function closeTradeFast(id) {
-        const t = trades.find(i => i.id === id);
         editTrade(id);
         document.getElementById('status').value = 'Geschlossen';
         toggleOutcomeFields();
-        // Fokus auf PNL Feld
         setTimeout(() => document.getElementById('pnl').focus(), 100);
     }
 
@@ -265,18 +260,6 @@
         if(confirm("Trade endgültig löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); }
     }
 
-    function showView(v) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-        document.getElementById('view-'+v).classList.add('active');
-        document.getElementById('navDrawer').classList.remove('open');
-        
-        // Header Text anpassen
-        const titles = { 'overview': 'ÜBERSICHT', 'entry': 'TRADE ERSTELLEN', 'history': 'HISTORIE' };
-        document.getElementById('view-title').innerText = titles[v];
-
-        if(v === 'entry' && !document.getElementById('editId').value) setNow();
-    }
-
     function setChartFilter(f, btn) {
         currentFilter = f;
         document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
@@ -287,10 +270,17 @@
     function updateChart() {
         const ctx = document.getElementById('ovChart').getContext('2d');
         const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
         const filtered = trades.filter(t => {
             if(t.status !== 'Geschlossen') return false;
             const d = new Date(t.date);
-            if(currentFilter === 'today') return d.toDateString() === now.toDateString();
+            if(currentFilter === 'today') return d >= startOfToday;
+            if(currentFilter === 'yesterday') {
+                const yest = new Date(startOfToday);
+                yest.setDate(yest.getDate() - 1);
+                return d >= yest && d < startOfToday;
+            }
             if(currentFilter === 'week') return (now - d) < 7 * 86400000;
             if(currentFilter === 'month') return (now - d) < 30 * 86400000;
             return true;
@@ -298,12 +288,23 @@
 
         let sum = 0;
         const points = filtered.map(t => { sum += t.pnl; return sum; });
+        const labels = filtered.map(t => t.date.split('T')[0]);
+
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] },
+            data: { labels: labels, datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
+    }
+
+    function showView(v) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('view-'+v).classList.add('active');
+        document.getElementById('navDrawer').classList.remove('open');
+        const titles = { 'overview': 'ÜBERSICHT', 'entry': 'TRADE ERSTELLEN', 'history': 'HISTORIE' };
+        document.getElementById('view-title').innerText = titles[v];
+        if(v === 'entry' && !document.getElementById('editId').value) setNow();
     }
 
     function resetForm() {
