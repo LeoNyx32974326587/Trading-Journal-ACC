@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Clean</title>
+    <title>TradeCloud Pro - Mindset & Vision</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -52,6 +52,10 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         .profit { color: var(--success); } .loss { color: var(--danger); }
+
+        /* Thumbnail Styles */
+        .img-preview { width: 50px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid #333; cursor: pointer; margin-right: 5px; }
+        .img-preview:hover { border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -80,14 +84,12 @@
     <section id="view-overview" class="view-section active">
         <div class="card">
             <div class="chart-controls">
-                <button class="chart-btn" onclick="updateChartPeriod('today', this)">Heute</button>
-                <button class="chart-btn" onclick="updateChartPeriod('week', this)">Woche</button>
-                <button class="chart-btn" onclick="updateChartPeriod('month', this)">Monat</button>
                 <button class="chart-btn active" onclick="updateChartPeriod('year', this)">Jahr</button>
+                <button class="chart-btn" onclick="updateChartPeriod('month', this)">Monat</button>
+                <button class="chart-btn" onclick="updateChartPeriod('week', this)">Woche</button>
             </div>
             <div style="height: 280px;"><canvas id="ovChart"></canvas></div>
         </div>
-
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div class="card"><div class="stat-label">Gesamt Profit</div><div id="ovTotal" class="stat-val">0.00 €</div></div>
             <div class="card"><div class="stat-label">Win Rate</div><div id="ovWinRate" class="stat-val">0%</div></div>
@@ -107,8 +109,14 @@
                     <option value="Aktiv">Offen</option>
                     <option value="Geschlossen">Geschlossen</option>
                 </select>
-                <div id="pnlWrapper" class="hidden"><input type="number" id="pnl" step="0.01" placeholder="Profit/Verlust (€)"></div>
+                <select id="mindset">
+                    <option value="Neutral">😐 Neutral</option>
+                    <option value="Sicher">😊 Sicher/Fokus</option>
+                    <option value="Angst">😨 Angst/Zögern</option>
+                    <option value="Wut">😡 Wut/Frust</option>
+                </select>
             </div>
+            <div id="pnlWrapper" class="hidden" style="margin-bottom:15px;"><input type="number" id="pnl" step="0.01" placeholder="Profit/Verlust (€)"></div>
             <input type="url" id="imgSetup" placeholder="Setup Screenshot URL" style="margin-bottom:15px;">
             <div id="outcomeWrapper" class="hidden"><input type="url" id="imgResult" placeholder="Ergebnis Screenshot URL" style="margin-bottom:15px;"></div>
             <textarea id="note" placeholder="Notizen zum Trade..." rows="4" style="margin-bottom: 15px;"></textarea>
@@ -119,7 +127,7 @@
     <section id="view-history" class="view-section">
         <div class="card" style="padding: 0; overflow-x: auto;">
             <table>
-                <thead><tr><th>Datum</th><th>Asset</th><th>Status</th><th>P&L</th><th style="text-align:right">Aktion</th></tr></thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>Gefühl</th><th>Charts</th><th>P&L</th><th style="text-align:right">Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
@@ -128,6 +136,8 @@
 
 <script>
     const myAssets = ["BTCUSD", "ETHUSD", "EURUSD", "GBPUSD", "GOLD", "DAX", "NASDAQ"];
+    const mindsetEmojis = { "Neutral": "😐", "Sicher": "😊", "Angst": "😨", "Wut": "😡" };
+    
     const firebaseConfig = {
         apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",
         authDomain: "trading-journal-acc.firebaseapp.com",
@@ -150,7 +160,7 @@
     function showView(viewId) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
-        document.getElementById('view-title').innerText = viewId === 'overview' ? 'ÜBERSICHT' : (viewId === 'entry' ? 'TRADE ERSTELLEN' : 'HISTORIE');
+        document.getElementById('view-title').innerText = viewId.toUpperCase();
         document.getElementById('navDrawer').classList.remove('open');
         if(viewId === 'entry' && !document.getElementById('editId').value) setNow();
         renderUI();
@@ -169,19 +179,11 @@
     }
 
     auth.onAuthStateChanged(user => {
-        if (user) { 
-            loadTrades(); 
-            document.getElementById('auth-overlay').classList.add('hidden'); 
-            document.getElementById('app-content').classList.remove('hidden'); 
-            document.getElementById('main-header').classList.remove('hidden'); 
-        } else { 
-            document.getElementById('auth-overlay').classList.remove('hidden'); 
-        }
+        if (user) { loadTrades(); document.getElementById('auth-overlay').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); document.getElementById('main-header').classList.remove('hidden'); }
     });
 
     async function handleLogin() {
-        const e = document.getElementById('email').value;
-        try { await auth.signInWithEmailAndPassword(e, "123456"); } catch(err) { alert("Fehler beim Login"); }
+        try { await auth.signInWithEmailAndPassword(document.getElementById('email').value, "123456"); } catch(err) { alert("Login Error"); }
     }
 
     async function loadTrades() {
@@ -196,6 +198,7 @@
             date: document.getElementById('datetime').value,
             asset: document.getElementById('assetDropdown').value,
             status: document.getElementById('status').value,
+            mindset: document.getElementById('mindset').value,
             pnl: parseFloat(document.getElementById('pnl').value) || 0,
             imgSetup: document.getElementById('imgSetup').value || '',
             imgResult: document.getElementById('imgResult').value || '',
@@ -207,8 +210,46 @@
         resetForm(); loadTrades(); showView('overview');
     }
 
-    async function deleteTrade(id) {
-        if(confirm("Trade wirklich löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); }
+    function renderUI() {
+        let totalPnl = 0, wins = 0, closedCount = 0;
+        const body = document.getElementById('tradeBody');
+        body.innerHTML = '';
+
+        [...trades].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+            if(t.status === 'Geschlossen') { totalPnl += t.pnl; closedCount++; if(t.pnl > 0) wins++; }
+            
+            const setupImg = t.imgSetup ? `<img src="${t.imgSetup}" class="img-preview" onclick="window.open('${t.imgSetup}')">` : '';
+            const resultImg = t.imgResult ? `<img src="${t.imgResult}" class="img-preview" onclick="window.open('${t.imgResult}')">` : '';
+
+            body.innerHTML += `<tr>
+                <td>${t.date.split('T')[0]}</td>
+                <td><b>${t.asset}</b></td>
+                <td>${mindsetEmojis[t.mindset] || '😐'}</td>
+                <td>${setupImg}${resultImg}</td>
+                <td class="${t.pnl>=0?'profit':'loss'}">${t.status==='Aktiv'?'-':t.pnl.toFixed(2)+'€'}</td>
+                <td style="text-align:right">
+                    <button class="btn-edit" onclick="editTrade('${t.id}')">✎</button>
+                    <button class="btn-delete" onclick="db.collection('trades').doc('${t.id}').delete().then(loadTrades)">X</button>
+                </td>
+            </tr>`;
+        });
+
+        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
+        document.getElementById('ovWinRate').innerText = closedCount > 0 ? ((wins/closedCount)*100).toFixed(1) + "%" : "0%";
+        updateChart();
+    }
+
+    function updateChart() {
+        const ctx = document.getElementById('ovChart').getContext('2d');
+        const filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
+        let sum = 0;
+        const points = filtered.map(t => { sum += t.pnl; return sum; });
+        if(ovChart) ovChart.destroy();
+        ovChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.3, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+        });
     }
 
     function editTrade(id) {
@@ -217,6 +258,7 @@
         document.getElementById('datetime').value = t.date;
         document.getElementById('assetDropdown').value = t.asset;
         document.getElementById('status').value = t.status;
+        document.getElementById('mindset').value = t.mindset || 'Neutral';
         document.getElementById('pnl').value = t.pnl;
         document.getElementById('imgSetup').value = t.imgSetup;
         document.getElementById('imgResult').value = t.imgResult;
@@ -225,80 +267,14 @@
         showView('entry');
     }
 
-    function updateChartPeriod(p, btn) {
-        currentPeriod = p;
-        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderUI();
-    }
-
-    function renderUI() {
-        let totalPnl = 0, wins = 0, closedCount = 0;
-        const body = document.getElementById('tradeBody');
-        body.innerHTML = '';
-
-        [...trades].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            if(t.status === 'Geschlossen') {
-                totalPnl += t.pnl;
-                closedCount++;
-                if(t.pnl > 0) wins++;
-            }
-            body.innerHTML += `<tr>
-                <td>${t.date.split('T')[0]}</td>
-                <td><b>${t.asset}</b></td>
-                <td>${t.status}</td>
-                <td class="${t.pnl>=0?'profit':'loss'}">${t.status==='Aktiv' ? '-' : t.pnl.toFixed(2)+'€'}</td>
-                <td style="text-align:right">
-                    <button class="btn-edit" onclick="editTrade('${t.id}')">✎</button>
-                    <button class="btn-delete" onclick="deleteTrade('${t.id}')">X</button>
-                </td>
-            </tr>`;
-        });
-
-        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
-        document.getElementById('ovTotal').className = 'stat-val ' + (totalPnl >= 0 ? 'profit' : 'loss');
-        document.getElementById('ovWinRate').innerText = closedCount > 0 ? ((wins/closedCount)*100).toFixed(1) + "%" : "0%";
-
-        updateChart();
-    }
-
-    function updateChart() {
-        const ctx = document.getElementById('ovChart').getContext('2d');
-        const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-        const filtered = trades.filter(t => {
-            if(t.status !== 'Geschlossen') return false;
-            const d = new Date(t.date).getTime();
-            if(currentPeriod === 'today') return d >= startOfToday;
-            if(currentPeriod === 'week') return d >= (now.getTime() - 604800000);
-            if(currentPeriod === 'month') return d >= (now.getTime() - 2592000000);
-            return true;
-        }).sort((a,b) => new Date(a.date) - new Date(b.date));
-
-        let sum = 0;
-        const points = filtered.map(t => { sum += t.pnl; return sum; });
-
-        if(ovChart) ovChart.destroy();
-        ovChart = new Chart(ctx, {
-            type: 'line',
-            data: { 
-                labels: filtered.map(t => t.date.split('T')[0]), 
-                datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.3, fill: true, backgroundColor: 'rgba(187,134,252,0.1)', pointRadius: 2 }] 
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
-        });
-    }
-
     function resetForm() {
         document.getElementById('editId').value = '';
-        document.getElementById('pnl').value = '';
         document.getElementById('imgSetup').value = '';
         document.getElementById('imgResult').value = '';
         document.getElementById('note').value = '';
+        document.getElementById('pnl').value = '';
         document.getElementById('status').value = 'Aktiv';
         toggleOutcomeFields();
-        setNow();
     }
 
     document.getElementById('assetDropdown').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');
