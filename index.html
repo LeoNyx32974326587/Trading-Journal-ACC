@@ -31,7 +31,7 @@
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .btn-close-trade { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        .btn-close-trade { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
         .member-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
     </style>
 </head>
@@ -185,12 +185,7 @@
     let ovChart;
 
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-
-    function handleLogout() {
-        auth.signOut().then(() => {
-            location.reload(); // Erzwingt Rückkehr zum Login-Zustand
-        });
-    }
+    function handleLogout() { auth.signOut().then(() => { location.reload(); }); }
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -221,7 +216,6 @@
         renderUI();
     }
 
-    // SPEICHER LOGIK
     async function saveTrade() {
         const id = document.getElementById('editId').value;
         const data = {
@@ -235,28 +229,17 @@
             note: document.getElementById('note').value,
             userId: auth.currentUser.uid
         };
-
-        if(id) {
-            await db.collection('trades').doc(id).update(data);
-        } else {
-            await db.collection('trades').add(data);
-        }
-        loadTrades();
-        showView('overview');
+        if(id) await db.collection('trades').doc(id).update(data);
+        else await db.collection('trades').add(data);
+        loadTrades(); showView('overview');
     }
 
-    // TRADE DIREKT SCHLIESSEN VON ÜBERSICHT
-    async function quickClose(id) {
-        const pnl = prompt("Gewinn / Verlust in €:");
-        if (pnl === null) return;
-        const link = prompt("Ergebnis Link (optional):", "");
-        
-        await db.collection('trades').doc(id).update({
-            status: 'Geschlossen',
-            pnl: parseFloat(pnl) || 0,
-            imgResult: link || ""
-        });
-        loadTrades();
+    // ÄNDERUNG: Direktes Schließen öffnet Bearbeitungsfenster mit Status "Geschlossen"
+    function quickClose(id) {
+        const t = trades.find(x => x.id === id);
+        editTrade(id); // Öffnet Bearbeitungsansicht
+        document.getElementById('status').value = 'Geschlossen'; // Setzt Status automatisch
+        toggleOutcomeFields(); // Blendet P&L Felder ein
     }
 
     function editTrade(id) {
@@ -276,10 +259,7 @@
     }
 
     async function deleteTrade(id) {
-        if(confirm("Trade endgültig löschen?")) {
-            await db.collection('trades').doc(id).delete();
-            loadTrades();
-        }
+        if(confirm("Trade endgültig löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); }
     }
 
     function renderUI() {
@@ -291,7 +271,6 @@
         let hasActive = false;
         trades.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
             const isClosed = t.status === 'Geschlossen';
-            
             if(!isClosed) {
                 hasActive = true;
                 activeListOv.innerHTML += `
@@ -302,26 +281,21 @@
             } else {
                 totalPnl += t.pnl; closedCount++; if(t.pnl > 0) wins++;
             }
-
-            body.innerHTML += `
-                <tr>
-                    <td>${t.date.replace('T', ' ')}</td>
-                    <td><b>${t.asset}</b></td>
-                    <td style="color:${isClosed ? (t.pnl>=0?'var(--success)':'var(--danger)') : 'orange'}">
-                        ${isClosed ? t.pnl.toFixed(2)+'€' : 'OFFEN'}
-                    </td>
-                    <td>
-                        ${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank">Setup</a>` : ''}
-                        ${t.imgResult ? ` | <a href="${t.imgResult}" target="_blank">Result</a>` : ''}
-                    </td>
-                    <td><small>${t.note || ''}</small></td>
-                    <td>
-                        <button onclick="editTrade('${t.id}')" style="background:none; border:none; cursor:pointer;">✏️</button>
-                        <button onclick="deleteTrade('${t.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
-                    </td>
-                </tr>`;
+            body.innerHTML += `<tr>
+                <td>${t.date.replace('T', ' ')}</td>
+                <td><b>${t.asset}</b></td>
+                <td style="color:${isClosed ? (t.pnl>=0?'var(--success)':'var(--danger)') : 'orange'}">${isClosed ? t.pnl.toFixed(2)+'€' : 'OFFEN'}</td>
+                <td>
+                    ${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank">Setup</a>` : ''}
+                    ${t.imgResult ? ` | <a href="${t.imgResult}" target="_blank">Result</a>` : ''}
+                </td>
+                <td><small>${t.note || ''}</small></td>
+                <td>
+                    <button onclick="editTrade('${t.id}')" style="background:none; border:none; cursor:pointer;">✏️</button>
+                    <button onclick="deleteTrade('${t.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                </td>
+            </tr>`;
         });
-
         document.getElementById('overview-active-trades').classList.toggle('hidden', !hasActive);
         const totalEl = document.getElementById('ovTotal');
         totalEl.innerText = totalPnl.toFixed(2) + " €";
@@ -330,62 +304,40 @@
         updateChart();
     }
 
-    // LOT RECHNER LOGIK
     function calculateLots() {
         const bal = parseFloat(document.getElementById('calcBalance').value);
         const risk = parseFloat(document.getElementById('calcRisk').value) / 100;
         const entry = parseFloat(document.getElementById('calcEntry').value);
         const stop = parseFloat(document.getElementById('calcStop').value);
         const type = document.getElementById('calcAssetType').value;
-
         if(!entry || !stop || entry === stop) return;
-
         const riskAmt = bal * risk;
         const diff = Math.abs(entry - stop);
-        let lot = 0;
-
-        if(type === 'forex') lot = riskAmt / (diff * 100000);
-        else if(type === 'gold') lot = riskAmt / (diff * 100);
-        else lot = riskAmt / diff;
-
+        let lot = (type === 'forex') ? riskAmt / (diff * 100000) : (type === 'gold' ? riskAmt / (diff * 100) : riskAmt / diff);
         document.getElementById('lotResult').innerText = Math.max(0.01, lot).toFixed(2);
     }
 
-    // ADMIN FUNKTIONEN
     async function loadMembers() {
         const snap = await db.collection('members').get();
         const list = document.getElementById('memberList');
         list.innerHTML = '<h5>Berechtigte E-Mails:</h5>';
-        snap.forEach(doc => {
-            list.innerHTML += `<div class="member-item">${doc.id} <button onclick="deleteMember('${doc.id}')" style="background:none; border:none; color:red; cursor:pointer;">❌</button></div>`;
-        });
+        snap.forEach(doc => { list.innerHTML += `<div class="member-item">${doc.id} <button onclick="deleteMember('${doc.id}')" style="background:none; border:none; color:red; cursor:pointer;">❌</button></div>`; });
     }
 
     async function addMember() {
         const email = document.getElementById('newMemberEmail').value.toLowerCase().trim();
-        if(email) {
-            await db.collection('members').doc(email).set({ added: new Date() });
-            document.getElementById('newMemberEmail').value = '';
-            loadMembers();
-        }
+        if(email) { await db.collection('members').doc(email).set({ added: new Date() }); document.getElementById('newMemberEmail').value = ''; loadMembers(); }
     }
 
-    async function deleteMember(id) {
-        if(confirm("Email den Zugriff entziehen?")) { await db.collection('members').doc(id).delete(); loadMembers(); }
-    }
+    async function deleteMember(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); loadMembers(); } }
 
-    // UI HELPER
     function prepareCreateView() {
         document.getElementById('entry-headline').innerText = "TRADE ERSTELLEN";
         document.getElementById('editId').value = "";
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('datetime').value = now.toISOString().slice(0,16);
-        document.getElementById('pnl').value = "";
-        document.getElementById('imgSetup').value = "";
-        document.getElementById('imgResult').value = "";
-        document.getElementById('note').value = "";
-        toggleOutcomeFields();
-        showView('entry');
+        document.getElementById('pnl').value = ""; document.getElementById('imgSetup').value = ""; document.getElementById('imgResult').value = ""; document.getElementById('note').value = "";
+        toggleOutcomeFields(); showView('entry');
     }
 
     function toggleOutcomeFields() {
