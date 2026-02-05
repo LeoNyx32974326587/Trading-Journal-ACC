@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Intelligence</title>
+    <title>TradeCloud Pro - Quick Close</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -36,7 +36,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .stat-val { font-size: 1.6rem; font-weight: bold; margin-top: 8px; }
         .stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
 
         .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
@@ -53,6 +52,9 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         .profit { color: var(--success); } .loss { color: var(--danger); }
+        
+        /* Highlight für Quick Close */
+        .quick-close-highlight { border: 1px solid var(--accent) !important; box-shadow: 0 0 10px rgba(187, 134, 252, 0.2); }
     </style>
 </head>
 <body>
@@ -91,17 +93,15 @@
             <div class="stat-label" style="margin-bottom: 15px;">Equity Performance</div>
             <div class="chart-controls">
                 <button class="chart-btn" onclick="updateChartPeriod('day', this)">Heute</button>
-                <button class="chart-btn" onclick="updateChartPeriod('yesterday', this)">Gestern</button>
                 <button class="chart-btn" onclick="updateChartPeriod('week', this)">Woche</button>
-                <button class="chart-btn" onclick="updateChartPeriod('month', this)">Monat</button>
                 <button class="chart-btn active" onclick="updateChartPeriod('year', this)">Jahr</button>
             </div>
             <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="card"><div class="stat-label">Gesamt P&L</div><div id="ovTotal" class="stat-val">0.00 €</div></div>
-            <div class="card"><div class="stat-label">Win Rate</div><div id="ovWinRate" class="stat-val">0%</div></div>
+            <div class="card"><div class="stat-label">Gesamt P&L</div><div id="ovTotal" class="stat-val" style="font-size: 1.6rem; font-weight: bold;">0.00 €</div></div>
+            <div class="card"><div class="stat-label">Win Rate</div><div id="ovWinRate" class="stat-val" style="font-size: 1.6rem; font-weight: bold;">0%</div></div>
         </div>
     </section>
 
@@ -118,10 +118,16 @@
                     <option value="Aktiv">Offen</option>
                     <option value="Geschlossen">Geschlossen</option>
                 </select>
-                <div id="pnlWrapper" class="hidden"><input type="number" id="pnl" step="0.01" placeholder="P&L (€)"></div>
+                <div id="pnlWrapper" class="hidden"><input type="number" id="pnl" step="0.01" placeholder="P&L (€)" class="quick-close-target"></div>
             </div>
-            <div style="margin-bottom: 15px;"><input type="url" id="imgSetup" placeholder="Setup Screenshot URL"></div>
-            <div id="outcomeWrapper" class="hidden" style="margin-bottom: 15px;"><input type="url" id="imgResult" placeholder="Ergebnis Screenshot URL"></div>
+            <div style="margin-bottom: 15px;">
+                <label class="stat-label">Setup Screenshot</label>
+                <input type="url" id="imgSetup" placeholder="https://www.tradingview.com/x/...">
+            </div>
+            <div id="outcomeWrapper" class="hidden" style="margin-bottom: 15px;">
+                <label class="stat-label" style="color: var(--accent)">Ergebnis Screenshot</label>
+                <input type="url" id="imgResult" placeholder="https://www.tradingview.com/x/..." class="quick-close-target">
+            </div>
             <textarea id="note" placeholder="Notizen..." rows="3" style="margin-bottom: 15px;"></textarea>
             <button id="submitBtn" onclick="saveTrade()" class="btn-primary">Speichern</button>
         </div>
@@ -180,9 +186,17 @@
     function showView(viewId) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
-        if(viewId === 'entry' && !document.getElementById('editId').value) setNow();
+        document.getElementById('view-title').innerText = viewId.toUpperCase();
+        if(viewId === 'entry' && !document.getElementById('editId').value) {
+            setNow();
+            resetHighlight();
+        }
         if(document.getElementById('navDrawer').classList.contains('open')) toggleMenu();
         renderUI();
+    }
+
+    function resetHighlight() {
+        document.querySelectorAll('.quick-close-target').forEach(el => el.classList.remove('quick-close-highlight'));
     }
 
     auth.onAuthStateChanged(user => {
@@ -227,11 +241,9 @@
     }
 
     function renderUI() {
-        // Offene Trades
         const open = trades.filter(t => t.status === 'Aktiv');
-        document.getElementById('openTradesContainer').innerHTML = open.length ? open.map(t => `<div style="padding:10px 0; border-bottom:1px solid #222; display:flex; justify-content:space-between;"><span><b>${t.asset}</b> (${t.date.replace('T', ' ')})</span><button class="btn-edit" onclick="editTrade('${t.id}')">Schließen</button></div>`).join('') : '<div class="empty-state">Keine offenen Positionen</div>';
+        document.getElementById('openTradesContainer').innerHTML = open.length ? open.map(t => `<div style="padding:10px 0; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center;"><span><b>${t.asset}</b> <small style="color:#666">${t.date.split('T')[1]}</small></span><button class="btn-primary" style="width:auto; padding:5px 15px; font-size:0.7rem;" onclick="quickClose('${t.id}')">Schließen</button></div>`).join('') : '<div class="empty-state">Keine offenen Positionen</div>';
 
-        // Tabelle
         const body = document.getElementById('tradeBody');
         body.innerHTML = '';
         let total = 0, wins = 0, closedCount = 0;
@@ -242,6 +254,7 @@
         });
 
         document.getElementById('ovTotal').innerText = total.toFixed(2) + " €";
+        document.getElementById('ovTotal').className = 'stat-val ' + (total >= 0 ? 'profit' : 'loss');
         document.getElementById('ovWinRate').innerText = closedCount > 0 ? (wins/closedCount*100).toFixed(1) + "%" : "0%";
 
         updateChart();
@@ -255,9 +268,7 @@
             const tDate = new Date(t.date);
             const diffMs = now - tDate;
             if(currentChartPeriod === 'day') return diffMs < 86400000;
-            if(currentChartPeriod === 'yesterday') return diffMs < 172800000;
             if(currentChartPeriod === 'week') return diffMs < 604800000;
-            if(currentChartPeriod === 'month') return diffMs < 2592000000;
             return true;
         }).sort((a,b) => new Date(a.date) - new Date(b.date));
 
@@ -269,6 +280,18 @@
             data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', backgroundColor: 'rgba(187,134,252,0.1)', fill: true, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#222' } }, x: { display: false } } }
         });
+    }
+
+    // SPEZIELLE LOGIK FÜR ÜBERSICHTS-BUTTON
+    function quickClose(id) {
+        editTrade(id);
+        // Automatisches Setup für das Schließen
+        document.getElementById('status').value = 'Geschlossen';
+        toggleOutcomeFields();
+        
+        // Optisches Feedback: Felder hervorheben
+        document.querySelectorAll('.quick-close-target').forEach(el => el.classList.add('quick-close-highlight'));
+        document.getElementById('pnl').focus();
     }
 
     function editTrade(id) {
@@ -291,6 +314,8 @@
         document.getElementById('imgSetup').value = '';
         document.getElementById('imgResult').value = '';
         document.getElementById('note').value = '';
+        document.getElementById('status').value = 'Aktiv';
+        resetHighlight();
         setNow();
     }
 
