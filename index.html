@@ -29,7 +29,6 @@
             margin-bottom: 25px;
         }
 
-        /* Begrüßung - GRÖSSER */
         #user-greeting {
             font-size: 2.2rem;
             font-weight: 800;
@@ -62,7 +61,7 @@
         
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
-        .img-preview { width: 50px; height: 35px; border-radius: 6px; }
+        .img-preview { width: 50px; height: 35px; border-radius: 6px; object-fit: cover; border: 1px solid #333; cursor: pointer; }
 
         .note-cell {
             position: relative;
@@ -86,7 +85,11 @@
             width: 280px;
             white-space: normal;
             font-size: 0.9rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+
+        .member-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; }
+        .btn-delete-small { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -117,12 +120,25 @@
 <div id="app-content" class="container hidden">
     <section id="view-overview" class="view-section active">
         <h1 id="user-greeting">HALLO</h1>
+
+        <div class="card" style="padding: 10px; min-height: 420px; overflow: hidden;">
+            <h4 style="margin: 20px 0 15px 20px;">WIRTSCHAFTSKALENDER</h4>
+            <div class="tradingview-widget-container" style="width: 100%; height: 400px;">
+                <iframe 
+                    src="https://www.tradingview-widget.com/embed-widget/events/?locale=de#%7B%22colorTheme%22%3A%22dark%22%2C%22isMaximized%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22400%22%2C%22importanceFilter%22%3A%22-1%2C0%2C1%22%2C%22currencyFilter%22%3A%22USD%2CEUR%2CGBP%2CJPY%2Caud%2Ccad%2Cchf%22%7D" 
+                    style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
+                    frameborder="0">
+                </iframe>
+            </div>
+        </div>
         
         <div id="activeTradesCard" class="card hidden">
             <h4>OFFENE POSITIONEN</h4>
             <div id="activeTradesList"></div>
         </div>
+
         <div class="card">
+            <h4>PERFORMANCE CHART</h4>
             <div class="chart-controls" style="display: flex; gap: 8px; margin-bottom: 20px;">
                 <button class="chart-btn" onclick="setChartFilter('today', this)">Heute</button>
                 <button class="chart-btn" onclick="setChartFilter('yesterday', this)">Gestern</button>
@@ -132,6 +148,7 @@
             </div>
             <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
         </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">GESAMT PROFIT</div><div id="ovTotal" style="font-size:2rem; font-weight:800;">0.00 €</div></div>
             <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">WIN RATE</div><div id="ovWinRate" style="font-size:2rem; font-weight:800;">0%</div></div>
@@ -142,11 +159,11 @@
         <div class="card">
             <h4>TRADE DATEN ERFASSEN</h4>
             <input type="hidden" id="editId">
-            <div class="input-group">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <input type="datetime-local" id="datetime">
                 <select id="assetDropdown"></select>
             </div>
-            <div class="input-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:15px;">
                 <select id="status" onchange="toggleOutcomeFields()">
                     <option value="Aktiv">Offen</option>
                     <option value="Geschlossen">Geschlossen</option>
@@ -190,7 +207,6 @@
 </div>
 
 <script>
-    // FIREBASE KONFIGURATION (VON DIR)
     const firebaseConfig = {
         apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",
         authDomain: "trading-journal-acc.firebaseapp.com",
@@ -230,7 +246,7 @@
                 loadTrades();
             } else {
                 auth.signOut();
-                showAuthError("Zugriff nur für zugelassene Mitglieder.");
+                showAuthError("Zugriff verweigert. Bitte Admin kontaktieren.");
             }
         } else {
             document.getElementById('auth-overlay').classList.remove('hidden');
