@@ -68,8 +68,7 @@
     <section id="view-Übersicht" class="view-section active">
         <div id="greeting-container">
             <h1 id="user-greeting">HALLO</h1>
-            <button class="btn-small" onclick="prepareCreateView()">+ Trade erstellen</button>
-        </div>
+            </div>
         <div id="overview-active-trades" class="card hidden"><h4>OFFENE TRADES</h4><div id="activeListOverview"></div></div>
         <div class="card">
             <h4>PERFORMANCE CHART</h4>
@@ -146,6 +145,7 @@
     const auth = firebase.auth(), db = firebase.firestore();
     const adminEmail = "leon.luca.lauterbach@gmail.com";
     let trades = [], userAssets = ["EURUSD", "BTCUSD", "GOLD"];
+    let ovChart;
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -162,7 +162,6 @@
         }
     });
 
-    // ASSET VERWALTUNG
     async function loadUserAssets() {
         const snap = await db.collection('userAssets').doc(auth.currentUser.uid).get();
         if (snap.exists) userAssets = snap.data().assets;
@@ -192,7 +191,6 @@
         }
     }
 
-    // RESTLICHE LOGIK (Basierend auf vorherigen Versionen)
     async function loadTrades() {
         const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
         trades = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -227,6 +225,21 @@
         loadTrades(); showView('Übersicht');
     }
 
+    function prepareCreateView() {
+        document.getElementById('editId').value = "";
+        // Automatische Datum- und Uhrzeitbefüllung
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('datetime').value = now.toISOString().slice(0,16);
+        
+        document.getElementById('pnl').value = ""; 
+        document.getElementById('imgSetup').value = ""; 
+        document.getElementById('imgResult').value = ""; 
+        document.getElementById('note').value = "";
+        toggleOutcomeFields();
+        showView('Trade-erstellen');
+    }
+
     function showView(v) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + v.replace(' ', '-')).classList.add('active');
@@ -245,11 +258,18 @@
         container.appendChild(script);
     }
 
+    function updateChart() {
+        const ctx = document.getElementById('ovChart').getContext('2d');
+        let filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
+        let sum = 0; const points = filtered.map(t => { sum += t.pnl; return sum; });
+        if(ovChart) ovChart.destroy();
+        ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    }
+
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function handleLogout() { auth.signOut().then(() => location.reload()); }
     function toggleOutcomeFields() { const c = document.getElementById('status').value === 'Geschlossen'; document.getElementById('pnlWrapper').classList.toggle('hidden', !c); document.getElementById('outcomeWrapper').classList.toggle('hidden', !c); }
-    function prepareCreateView() { document.getElementById('editId').value = ""; showView('Trade-erstellen'); }
 </script>
 </body>
 </html>
