@@ -150,7 +150,7 @@
             </div>
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
             <div style="text-align: center; color: #888; font-size: 0.85rem;">BERECHNETE LOTS</div>
-            <div id="lotResult">0.01</div>
+            <div id="lotResult">0.00</div>
             <div style="text-align: center; color: var(--danger); font-size: 0.9rem;" id="calcRiskAmount">Risiko: 0.00 €</div>
         </div>
     </section>
@@ -267,29 +267,24 @@
         const stop = parseFloat(document.getElementById('calcStop').value);
         const asset = document.getElementById('calcAsset').value;
 
-        if (!balance || !riskPercent || !entry || !stop || entry === stop) {
-            document.getElementById('lotResult').innerText = "0.01";
-            return;
-        }
+        if (!balance || !riskPercent || !entry || !stop || entry === stop) return;
 
         const riskAmount = balance * (riskPercent / 100);
         const pipsDiff = Math.abs(entry - stop);
         
         let lotSize = 0;
+        // Einfache Berechnung: Forex (1 Lot = 100k), Gold (1 Lot = 100oz), Indizes (1 Lot = 1 contract)
         if (asset.includes("USD") && asset !== "BTCUSD") {
-            lotSize = riskAmount / (pipsDiff * 100000); 
+            lotSize = riskAmount / (pipsDiff * 100000); // Standard Forex
         } else if (asset === "GOLD") {
-            lotSize = riskAmount / (pipsDiff * 100); 
+            lotSize = riskAmount / (pipsDiff * 100); // Gold
         } else if (asset === "BTCUSD") {
-            lotSize = riskAmount / pipsDiff; 
+            lotSize = riskAmount / pipsDiff; // Crypto
         } else {
-            lotSize = riskAmount / pipsDiff; 
+            lotSize = riskAmount / pipsDiff; // Indizes / Sonstiges
         }
 
-        // MINDESTLOT LOGIK: Immer mindestens 0.01
-        const finalLot = Math.max(0.01, lotSize);
-
-        document.getElementById('lotResult').innerText = finalLot.toFixed(2);
+        document.getElementById('lotResult').innerText = lotSize.toFixed(2);
         document.getElementById('calcRiskAmount').innerText = `Risiko: ${riskAmount.toFixed(2)} €`;
     }
 
