@@ -3,37 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Journal Live</title>
+    <title>Trading Journal Pro Cloud</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg-dark: #121212; --card-bg: #1e1e1e; --text-main: #e0e0e0; --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #333; }
+        :root { 
+            --bg-dark: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-main: #e0e0e0; 
+            --accent: #bb86fc; 
+            --success: #03dac6; 
+            --danger: #cf6679; 
+            --border: #333; 
+        }
+
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); margin: 0; padding: 20px; color: var(--text-main); }
         .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
+        /* Auth Screen Styling */
         #auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #121212; display:flex; justify-content:center; align-items:center; z-index:1000; }
-        .auth-box { background: #1e1e1e; padding: 30px; border-radius: 10px; border: 1px solid var(--accent); width: 320px; text-align: center; }
+        .auth-box { background: #1e1e1e; padding: 30px; border-radius: 10px; border: 1px solid var(--accent); width: 340px; text-align: center; }
         .auth-box input { width: 100%; margin-bottom: 12px; padding: 12px; background: #000; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
         
+        .google-btn { 
+            width:100%; background: white; color: #000; display: flex; align-items: center; 
+            justify-content: center; gap: 10px; margin-top: 15px; border: none; cursor: pointer;
+            padding: 12px; border-radius: 6px; font-weight: bold; transition: 0.2s;
+        }
+        .google-btn:hover { background: #eee; }
+
+        .divider { border-top: 1px solid #333; margin: 20px 0; position: relative; }
+        .divider span { background: #1e1e1e; padding: 0 10px; color: #888; font-size: 0.7rem; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); }
+
+        /* App Styling */
         .hidden { display: none !important; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .stat-card { background: #252525; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
         
         .form-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; background: #252525; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid var(--border); }
         input, select, textarea, button { background: #121212; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 6px; font-size: 0.9rem; }
-        button { cursor: pointer; font-weight: bold; transition: 0.2s; }
-        #submitBtn { background: var(--accent); color: black; border: none; }
-        #submitBtn:hover { opacity: 0.8; }
-        .logout-btn { background: #333; color: white; float: right; padding: 8px 15px; font-size: 0.75rem; border: none; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85rem; }
-        th, td { padding: 14px; border-bottom: 1px solid var(--border); text-align: left; }
-        th { color: #888; text-transform: uppercase; font-size: 0.7rem; }
+        #submitBtn { background: var(--accent); color: black; border: none; font-weight: bold; cursor: pointer; }
+        .logout-btn { background: transparent; color: #888; border: 1px solid #444; float: right; padding: 6px 12px; font-size: 0.7rem; cursor: pointer; }
+        
+        .chart-container { height: 280px; margin-bottom: 40px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--border); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 14px; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.85rem; }
+        th { color: #888; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
         .profit { color: var(--success); font-weight: bold; }
         .loss { color: var(--danger); font-weight: bold; }
-        .chart-container { height: 280px; margin-bottom: 40px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -43,25 +64,34 @@
         <h2 style="color: var(--accent); margin-top: 0;">Journal Login</h2>
         <input type="email" id="email" placeholder="E-Mail">
         <input type="password" id="password" placeholder="Passwort">
-        <button onclick="handleLogin()" style="width:100%; background: var(--accent); color:black; margin-bottom:10px;">Login</button>
-        <button onclick="handleSignup()" style="width:100%; background:transparent; color:var(--accent); border: 1px solid var(--accent);">Konto erstellen</button>
+        
+        <button onclick="handleLogin()" style="width:100%; background: var(--accent); color:black; margin-bottom:10px; cursor:pointer; font-weight:bold; padding:12px; border-radius:6px; border:none;">Login</button>
+        <button onclick="handleSignup()" style="width:100%; background:transparent; color:var(--accent); border: 1px solid var(--accent); cursor:pointer; padding:12px; border-radius:6px;">Konto erstellen</button>
+        
+        <div class="divider"><span>ODER</span></div>
+
+        <button class="google-btn" onclick="handleGoogleLogin()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+            Mit Google anmelden
+        </button>
+
         <p id="auth-error" style="color: var(--danger); font-size: 0.8rem; margin-top: 15px;"></p>
     </div>
 </div>
 
 <div id="app-content" class="container hidden">
     <button class="logout-btn" onclick="auth.signOut()">Abmelden</button>
-    <h1 style="color: var(--accent); letter-spacing: 2px;">TRADING JOURNAL CLOUD</h1>
+    <h1 style="color: var(--accent); letter-spacing: 2px; margin-bottom: 30px;">TRADING JOURNAL CLOUD</h1>
     
     <div class="stats-grid">
-        <div class="stat-card"><h3 style="color:#888; font-size: 0.8rem;">PROFIT</h3><p id="statTotal" style="font-size: 2rem; margin: 5px 0 0;">0.00 €</p></div>
-        <div class="stat-card"><h3 style="color:#888; font-size: 0.8rem;">WIN RATE</h3><p id="statWinRate" style="font-size: 2rem; margin: 5px 0 0;">0%</p></div>
+        <div class="stat-card"><h3 style="color:#888; font-size: 0.7rem; margin:0;">GESAMT PROFIT</h3><p id="statTotal" style="font-size: 2rem; margin: 5px 0 0;">0.00 €</p></div>
+        <div class="stat-card"><h3 style="color:#888; font-size: 0.7rem; margin:0;">WIN RATE</h3><p id="statWinRate" style="font-size: 2rem; margin: 5px 0 0;">0%</p></div>
     </div>
 
     <div class="form-section">
         <input type="hidden" id="editId">
         <input type="date" id="date">
-        <input type="text" id="asset" placeholder="Asset (z.B. BTC)">
+        <input type="text" id="asset" placeholder="Asset (z.B. BTCUSD)">
         <select id="status">
             <option value="Geschlossen">Geschlossen</option>
             <option value="Aktiv">Offen</option>
@@ -80,7 +110,7 @@
 </div>
 
 <script>
-    // --- 1. DEINE FIREBASE KONFIGURATION (Modular -> Compat umgewandelt) ---
+    // 1. Firebase Konfiguration
     const firebaseConfig = {
         apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",
         authDomain: "trading-journal-acc.firebaseapp.com",
@@ -93,10 +123,12 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+    
     let chart;
     let trades = [];
 
-    // --- 2. LOGIN LOGIK ---
+    // 2. Auth Status Überwachung
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('auth-overlay').classList.add('hidden');
@@ -108,24 +140,30 @@
         }
     });
 
+    // Login Funktionen
     async function handleLogin() {
         const e = document.getElementById('email').value;
         const p = document.getElementById('password').value;
         try { await auth.signInWithEmailAndPassword(e, p); } 
-        catch (err) { document.getElementById('auth-error').innerText = "Fehler: E-Mail oder Passwort falsch."; }
+        catch (err) { document.getElementById('auth-error').innerText = "Login fehlgeschlagen."; }
     }
 
     async function handleSignup() {
         const e = document.getElementById('email').value;
         const p = document.getElementById('password').value;
-        try { await auth.createUserWithEmailAndPassword(e, p); alert("Konto erstellt! Du bist jetzt eingeloggt."); } 
-        catch (err) { document.getElementById('auth-error').innerText = "Fehler: " + err.message; }
+        try { await auth.createUserWithEmailAndPassword(e, p); } 
+        catch (err) { document.getElementById('auth-error').innerText = err.message; }
     }
 
-    // --- 3. TRADE LOGIK ---
+    async function handleGoogleLogin() {
+        try { await auth.signInWithPopup(googleProvider); } 
+        catch (err) { document.getElementById('auth-error').innerText = "Google Login fehlgeschlagen."; }
+    }
+
+    // 3. Trade Management
     async function saveTrade() {
-        const asset = document.getElementById('asset').value.toUpperCase();
-        if(!asset) return alert("Asset fehlt!");
+        const asset = document.getElementById('asset').value.trim().toUpperCase();
+        if(!asset) return alert("Asset eingeben!");
 
         const tradeData = {
             date: document.getElementById('date').value,
@@ -137,37 +175,31 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        const editId = document.getElementById('editId').value;
         try {
-            if(editId) {
-                await db.collection('trades').doc(editId).update(tradeData);
-            } else {
-                await db.collection('trades').add(tradeData);
-            }
+            await db.collection('trades').add(tradeData);
             resetForm();
             loadTrades();
         } catch (e) { alert("Fehler beim Speichern!"); }
     }
 
     async function loadTrades() {
-        try {
-            const snapshot = await db.collection('trades')
-                .where('userId', '==', auth.currentUser.uid)
-                .get();
-            
-            trades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            trades.sort((a,b) => new Date(b.date) - new Date(a.date));
-            renderUI();
-        } catch (e) { console.error(e); }
+        const snapshot = await db.collection('trades')
+            .where('userId', '==', auth.currentUser.uid)
+            .get();
+        
+        trades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        trades.sort((a,b) => new Date(b.date) - new Date(a.date));
+        renderUI();
     }
 
     async function deleteTrade(id) {
-        if(confirm("Trade wirklich löschen?")) { 
+        if(confirm("Löschen?")) { 
             await db.collection('trades').doc(id).delete(); 
             loadTrades(); 
         }
     }
 
+    // 4. Anzeige & Chart
     function renderUI() {
         const body = document.getElementById('tradeBody');
         body.innerHTML = '';
@@ -185,14 +217,13 @@
                     <td><strong>${t.asset}</strong></td>
                     <td class="${t.pnl >= 0 ? 'profit' : 'loss'}">${t.pnl.toFixed(2)}€</td>
                     <td style="color: #888; font-style: italic;">${t.note || ''}</td>
-                    <td style="text-align:right"><button onclick="deleteTrade('${t.id}')" style="background:transparent; border:none; color:#cf6679; cursor:pointer;">Löschen</button></td>
+                    <td style="text-align:right"><button onclick="deleteTrade('${t.id}')" style="background:transparent; border:none; color:#cf6679; cursor:pointer;">X</button></td>
                 </tr>`;
         });
 
         document.getElementById('statTotal').innerText = `${total.toFixed(2)} €`;
         document.getElementById('statTotal').className = total >= 0 ? 'profit' : 'loss';
-        const wr = closedCount > 0 ? (wins / closedCount * 100).toFixed(1) : 0;
-        document.getElementById('statWinRate').innerText = `${wr}%`;
+        document.getElementById('statWinRate').innerText = closedCount > 0 ? `${(wins / closedCount * 100).toFixed(1)}%` : '0%';
         updateChart();
     }
 
@@ -201,16 +232,34 @@
         const sorted = [...trades].filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
         let sum = 0;
         const data = sorted.map(t => { sum += t.pnl; return sum; });
+        
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'line',
-            data: { labels: sorted.map(t => t.date), datasets: [{ label: 'Equity Verlauf', data: data, borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)', fill: true, tension: 0.3 }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#333' } }, x: { grid: { display: false } } } }
+            data: { 
+                labels: sorted.map(t => t.date), 
+                datasets: [{ 
+                    label: 'Equity', 
+                    data: data, 
+                    borderColor: '#bb86fc', 
+                    backgroundColor: 'rgba(187, 134, 252, 0.05)', 
+                    fill: true, 
+                    tension: 0.3 
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { grid: { color: '#222' }, ticks: { color: '#888' } },
+                    x: { grid: { display: false }, ticks: { color: '#888' } }
+                } 
+            }
         });
     }
 
     function resetForm() {
-        document.getElementById('editId').value = '';
         document.getElementById('asset').value = '';
         document.getElementById('pnl').value = '';
         document.getElementById('note').value = '';
