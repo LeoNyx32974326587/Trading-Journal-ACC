@@ -61,12 +61,15 @@
         
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        .img-preview { width: 50px; height: 35px; border-radius: 6px; object-fit: cover; border: 1px solid #333; cursor: pointer; }
+
+        .member-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; }
+        .btn-delete-small { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 
         /* Lot Rechner Styles */
         .calc-group { margin-bottom: 15px; }
         .calc-group label { display: block; font-size: 0.85rem; color: #888; margin-bottom: 5px; margin-left: 5px; }
         #lotResult { font-size: 2.5rem; font-weight: 900; color: var(--success); text-align: center; margin: 20px 0; }
-        .warning-text { color: #ff5252; font-weight: bold; font-size: 0.8rem; margin-top: 5px; display: block; }
     </style>
 </head>
 <body>
@@ -99,8 +102,19 @@
 <div id="app-content" class="container hidden">
     <section id="view-overview" class="view-section active">
         <h1 id="user-greeting">HALLO</h1>
+        <div id="activeTradesCard" class="card hidden">
+            <h4>OFFENE POSITIONEN</h4>
+            <div id="activeTradesList"></div>
+        </div>
         <div class="card">
             <h4>PERFORMANCE CHART</h4>
+            <div class="chart-controls" style="display: flex; gap: 8px; margin-bottom: 20px;">
+                <button class="chart-btn" onclick="setChartFilter('today', this)">Heute</button>
+                <button class="chart-btn" onclick="setChartFilter('yesterday', this)">Gestern</button>
+                <button class="chart-btn" onclick="setChartFilter('week', this)">Woche</button>
+                <button class="chart-btn" onclick="setChartFilter('month', this)">Monat</button>
+                <button class="chart-btn active" onclick="setChartFilter('year', this)">Jahr</button>
+            </div>
             <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -138,7 +152,6 @@
             <div style="text-align: center; color: #888; font-size: 0.85rem;">BERECHNETE LOTS</div>
             <div id="lotResult">0.01</div>
             <div style="text-align: center; color: var(--danger); font-size: 0.9rem;" id="calcRiskAmount">Risiko: 0.00 €</div>
-            <div id="riskWarning" class="warning-text hidden" style="text-align: center; margin-top: 10px;">⚠️ WARNUNG: Risiko übersteigt Kontogröße!</div>
         </div>
     </section>
 
@@ -172,6 +185,8 @@
                 </select>
             </div>
             <div id="pnlWrapper" class="hidden" style="margin-top:15px;"><input type="number" id="pnl" step="0.01" placeholder="Gewinn / Verlust in €"></div>
+            <input type="url" id="imgSetup" placeholder="Setup URL (TradingView)" style="margin-top:15px;">
+            <div id="outcomeWrapper" class="hidden" style="margin-top:15px;"><input type="url" id="imgResult" placeholder="Ergebnis URL (TradingView)"></div>
             <textarea id="note" placeholder="Deine Notizen..." rows="5" style="margin-top:15px;"></textarea>
             <button onclick="saveTrade()" class="btn-primary" style="margin-top:20px;">Trade speichern</button>
         </div>
@@ -181,9 +196,21 @@
         <div class="card" style="padding:0; overflow-x:auto;">
             <div style="padding: 25px 25px 0 25px;"><h4>KOMPLETTE HISTORIE</h4></div>
             <table>
-                <thead><tr><th>Datum</th><th>Asset</th><th>Mood</th><th>P&L</th><th>Aktion</th></tr></thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>Mood</th><th>Charts</th><th>P&L</th><th>Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
+        </div>
+    </section>
+
+    <section id="view-settings" class="view-section">
+        <div class="card">
+            <h4>NEUES MITGLIED ZULASSEN</h4>
+            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                <input type="email" id="newMemberEmail" placeholder="beispiel@gmail.com">
+                <button onclick="addMember()" class="btn-primary" style="width: auto; padding: 0 30px;">Add</button>
+            </div>
+            <h4>ZUGELASSENE NUTZER</h4>
+            <div id="memberList"></div>
         </div>
     </section>
 </div>
@@ -204,67 +231,114 @@
     const adminEmail = "leon.luca.lauterbach@gmail.com";
 
     let trades = [];
+    let ovChart;
+    const moodMap = { "Neutral": "😐", "Sicher": "😊", "Angst": "😨", "Wut": "😡" };
     const myAssets = ["BTCUSD", "ETHUSD", "EURUSD", "GBPUSD", "GOLD", "DAX", "NASDAQ"];
+
+    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e => showAuthError(e.message)); }
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
-            document.getElementById('auth-overlay').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('main-header').classList.remove('hidden');
-            loadTrades();
+            const firstName = user.displayName ? user.displayName.split(' ')[0] : "Trader";
+            document.getElementById('user-greeting').innerText = `HALLO ${firstName.toUpperCase()}`;
+            const email = user.email.toLowerCase();
+            const memberDoc = await db.collection('members').doc(email).get();
+            const isAdmin = (email === adminEmail);
+            if (isAdmin || memberDoc.exists) {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('main-header').classList.remove('hidden');
+                isAdmin ? document.getElementById('admin-link').classList.remove('hidden') : null;
+                loadTrades();
+            } else { auth.signOut(); showAuthError("Zugriff verweigert."); }
         }
     });
 
+    async function loadTrades() {
+        const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
+        trades = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderUI();
+    }
+
     function calculateLots() {
-        const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
-        const riskPercent = parseFloat(document.getElementById('calcRisk').value) || 0;
-        const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
-        const stop = parseFloat(document.getElementById('calcStop').value) || 0;
+        const balance = parseFloat(document.getElementById('calcBalance').value);
+        const riskPercent = parseFloat(document.getElementById('calcRisk').value);
+        const entry = parseFloat(document.getElementById('calcEntry').value);
+        const stop = parseFloat(document.getElementById('calcStop').value);
         const asset = document.getElementById('calcAsset').value;
-
-        const riskAmount = balance * (riskPercent / 100);
-        const warningBox = document.getElementById('riskWarning');
-        const riskLabel = document.getElementById('calcRiskAmount');
-
-        // Sicherheitsabfrage: Risiko > Kapital
-        if (riskAmount > balance && balance > 0) {
-            warningBox.classList.remove('hidden');
-            riskLabel.style.color = "#ff5252";
-        } else {
-            warningBox.classList.add('hidden');
-            riskLabel.style.color = "var(--danger)";
-        }
 
         if (!balance || !riskPercent || !entry || !stop || entry === stop) {
             document.getElementById('lotResult').innerText = "0.01";
-            riskLabel.innerText = `Risiko: ${riskAmount.toFixed(2)} €`;
             return;
         }
 
+        const riskAmount = balance * (riskPercent / 100);
         const pipsDiff = Math.abs(entry - stop);
-        let lotSize = 0;
         
+        let lotSize = 0;
         if (asset.includes("USD") && asset !== "BTCUSD") {
             lotSize = riskAmount / (pipsDiff * 100000); 
         } else if (asset === "GOLD") {
             lotSize = riskAmount / (pipsDiff * 100); 
+        } else if (asset === "BTCUSD") {
+            lotSize = riskAmount / pipsDiff; 
         } else {
             lotSize = riskAmount / pipsDiff; 
         }
 
-        document.getElementById('lotResult').innerText = Math.max(0.01, lotSize).toFixed(2);
-        riskLabel.innerText = `Risiko: ${riskAmount.toFixed(2)} €`;
+        // MINDESTLOT LOGIK: Immer mindestens 0.01
+        const finalLot = Math.max(0.01, lotSize);
+
+        document.getElementById('lotResult').innerText = finalLot.toFixed(2);
+        document.getElementById('calcRiskAmount').innerText = `Risiko: ${riskAmount.toFixed(2)} €`;
+    }
+
+    function renderUI() {
+        let totalPnl = 0, wins = 0, closed = 0;
+        const body = document.getElementById('tradeBody');
+        body.innerHTML = '';
+        trades.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+            if(t.status === 'Geschlossen') { totalPnl += t.pnl; closed++; if(t.pnl > 0) wins++; }
+            body.innerHTML += `<tr><td>${t.date.split('T')[0]}</td><td><b>${t.asset}</b></td><td>${moodMap[t.mindset] || "😐"}</td><td>${t.imgSetup?'📸':''}</td><td style="font-weight:bold;">${t.pnl.toFixed(2)}€</td><td><button onclick="deleteTrade('${t.id}')">✘</button></td></tr>`;
+        });
+        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
+        document.getElementById('ovWinRate').innerText = closed > 0 ? (wins/closed*100).toFixed(1) + "%" : "0%";
+        updateChart();
+    }
+
+    async function saveTrade() {
+        const t = {
+            date: document.getElementById('datetime').value,
+            asset: document.getElementById('assetDropdown').value,
+            status: document.getElementById('status').value,
+            mindset: document.getElementById('mindset').value,
+            pnl: parseFloat(document.getElementById('pnl').value) || 0,
+            imgSetup: document.getElementById('imgSetup').value,
+            userId: auth.currentUser.uid
+        };
+        await db.collection('trades').add(t);
+        loadTrades(); showView('overview');
     }
 
     function showView(v) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-'+v).classList.add('active');
         document.getElementById('navDrawer').classList.remove('open');
+        document.getElementById('view-title').innerText = v.toUpperCase();
     }
 
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
+    function toggleOutcomeFields() { document.getElementById('pnlWrapper').classList.toggle('hidden', document.getElementById('status').value !== 'Geschlossen'); }
     
-    // Initialisierung der Dropdowns
+    function updateChart() {
+        const ctx = document.getElementById('ovChart').getContext('2d');
+        const filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
+        let sum = 0; const points = filtered.map(t => { sum += t.pnl; return sum; });
+        if(ovChart) ovChart.destroy();
+        ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    }
+
+    // Dropdowns füllen
     document.getElementById('assetDropdown').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');
     document.getElementById('calcAsset').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');
 </script>
