@@ -14,8 +14,13 @@
         .hidden { display: none !important; }
         header { display: flex; align-items: center; padding: 15px 20px; background: #161616; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .menu-btn { cursor: pointer; font-size: 1.6rem; color: var(--accent); background: none; border: none; padding: 10px; }
-        h4 { color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 1.5px; margin-bottom: 20px; }
-        #user-greeting { font-size: 2.2rem; font-weight: 800; margin-bottom: 30px; background: linear-gradient(45deg, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Einheitliche Überschriften für alle Kategorien */
+        h4 { color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 1.5px; margin-bottom: 20px; margin-top: 0; }
+        
+        #greeting-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        #user-greeting { font-size: 2.2rem; font-weight: 800; margin: 0; background: linear-gradient(45deg, var(--accent), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 200; padding-top: 80px; }
         .nav-drawer.open { left: 0; }
         .nav-drawer button { display: block; width: 100%; padding: 18px 25px; text-align: left; background: none; border: none; color: var(--text-main); font-size: 1.1rem; cursor: pointer; }
@@ -29,6 +34,7 @@
         .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
         input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; }
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; }
+        .btn-small { background: var(--accent); color: black; padding: 10px 20px; border: none; font-weight: 700; cursor: pointer; border-radius: 8px; font-size: 0.9rem; text-transform: uppercase; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .btn-close-trade { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
@@ -63,7 +69,11 @@
 
 <div id="app-content" class="container hidden">
     <section id="view-overview" class="view-section active">
-        <h1 id="user-greeting">HALLO</h1>
+        <div id="greeting-container">
+            <h1 id="user-greeting">HALLO</h1>
+            <button class="btn-small" onclick="prepareCreateView()">+ Neuer Trade</button>
+        </div>
+        
         <div id="overview-active-trades" class="card hidden">
             <h4>OFFENE TRADES</h4>
             <div id="activeListOverview"></div>
@@ -119,6 +129,7 @@
 
     <section id="view-history" class="view-section">
         <div class="card" style="padding:0; overflow-x:auto;">
+            <div style="padding: 25px 25px 0 25px;"><h4>HISTORIE</h4></div>
             <table>
                 <thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Links</th><th>Notiz</th><th>Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
@@ -148,14 +159,17 @@
     </section>
 
     <section id="view-news" class="view-section">
-        <div class="card" style="padding: 0; height: 600px; overflow: hidden;">
-            <iframe src="https://www.myfxbook.com/de/forex-economic-calendar/widget" style="width: 100%; height: 100%; border: none;"></iframe>
+        <div class="card">
+            <h4>NEWS / WIRTSCHAFTSKALENDER</h4>
+            <div style="height: 600px; overflow: hidden; margin-top: 10px;">
+                <iframe src="https://www.myfxbook.com/de/forex-economic-calendar/widget" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
         </div>
     </section>
 
     <section id="view-settings" class="view-section">
         <div class="card">
-            <h4>EINSTELLUNGEN - ADMIN</h4>
+            <h4>EINSTELLUNGEN</h4>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <input type="email" id="newMemberEmail" placeholder="Email hinzufügen">
                 <button onclick="addMember()" class="chart-btn" style="background:var(--accent); color:black;">Add</button>
@@ -166,6 +180,7 @@
 </div>
 
 <script>
+    // Firebase Config & Assets (unverändert)
     const firebaseConfig = {
         apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",
         authDomain: "trading-journal-acc.firebaseapp.com",
@@ -234,12 +249,10 @@
         loadTrades(); showView('overview');
     }
 
-    // ÄNDERUNG: Direktes Schließen öffnet Bearbeitungsfenster mit Status "Geschlossen"
     function quickClose(id) {
-        const t = trades.find(x => x.id === id);
-        editTrade(id); // Öffnet Bearbeitungsansicht
-        document.getElementById('status').value = 'Geschlossen'; // Setzt Status automatisch
-        toggleOutcomeFields(); // Blendet P&L Felder ein
+        editTrade(id);
+        document.getElementById('status').value = 'Geschlossen';
+        toggleOutcomeFields();
     }
 
     function editTrade(id) {
@@ -332,12 +345,13 @@
     async function deleteMember(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); loadMembers(); } }
 
     function prepareCreateView() {
+        showView('entry');
         document.getElementById('entry-headline').innerText = "TRADE ERSTELLEN";
         document.getElementById('editId').value = "";
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('datetime').value = now.toISOString().slice(0,16);
         document.getElementById('pnl').value = ""; document.getElementById('imgSetup').value = ""; document.getElementById('imgResult').value = ""; document.getElementById('note').value = "";
-        toggleOutcomeFields(); showView('entry');
+        toggleOutcomeFields();
     }
 
     function toggleOutcomeFields() {
