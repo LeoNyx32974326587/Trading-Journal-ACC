@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Management</title>
+    <title>TradeCloud Pro - Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -18,9 +18,9 @@
         .hidden { display: none !important; }
 
         header { display: flex; align-items: center; padding: 12px 20px; background: #161616; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .menu-btn { cursor: pointer; font-size: 1.4rem; color: var(--accent); background: none; border: none; padding: 10px; }
+        .menu-btn { cursor: pointer; font-size: 1.4rem; color: var(--accent); background: none; border: none; padding: 10px; z-index: 300; }
         
-        .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; padding-top: 60px; }
+        .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 200; padding-top: 80px; }
         .nav-drawer.open { left: 0; }
         .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); font-size: 0.95rem; cursor: pointer; }
         .nav-drawer button:hover { background: #222; color: var(--accent); }
@@ -31,27 +31,27 @@
         .auth-box { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--accent); width: 320px; text-align: center; }
         .auth-box input { width: 100%; margin-bottom: 12px; padding: 12px; background: #000; border: 1px solid var(--border); color: white; border-radius: 8px; box-sizing: border-box; }
 
-        .view-section { display: none; animation: fadeIn 0.3s ease; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
 
         .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; }
         
         .btn-primary { background: var(--accent); color: black; padding: 12px; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; }
-        .btn-edit { background: none; border: 1px solid #444; color: #aaa; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
-        .btn-delete { background: none; border: 1px solid #444; color: var(--danger); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-left: 5px; }
+        .btn-edit { background: none; border: 1px solid #444; color: #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-delete { color: var(--danger); border: 1px solid var(--danger); background: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px; }
         
-        .chart-controls { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        .chart-btn { padding: 6px 12px; font-size: 0.7rem; background: #222; border: 1px solid #333; color: white; border-radius: 4px; cursor: pointer; }
+        .chart-controls { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .chart-btn { padding: 6px 12px; font-size: 0.7rem; background: #222; border: 1px solid #333; color: white; border-radius: 4px; cursor: pointer; white-space: nowrap; }
         .chart-btn.active { background: var(--accent); color: black; border-color: var(--accent); }
 
-        .table-container { overflow-x: auto; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
         .profit { color: var(--success); } .loss { color: var(--danger); }
     </style>
 </head>
@@ -61,15 +61,15 @@
     <div class="auth-box">
         <h2 style="color: var(--accent)">TradeCloud</h2>
         <input type="email" id="email" placeholder="E-Mail">
-        <input type="password" id="password" placeholder="Passwort">
+        <input type="password" id="password" placeholder="Passwort (123456)">
         <button onclick="handleLogin()" class="btn-primary">Login</button>
     </div>
 </div>
 
 <header id="main-header" class="hidden">
     <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
-    <h3 id="view-title" style="color: var(--accent); margin: 0; flex-grow: 1; font-weight: 500;">ÜBERSICHT</h3>
-    <button class="btn-edit" onclick="auth.signOut()">Logout</button>
+    <h3 id="view-title" style="color: var(--accent); margin-left: 15px; flex-grow: 1; font-weight: 500;">ÜBERSICHT</h3>
+    <button class="btn-edit" onclick="auth.signOut()" style="font-size: 0.7rem;">Logout</button>
 </header>
 
 <nav class="nav-drawer" id="navDrawer">
@@ -81,20 +81,24 @@
 <div id="app-content" class="container hidden">
     <section id="view-overview" class="view-section active">
         <div class="card" style="border-left: 4px solid var(--success);">
-            <div class="stat-label">Aktuelle Positionen</div>
-            <div id="openTradesContainer"></div>
+            <div class="stat-label">Offene Trades</div>
+            <div id="openTradesContainer" style="margin-top:10px;"></div>
         </div>
 
         <div class="card">
-            <div class="stat-label" style="margin-bottom: 15px;">Performance Graph</div>
             <div class="chart-controls">
                 <button class="chart-btn" onclick="updateChartPeriod('today', this)">Heute</button>
-                <button class="chart-btn" onclick="updateChartPeriod('yesterday', this)">Gestern</button>
                 <button class="chart-btn" onclick="updateChartPeriod('week', this)">Woche</button>
                 <button class="chart-btn" onclick="updateChartPeriod('month', this)">Monat</button>
                 <button class="chart-btn active" onclick="updateChartPeriod('year', this)">Jahr</button>
             </div>
-            <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
+            <div id="periodProfit" style="font-size: 0.8rem; margin-bottom: 10px; color: var(--accent);">Profit: 0.00€</div>
+            <div style="height: 250px;"><canvas id="ovChart"></canvas></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="card"><div class="stat-label">Gesamt P&L</div><div id="ovTotal" class="stat-val">0.00 €</div></div>
+            <div class="card"><div class="stat-label">Win Rate</div><div id="ovWinRate" class="stat-val">0%</div></div>
         </div>
     </section>
 
@@ -121,9 +125,9 @@
     </section>
 
     <section id="view-history" class="view-section">
-        <div class="table-container">
+        <div class="card" style="padding: 0; overflow-x: auto;">
             <table>
-                <thead><tr><th>Zeitpunkt</th><th>Asset</th><th>Status</th><th>P&L</th><th style="text-align:right">Aktion</th></tr></thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>Status</th><th>P&L</th><th style="text-align:right">Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
@@ -149,6 +153,17 @@
     let ovChart;
     let currentPeriod = 'year';
 
+    function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
+
+    function showView(viewId) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('view-title').innerText = viewId.toUpperCase();
+        if(viewId === 'entry' && !document.getElementById('editId').value) setNow();
+        document.getElementById('navDrawer').classList.remove('open');
+        renderUI();
+    }
+
     function setNow() {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -161,21 +176,20 @@
         document.getElementById('outcomeWrapper').classList.toggle('hidden', !isClosed);
     }
 
-    function showView(viewId) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
-        if(viewId === 'entry' && !document.getElementById('editId').value) setNow();
-        renderUI();
-    }
-
     auth.onAuthStateChanged(user => {
-        if (user) { loadTrades(); document.getElementById('auth-overlay').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); document.getElementById('main-header').classList.remove('hidden'); }
-        else { document.getElementById('auth-overlay').classList.remove('hidden'); }
+        if (user) { 
+            loadTrades(); 
+            document.getElementById('auth-overlay').classList.add('hidden'); 
+            document.getElementById('app-content').classList.remove('hidden'); 
+            document.getElementById('main-header').classList.remove('hidden'); 
+        } else { 
+            document.getElementById('auth-overlay').classList.remove('hidden'); 
+        }
     });
 
     async function handleLogin() {
         const e = document.getElementById('email').value;
-        try { await auth.signInWithEmailAndPassword(e, "123456"); } catch(e) { alert("Login Error"); }
+        try { await auth.signInWithEmailAndPassword(e, "123456"); } catch(err) { alert("Fehler beim Login"); }
     }
 
     async function loadTrades() {
@@ -191,9 +205,9 @@
             asset: document.getElementById('assetDropdown').value,
             status: document.getElementById('status').value,
             pnl: parseFloat(document.getElementById('pnl').value) || 0,
-            imgSetup: document.getElementById('imgSetup').value,
-            imgResult: document.getElementById('imgResult').value,
-            note: document.getElementById('note').value,
+            imgSetup: document.getElementById('imgSetup').value || '',
+            imgResult: document.getElementById('imgResult').value || '',
+            note: document.getElementById('note').value || '',
             userId: auth.currentUser.uid
         };
         if(id) await db.collection('trades').doc(id).update(t);
@@ -202,10 +216,7 @@
     }
 
     async function deleteTrade(id) {
-        if(confirm("Diesen Trade unwiderruflich löschen?")) {
-            await db.collection('trades').doc(id).delete();
-            loadTrades();
-        }
+        if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); }
     }
 
     function editTrade(id) {
@@ -215,8 +226,8 @@
         document.getElementById('assetDropdown').value = t.asset;
         document.getElementById('status').value = t.status;
         document.getElementById('pnl').value = t.pnl;
-        document.getElementById('imgSetup').value = t.imgSetup || '';
-        document.getElementById('imgResult').value = t.imgResult || '';
+        document.getElementById('imgSetup').value = t.imgSetup;
+        document.getElementById('imgResult').value = t.imgResult;
         document.getElementById('note').value = t.note;
         toggleOutcomeFields();
         showView('entry');
@@ -230,14 +241,43 @@
     }
 
     function renderUI() {
-        const open = trades.filter(t => t.status === 'Aktiv');
-        document.getElementById('openTradesContainer').innerHTML = open.length ? open.map(t => `<div style="padding:10px 0; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center;"><span><b>${t.asset}</b></span><button class="btn-edit" onclick="editTrade('${t.id}')">Schließen</button></div>`).join('') : '<div class="empty-state">Keine offenen Positionen</div>';
-
+        // Stats Berechnung
+        let totalPnl = 0;
+        let wins = 0;
+        let closedCount = 0;
+        
         const body = document.getElementById('tradeBody');
         body.innerHTML = '';
+
         [...trades].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            body.innerHTML += `<tr><td>${t.date.replace('T', ' ')}</td><td>${t.asset}</td><td>${t.status}</td><td class="${t.pnl>=0?'profit':'loss'}">${t.pnl.toFixed(2)}€</td><td style="text-align:right"><button class="btn-edit" onclick="editTrade('${t.id}')">✎</button><button class="btn-delete" onclick="deleteTrade('${t.id}')">X</button></td></tr>`;
+            if(t.status === 'Geschlossen') {
+                totalPnl += t.pnl;
+                closedCount++;
+                if(t.pnl > 0) wins++;
+            }
+            body.innerHTML += `<tr>
+                <td>${t.date.split('T')[0]}</td>
+                <td><b>${t.asset}</b></td>
+                <td>${t.status}</td>
+                <td class="${t.pnl>=0?'profit':'loss'}">${t.pnl.toFixed(2)}€</td>
+                <td style="text-align:right">
+                    <button class="btn-edit" onclick="editTrade('${t.id}')">✎</button>
+                    <button class="btn-delete" onclick="deleteTrade('${t.id}')">X</button>
+                </td>
+            </tr>`;
         });
+
+        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
+        document.getElementById('ovTotal').className = 'stat-val ' + (totalPnl >= 0 ? 'profit' : 'loss');
+        document.getElementById('ovWinRate').innerText = closedCount > 0 ? ((wins/closedCount)*100).toFixed(1) + "%" : "0%";
+
+        // Offene Trades
+        const open = trades.filter(t => t.status === 'Aktiv');
+        document.getElementById('openTradesContainer').innerHTML = open.length ? open.map(t => `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #222;">
+                <span><b>${t.asset}</b> <small style="color:#666">${t.date.split('T')[1]}</small></span>
+                <button class="btn-edit" onclick="editTrade('${t.id}')">Schließen</button>
+            </div>`).join('') : '<div style="color:#555; font-size:0.8rem;">Keine Positionen aktiv</div>';
 
         updateChart();
     }
@@ -246,23 +286,34 @@
         const ctx = document.getElementById('ovChart').getContext('2d');
         const now = new Date();
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        
+
         const filtered = trades.filter(t => {
             if(t.status !== 'Geschlossen') return false;
-            const tDate = new Date(t.date).getTime();
-            if(currentPeriod === 'today') return tDate >= startOfToday;
-            if(currentPeriod === 'yesterday') return tDate >= (startOfToday - 86400000) && tDate < startOfToday;
-            if(currentPeriod === 'week') return tDate >= (now.getTime() - 604800000);
-            if(currentPeriod === 'month') return tDate >= (now.getTime() - 2592000000);
+            const d = new Date(t.date).getTime();
+            if(currentPeriod === 'today') return d >= startOfToday;
+            if(currentPeriod === 'week') return d >= (now.getTime() - 604800000);
+            if(currentPeriod === 'month') return d >= (now.getTime() - 2592000000);
             return true;
         }).sort((a,b) => new Date(a.date) - new Date(b.date));
 
         let sum = 0;
-        const points = filtered.map(t => { sum += t.pnl; return sum; });
+        let periodSum = 0;
+        const points = filtered.map(t => { 
+            sum += t.pnl; 
+            periodSum += t.pnl;
+            return sum; 
+        });
+
+        document.getElementById('periodProfit').innerText = `Profit im Zeitraum: ${periodSum.toFixed(2)}€`;
+        document.getElementById('periodProfit').className = periodSum >= 0 ? 'profit' : 'loss';
+
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: filtered.map(t => t.date.split('T')[1] || t.date), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.3, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] },
+            data: { 
+                labels: filtered.map(t => t.date.split('T')[1] || t.date.split('T')[0]), 
+                datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.3, fill: true, backgroundColor: 'rgba(187,134,252,0.1)', pointRadius: 2 }] 
+            },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
         });
     }
@@ -273,11 +324,11 @@
         document.getElementById('imgSetup').value = '';
         document.getElementById('imgResult').value = '';
         document.getElementById('note').value = '';
-        setNow();
+        document.getElementById('status').value = 'Aktiv';
+        toggleOutcomeFields();
     }
 
     document.getElementById('assetDropdown').innerHTML = myAssets.map(a => `<option value="${a}">${a}</option>`).join('');
-    function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
 </script>
 </body>
 </html>
