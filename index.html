@@ -15,9 +15,22 @@
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); margin: 0; color: var(--text-main); }
         .hidden { display: none !important; }
+        
+        /* Haupt-Header Style */
         header { display: flex; align-items: center; padding: 12px 20px; background: #161616; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .menu-btn { cursor: pointer; font-size: 1.4rem; color: var(--accent); background: none; border: none; padding: 10px; }
         
+        /* NEU: Vereinheitlichte Überschriften für Untergruppen */
+        h4 { 
+            color: var(--accent); 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            font-size: 1rem; 
+            letter-spacing: 1px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #161616; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 200; padding-top: 80px; }
         .nav-drawer.open { left: 0; }
         .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); font-size: 1rem; cursor: pointer; }
@@ -46,7 +59,6 @@
         .profit { color: var(--success); } .loss { color: var(--danger); }
         .img-preview { width: 40px; height: 28px; object-fit: cover; border-radius: 4px; border: 1px solid #333; cursor: pointer; margin-right: 4px; }
 
-        /* NEU: Tooltip für Notizen */
         .note-cell {
             position: relative;
             cursor: help;
@@ -71,7 +83,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        /* Member List */
         .member-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); align-items: center; }
         .btn-delete-small { background: var(--danger); color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
     </style>
@@ -104,7 +115,7 @@
 <div id="app-content" class="container hidden">
     <section id="view-overview" class="view-section active">
         <div id="activeTradesCard" class="card hidden">
-            <h4 style="margin:0 0 10px 0; color:var(--accent); font-size:0.8rem; letter-spacing:1px;">OFFENE POSITIONEN</h4>
+            <h4>OFFENE POSITIONEN</h4>
             <div id="activeTradesList"></div>
         </div>
         <div class="card">
@@ -125,6 +136,7 @@
 
     <section id="view-entry" class="view-section">
         <div class="card">
+            <h4>TRADE DATEN</h4>
             <input type="hidden" id="editId">
             <div class="input-group">
                 <input type="datetime-local" id="datetime">
@@ -152,6 +164,7 @@
 
     <section id="view-history" class="view-section">
         <div class="card" style="padding:0; overflow-x:auto;">
+            <div style="padding: 20px 20px 0 20px;"><h4>TRADE HISTORIE</h4></div>
             <table>
                 <thead><tr><th>Datum</th><th>Asset</th><th>Mood</th><th>Charts</th><th>Notiz</th><th>P&L</th><th>Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
@@ -161,12 +174,12 @@
 
     <section id="view-settings" class="view-section">
         <div class="card">
-            <h4 style="color: var(--accent);">Mitglied hinzufügen</h4>
+            <h4>MITGLIED HINZUFÜGEN</h4>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <input type="email" id="newMemberEmail" placeholder="beispiel@gmail.com">
                 <button onclick="addMember()" class="btn-primary" style="width: auto; padding: 0 20px;">Hinzufügen</button>
             </div>
-            <h4 style="color: var(--accent);">Mitgliederliste</h4>
+            <h4>MITGLIEDERLISTE</h4>
             <div id="memberList"></div>
         </div>
     </section>
@@ -297,7 +310,6 @@
         if(v === 'entry' && !document.getElementById('editId').value) setNow();
     }
 
-    // --- ADMIN LOGIK ---
     async function addMember() {
         const email = document.getElementById('newMemberEmail').value.trim().toLowerCase();
         if(!email) return;
@@ -315,7 +327,6 @@
     }
     async function removeMember(e) { if(confirm("Entfernen?")) { await db.collection('members').doc(e).delete(); loadMemberList(); } }
 
-    // --- HELPERS ---
     function setNow() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); document.getElementById('datetime').value = now.toISOString().slice(0, 16); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function setChartFilter(f, btn) { currentFilter = f; document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); updateChart(); }
@@ -323,6 +334,7 @@
     function resetForm() { document.getElementById('editId').value = ''; document.getElementById('pnl').value = ''; document.getElementById('imgSetup').value = ''; document.getElementById('imgResult').value = ''; document.getElementById('note').value = ''; document.getElementById('status').value = 'Aktiv'; toggleOutcomeFields(); setNow(); }
     function editTrade(id) { const t = trades.find(i => i.id === id); document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date; document.getElementById('assetDropdown').value = t.asset; document.getElementById('status').value = t.status; document.getElementById('mindset').value = t.mindset || 'Neutral'; document.getElementById('pnl').value = t.pnl; document.getElementById('imgSetup').value = t.imgSetup; document.getElementById('imgResult').value = t.imgResult; document.getElementById('note').value = t.note; toggleOutcomeFields(); showView('entry'); }
     function closeTradeFast(id) { editTrade(id); document.getElementById('status').value = 'Geschlossen'; toggleOutcomeFields(); }
+    
     function updateChart() {
         const ctx = document.getElementById('ovChart').getContext('2d');
         const filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
