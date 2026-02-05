@@ -112,6 +112,7 @@
 
 <nav class="nav-drawer" id="navDrawer">
     <button onclick="showView('overview')">🏠 Übersicht</button>
+    <button onclick="showView('news')">📰 News</button>
     <button onclick="showView('entry')">➕ Trade erstellen</button>
     <button onclick="showView('history')">📜 Historie</button>
     <button id="admin-link" class="hidden" onclick="showView('settings')" style="color: #ffb74d;">⚙️ Einstellungen</button>
@@ -138,16 +139,18 @@
             <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">GESAMT PROFIT</div><div id="ovTotal" style="font-size:2rem; font-weight:800;">0.00 €</div></div>
             <div class="card"><div style="font-size:0.85rem; color:#888; letter-spacing:1px;">WIN RATE</div><div id="ovWinRate" style="font-size:2rem; font-weight:800;">0%</div></div>
         </div>
+    </section>
 
-        <div class="card" style="padding: 10px; min-height: 420px; overflow: hidden;">
+    <section id="view-news" class="view-section">
+        <div class="card" style="padding: 10px; min-height: 600px; overflow: hidden;">
             <h4 style="margin: 20px 0 15px 20px;">WICHTIGE NEWS (HIGH IMPACT)</h4>
-            <div class="tradingview-widget-container" style="width: 100%; height: 400px;">
+            <div class="tradingview-widget-container" style="width: 100%; height: 550px;">
                 <iframe 
-                    src="https://www.tradingview-widget.com/embed-widget/events/?locale=de#%7B%22colorTheme%22%3A%22dark%22%2C%22isMaximized%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22400%22%2C%22importanceFilter%22%3A%221%22%2C%22currencyFilter%22%3A%22USD%2CEUR%2CGBP%2CJPY%2Caud%2Ccad%2Cchf%22%7D" 
+                    src="https://www.tradingview-widget.com/embed-widget/events/?locale=de#%7B%22colorTheme%22%3A%22dark%22%2C%22isMaximized%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22550%22%2C%22importanceFilter%22%3A%221%22%2C%22currencyFilter%22%3A%22USD%2CEUR%2CGBP%2CJPY%2Caud%2Ccad%2Cchf%22%7D" 
                     style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
                     frameborder="0">
                 </iframe>
