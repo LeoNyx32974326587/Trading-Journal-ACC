@@ -3,59 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Ultimate</title>
+    <title>TradeCloud Pro - Fixed Layout</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* THEMES */
+        /* --- THEMES & COLORS --- */
         :root { 
             --bg-dark: #0f0f0f; --card-bg: #1a1a1a; --text-main: #e0e0e0; 
             --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #2c2c2c; 
             --blur: 0px;
         }
-        
         body.light-mode {
             --bg-dark: #f0f2f5; --card-bg: #ffffff; --text-main: #1c1e21;
             --accent: #6200ee; --border: #ddd;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 30px; transition: background 0.3s, color 0.3s; }
+        /* --- GLOBAL LAYOUT --- */
+        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 40px; transition: background 0.3s, color 0.3s; }
         .hidden { display: none !important; }
         
-        /* HEADER & PRIVACY */
+        /* WICHTIG: Das hier repariert das "Alles auf einer Seite" Problem */
+        .view-section { display: none; animation: fadeIn 0.3s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- HEADER --- */
         header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; }
-        .menu-btn { cursor: pointer; font-size: 1.8rem; color: var(--accent); background: none; border: none; padding: 5px; }
-        #view-title { margin-left: 15px; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
+        .menu-btn { cursor: pointer; font-size: 1.8rem; color: var(--accent); background: none; border: none; padding: 5px; margin-right: 15px; }
+        #view-title { font-weight: 800; color: var(--accent); letter-spacing: 1px; }
         
-        /* Privacy Blur Class */
+        /* Privacy Blur Effect */
         .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
-        
-        /* NAV DRAWER */
+        .icon-btn-header { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-main); }
+
+        /* --- NAVIGATION DRAWER --- */
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 60px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
         .nav-drawer.open { left: 0; }
         .nav-drawer button { display: block; width: 100%; padding: 18px 25px; text-align: left; background: none; border: none; color: var(--text-main); cursor: pointer; border-bottom: 1px solid var(--border); font-size: 1rem; }
-        
-        /* LAYOUT & CARDS */
+        .nav-drawer button:hover { background: rgba(255,255,255,0.05); }
+
+        /* --- CARDS & CONTAINERS --- */
         .container { max-width: 1000px; margin: 15px auto; padding: 0 15px; box-sizing: border-box; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; transition: background 0.3s; }
         
-        /* DRAWDOWN ALERT */
-        .dd-alert { border: 2px solid var(--danger); box-shadow: 0 0 15px rgba(207, 102, 121, 0.3); animation: pulse 2s infinite; }
+        /* --- ALERTS --- */
+        .dd-alert { border: 2px solid var(--danger); box-shadow: 0 0 15px rgba(207, 102, 121, 0.3); background: rgba(207, 102, 121, 0.1); color: var(--danger); text-align: center; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(207, 102, 121, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(207, 102, 121, 0); } 100% { box-shadow: 0 0 0 0 rgba(207, 102, 121, 0); } }
 
-        /* INPUTS */
+        /* --- INPUTS & BUTTONS --- */
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
         
-        /* BUTTONS */
         .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; text-decoration: none; display: inline-block; margin: 2px 0; min-width: 30px; text-align: center; }
         .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
+        
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; text-transform: uppercase; margin-top: 10px; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
         
-        /* TABLE & PREVIEW */
+        /* --- TABLES & PREVIEW --- */
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 500px; }
         th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -64,9 +71,9 @@
         /* Image Preview Tooltip */
         #img-preview { position: fixed; display: none; width: 300px; height: 180px; background-size: cover; background-position: center; border: 2px solid var(--accent); border-radius: 8px; z-index: 999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background-color: #000; pointer-events: none; }
 
-        /* CALENDAR */
+        /* --- CALENDAR --- */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .cal-nav button { background: #333; border: none; color: white; padding: 5px 15px; border-radius: 5px; }
+        .cal-nav button { background: #333; border: none; color: white; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .cal-cell { background: var(--bg-dark); border-radius: 6px; min-height: 70px; padding: 5px; position: relative; border: 1px solid var(--border); }
         .cal-date { font-size: 0.7rem; color: #888; position: absolute; top: 5px; right: 5px; }
@@ -76,14 +83,11 @@
         .cal-pnl-pos { color: var(--success); }
         .cal-pnl-neg { color: var(--danger); }
 
-        /* HEADER ICON BTN */
-        .icon-btn-header { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-main); margin-left: 10px; }
+        /* --- UTILS --- */
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; color: #888; transition: 0.2s; }
+        .icon-btn:hover { color: var(--accent); transform: scale(1.1); }
         
-        /* ICONS */
-        .icon-btn { background: none; border: none; cursor: pointer; padding: 5px; color: #888; }
-        .icon-btn:hover { color: var(--accent); }
-
-        /* POPUPS */
+        /* --- POPUPS --- */
         #auth-overlay, #stats-popup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         #assetInput { text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
     </style>
@@ -102,7 +106,7 @@
 
 <div id="stats-popup" class="hidden">
     <div class="card" style="width: 320px; position: relative; border: 1px solid var(--success);">
-        <button onclick="closeStats()" style="position: absolute; top:10px; right:10px; background:none; border:none; color:var(--text-main); font-size:1.2rem;">✕</button>
+        <button onclick="closeStats()" style="position: absolute; top:10px; right:10px; background:none; border:none; color:var(--text-main); font-size:1.2rem; cursor:pointer;">✕</button>
         <h3 style="color: var(--success); margin-top:0;">USER STATS</h3>
         <p id="stats-email" style="color:#888; font-size:0.9rem; margin-bottom:20px;">-</p>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
@@ -136,12 +140,13 @@
 </nav>
 
 <div id="app-content" class="container hidden">
+    
     <section id="view-Übersicht" class="view-section active">
         <h1 id="user-greeting" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 15px;">DASHBOARD</h1>
         
-        <div id="dd-banner" class="card dd-alert hidden" style="background: rgba(207, 102, 121, 0.1); color: var(--danger); text-align: center;">
+        <div id="dd-banner" class="card dd-alert hidden">
             <h3 style="margin:0;">⚠️ TAGES-LIMIT ERREICHT ⚠️</h3>
-            <p>Dein maximaler Verlust für heute wurde überschritten. Stop Trading!</p>
+            <p style="margin:5px 0 0 0;">Dein maximaler Verlust für heute wurde überschritten. Stop Trading!</p>
         </div>
 
         <div class="card">
@@ -206,7 +211,7 @@
         <div class="card" style="padding:0;">
             <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
                 <h4 style="margin:0;">JOURNAL</h4>
-                <button onclick="downloadCSV()" class="chart-btn" style="background:#333;">CSV EXPORT</button>
+                <button onclick="downloadCSV()" class="chart-btn" style="background:#333;">📥 CSV EXPORT</button>
             </div>
             <div class="table-wrapper">
                 <table>
@@ -219,7 +224,7 @@
 
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
-            <h4>EINSTELLUNGEN</h4>
+            <h4>APP EINSTELLUNGEN</h4>
             
             <label>Design Modus</label>
             <div style="display:flex; gap:10px; margin-bottom:20px;">
@@ -227,11 +232,10 @@
                 <button onclick="setTheme('light')" class="chart-btn" style="flex:1; background:#ddd; color:black;">☀️ Light</button>
             </div>
 
-            <label>Drawdown Monitor (Tages-Limit in €)</label>
-            <input type="number" id="settingMaxLoss" placeholder="z.B. 500">
-            <small style="color:#888; display:block; margin-top:-8px;">Wenn dein Verlust heute größer ist als dieser Wert, wirst du gewarnt.</small>
+            <label>Drawdown Monitor (Warnung bei Tagesverlust)</label>
+            <input type="number" id="settingMaxLoss" placeholder="z.B. 500 (für 500€ Verlustlimit)">
             
-            <button onclick="saveUserSettings()" class="btn-primary" style="margin-top:20px;">Speichern</button>
+            <button onclick="saveUserSettings()" class="btn-primary" style="margin-top:20px;">SPEICHERN</button>
         </div>
     </section>
 
@@ -252,6 +256,7 @@
     <section id="view-Mitglieder" class="view-section">
         <div class="card">
             <h4>MITGLIEDER VERWALTUNG</h4>
+            <p style="font-size:0.9rem; color:#888;">Nutzer freischalten</p>
             <input type="email" id="admEmail" placeholder="E-Mail">
             <button onclick="admAdd()" class="btn-primary">Hinzufügen</button>
             <div id="admList" style="margin-top:20px;"></div>
@@ -267,7 +272,7 @@
     let trades = [], ovChart = null, currentFilter = 'all', calDate = new Date();
     let privacyMode = false;
 
-    // Load Settings
+    // Load Theme on start
     const storedTheme = localStorage.getItem('tradeTheme') || 'dark';
     if(storedTheme === 'light') document.body.classList.add('light-mode');
     
@@ -315,29 +320,18 @@
         } catch(e){}
     }
 
-    // DRAWDOWN CHECK (#4)
+    // --- LOGIC: Drawdown Check ---
     function checkDrawdown() {
         const limit = parseFloat(localStorage.getItem('maxLoss'));
         if(!limit) return;
-        
         const today = new Date().toDateString();
         let todayPnL = 0;
-        trades.forEach(t => {
-            if(t.status === 'Geschlossen' && new Date(t.date).toDateString() === today) {
-                todayPnL += t.pnl;
-            }
-        });
-
-        // Wenn Verlust größer als Limit (z.B. -600 < -500)
+        trades.forEach(t => { if(t.status === 'Geschlossen' && new Date(t.date).toDateString() === today) todayPnL += t.pnl; });
         const banner = document.getElementById('dd-banner');
-        if(todayPnL <= -Math.abs(limit)) {
-            banner.classList.remove('hidden');
-        } else {
-            banner.classList.add('hidden');
-        }
+        if(todayPnL <= -Math.abs(limit)) banner.classList.remove('hidden'); else banner.classList.add('hidden');
     }
 
-    // RENDER UI
+    // --- LOGIC: Render Dashboard ---
     function render() {
         const open = trades.filter(t => t.status === 'Aktiv');
         document.getElementById('open-trades-list').innerHTML = open.length ? open.map(t => `
@@ -367,7 +361,6 @@
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, { type: 'line', data: { labels: closed.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } });
 
-        // Table with Image Preview Logic (#6)
         document.getElementById('tradeBody').innerHTML = trades.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
             <tr>
                 <td>${t.date.split('T')[0]}</td><td><b>${t.asset}</b></td>
@@ -381,43 +374,31 @@
         `).join('');
     }
 
-    // PRIVACY MODE (#3)
+    // --- LOGIC: Privacy & Theme ---
     function togglePrivacy() {
         const root = document.documentElement;
-        if(privacyMode) {
-            root.style.setProperty('--blur', '0px');
-            privacyMode = false;
-        } else {
-            root.style.setProperty('--blur', '6px');
-            privacyMode = true;
-        }
+        if(privacyMode) { root.style.setProperty('--blur', '0px'); privacyMode = false; }
+        else { root.style.setProperty('--blur', '6px'); privacyMode = true; }
     }
-
-    // THEME MODE (#5) & SETTINGS
     function setTheme(mode) {
         if(mode === 'light') document.body.classList.add('light-mode');
         else document.body.classList.remove('light-mode');
         localStorage.setItem('tradeTheme', mode);
     }
-
     function saveUserSettings() {
-        const max = document.getElementById('settingMaxLoss').value;
-        localStorage.setItem('maxLoss', max);
-        alert("Einstellungen gespeichert!");
-        checkDrawdown();
+        localStorage.setItem('maxLoss', document.getElementById('settingMaxLoss').value);
+        alert("Einstellungen gespeichert!"); checkDrawdown();
     }
 
-    // IMAGE PREVIEW (#6)
+    // --- LOGIC: Image Preview ---
     function showPreview(url, e) {
         const el = document.getElementById('img-preview');
-        el.style.display = 'block';
-        el.style.backgroundImage = `url('${url}')`;
-        el.style.top = (e.clientY + 10) + 'px';
-        el.style.left = (e.clientX - 150) + 'px';
+        el.style.display = 'block'; el.style.backgroundImage = `url('${url}')`;
+        el.style.top = (e.clientY + 10) + 'px'; el.style.left = (e.clientX - 150) + 'px';
     }
     function hidePreview() { document.getElementById('img-preview').style.display = 'none'; }
 
-    // STANDARD FUNCTIONS
+    // --- LOGIC: Calendar ---
     function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
     function renderCalendar() {
         const y=calDate.getFullYear(), m=calDate.getMonth();
@@ -433,12 +414,14 @@
         }
     }
     
+    // --- LOGIC: Export ---
     function downloadCSV() {
         let csv = "Date,Asset,Status,PnL,Note,Setup,Result\n";
         trades.forEach(t => csv += `${t.date},${t.asset},${t.status},${t.pnl},"${(t.note||'').replace(/"/g,'""')}",${t.imgSetup||''},${t.imgResult||''}\n`);
         const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='journal.csv'; a.click();
     }
 
+    // --- LOGIC: Standard ---
     async function saveTrade() {
         const id = document.getElementById('editId').value;
         const asset = document.getElementById('assetInput').value.toUpperCase();
@@ -447,23 +430,23 @@
         id ? await db.collection('trades').doc(id).update(data) : await db.collection('trades').add(data);
         showView('Übersicht'); loadTrades();
     }
-
     function editTrade(id, c) {
         const t = trades.find(x => x.id === id);
-        document.getElementById('editId').value = t.id;
-        document.getElementById('datetime').value = t.date;
-        document.getElementById('assetInput').value = t.asset;
-        document.getElementById('status').value = c ? 'Geschlossen' : t.status;
-        document.getElementById('pnl').value = t.pnl;
-        document.getElementById('imgSetup').value = t.imgSetup||'';
-        document.getElementById('imgResult').value = t.imgResult||'';
-        document.getElementById('note').value = t.note||'';
+        document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date;
+        document.getElementById('assetInput').value = t.asset; document.getElementById('status').value = c ? 'Geschlossen' : t.status;
+        document.getElementById('pnl').value = t.pnl; document.getElementById('imgSetup').value = t.imgSetup||'';
+        document.getElementById('imgResult').value = t.imgResult||''; document.getElementById('note').value = t.note||'';
         togglePnl(); showView('Trade erstellen');
     }
-    
-    async function delTrade(id) { if(confirm('Löschen?')) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
     function prepareCreateView() { document.getElementById('editId').value=""; document.getElementById('datetime').value=new Date().toISOString().slice(0,16); document.getElementById('assetInput').value=""; document.getElementById('pnl').value=""; togglePnl(); showView('Trade erstellen'); }
-    function showView(v) { document.querySelectorAll('.view-section').forEach(s=>s.classList.remove('active')); document.getElementById('view-'+v.replace(/\s+/g, '-')).classList.add('active'); document.getElementById('view-title').innerText=v.toUpperCase(); document.getElementById('navDrawer').classList.remove('open'); if(v==='News'){const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s);} if(v==='Kalender') renderCalendar(); }
+    function showView(v) { 
+        document.querySelectorAll('.view-section').forEach(s=>s.classList.remove('active')); 
+        document.getElementById('view-'+v.replace(/\s+/g, '-')).classList.add('active'); 
+        document.getElementById('view-title').innerText=v.toUpperCase(); 
+        document.getElementById('navDrawer').classList.remove('open'); 
+        if(v==='News'){const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s);} 
+        if(v==='Kalender') renderCalendar(); 
+    }
     function setFilter(f,b) { currentFilter=f; document.querySelectorAll('#filter-container .chart-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(); }
     function togglePnl() { document.getElementById('pnlDiv').classList.toggle('hidden', document.getElementById('status').value==='Aktiv'); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
@@ -472,7 +455,7 @@
     function updateContractSize() { const t=document.getElementById('cType').value; if(t==='forex')document.getElementById('cSize').value=100000; else if(t==='indices')document.getElementById('cSize').value=1; }
     function calcLots() { const b=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), e=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value), s=parseFloat(document.getElementById('cSize').value); if(b&&r&&e&&sl&&s) document.getElementById('cRes').innerText=((b*(r/100))/(Math.abs(e-sl)*s)).toFixed(2)+" Lot"; }
     
-    /* ADMIN */
+    // --- LOGIC: Admin ---
     async function admLoad() { const s=await db.collection('members').get(); document.getElementById('admList').innerHTML=s.docs.map(d=>`<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;"><span>${d.data().email}</span><div><button class="icon-btn" onclick="viewStats('${d.id}')">👁️</button><button class="icon-btn" onclick="admDel('${d.id}')">🗑️</button></div></div>`).join(''); }
     async function admAdd() { const v=document.getElementById('admEmail').value.trim().toLowerCase(); if(v){ await db.collection('members').add({email:v}); document.getElementById('admEmail').value=""; admLoad(); }}
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); }}
