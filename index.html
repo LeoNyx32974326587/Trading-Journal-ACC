@@ -136,21 +136,15 @@
                 <input type="number" id="calcEntry" placeholder="Einstieg" oninput="calculateLots()">
                 <input type="number" id="calcStop" placeholder="Stop Loss" oninput="calculateLots()">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="card" style="background:#0a0a0a; text-align:center; padding:15px; margin:0;">
-                        <div style="font-size:0.7rem; color:#888;">LOTS</div>
-                        <div id="lotResult" style="font-size:1.8rem; font-weight:800; color:var(--success);">0.00</div>
-                    </div>
-                    <div class="card" style="background:#0a0a0a; text-align:center; padding:15px; margin:0;">
-                        <div style="font-size:0.7rem; color:#888;">RISIKO €</div>
-                        <div id="riskEuroResult" style="font-size:1.8rem; font-weight:800; color:var(--danger);">0.00 €</div>
-                    </div>
+                    <div class="card" style="background:#0a0a0a; text-align:center; padding:15px; margin:0;"><div style="font-size:0.7rem; color:#888;">LOTS</div><div id="lotResult" style="font-size:1.8rem; font-weight:800; color:var(--success);">0.00</div></div>
+                    <div class="card" style="background:#0a0a0a; text-align:center; padding:15px; margin:0;"><div style="font-size:0.7rem; color:#888;">RISIKO €</div><div id="riskEuroResult" style="font-size:1.8rem; font-weight:800; color:var(--danger);">0.00 €</div></div>
                 </div>
             </div>
         </div>
     </section>
 
     <section id="view-News" class="view-section"><div class="card"><div id="news-container" style="height: 600px;"></div></div></section>
-    <section id="view-Historie" class="view-section"><div class="card" style="padding:0; overflow-x:auto;"><table id="tradeTable"><thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Aktion</th></tr></thead><tbody id="tradeBody"></tbody></table></div></section>
+    <section id="view-Historie" class="view-section"><div class="card" style="padding:0; overflow-x:auto;"><table><thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Aktion</th></tr></thead><tbody id="tradeBody"></tbody></table></div></section>
     <section id="view-Einstellungen" class="view-section"><div class="card"><h4>EINSTELLUNGEN</h4><div style="display:flex;gap:10px;margin-bottom:20px;"><input type="email" id="newMemberEmail" placeholder="E-Mail"><button onclick="addMember()" class="chart-btn">Hinzufügen</button></div><div id="memberList"></div></div></section>
 </div>
 
@@ -167,44 +161,18 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('user-greeting').innerText = `HALLO ${user.displayName?.split(' ')[0].toUpperCase() || 'TRADER'}`;
-            
-            // ADMIN CHECK
-            if(user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                document.getElementById('admin-link').classList.remove('hidden');
-                loadMembers();
-            }
-
+            if(user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) { document.getElementById('admin-link').classList.remove('hidden'); loadMembers(); }
             await loadUserAssets();
             loadTrades();
             updateNewsWidget();
-        } else {
-            document.getElementById('auth-overlay').classList.remove('hidden');
-        }
+        } else { document.getElementById('auth-overlay').classList.remove('hidden'); }
     });
 
-    function setQuickFilter(f) {
-        currentFilter = f;
-        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-        if(document.getElementById('filter-' + f)) document.getElementById('filter-' + f).classList.add('active');
-        updateChart();
-    }
-
-    function calculateLots() {
-        const type = document.getElementById('calcAssetType').value;
-        const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
-        const riskPercent = parseFloat(document.getElementById('calcRisk').value) || 0;
-        const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
-        const stop = parseFloat(document.getElementById('calcStop').value) || 0;
-        const lotRes = document.getElementById('lotResult');
-        const euroRes = document.getElementById('riskEuroResult');
-
-        if (balance > 0 && riskPercent > 0 && entry > 0 && stop > 0 && entry !== stop) {
-            const riskEuro = balance * (riskPercent / 100);
-            const diff = Math.abs(entry - stop);
-            let lots = (type === 'forex') ? riskEuro / (diff * 100000) : (type === 'gold' ? riskEuro / (diff * 100) : riskEuro / diff);
-            lotRes.innerText = lots.toFixed(2);
-            euroRes.innerText = riskEuro.toFixed(2) + " €";
-        } else { lotRes.innerText = "0.00"; euroRes.innerText = "0.00 €"; }
+    async function loadUserAssets() {
+        const snap = await db.collection('userAssets').doc(auth.currentUser.uid).get();
+        if (snap.exists && snap.data().assets) userAssets = snap.data().assets;
+        const dd = document.getElementById('assetDropdown');
+        if(dd) dd.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
     }
 
     async function loadTrades() {
@@ -216,25 +184,24 @@
     function renderUI() {
         let totalPnl = 0, wins = 0, closedCount = 0;
         const body = document.getElementById('tradeBody');
-        const ovTotalEl = document.getElementById('ovTotal');
         const activeListOv = document.getElementById('activeListOverview');
         body.innerHTML = ''; activeListOv.innerHTML = '';
         let hasActive = false;
 
         trades.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            const pnlVal = parseFloat(t.pnl) || 0;
+            const pVal = parseFloat(t.pnl) || 0;
             if(t.status !== 'Geschlossen') {
                 hasActive = true;
                 activeListOv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${t.asset}</span><button class="btn-close-trade" onclick="quickClose('${t.id}')">Schließen</button></div>`;
             } else {
-                totalPnl += pnlVal; closedCount++; if(pnlVal > 0) wins++;
+                totalPnl += pVal; closedCount++; if(pVal > 0) wins++;
             }
-            body.innerHTML += `<tr><td>${t.date.split('T')[0]}</td><td>${t.asset}</td><td style="color:${pnlVal>=0?'var(--success)':'var(--danger)'}">${pnlVal.toFixed(2)}€</td><td><button onclick="editTrade('${t.id}')">✏️</button></td></tr>`;
+            body.innerHTML += `<tr><td>${t.date.split('T')[0]}</td><td>${t.asset}</td><td style="color:${pVal>=0?'var(--success)':'var(--danger)'}">${pVal.toFixed(2)}€</td><td><button onclick="editTrade('${t.id}')">✏️</button></td></tr>`;
         });
 
         document.getElementById('overview-active-trades').classList.toggle('hidden', !hasActive);
-        ovTotalEl.innerText = totalPnl.toFixed(2) + " €";
-        ovTotalEl.style.color = totalPnl > 0 ? 'var(--success)' : (totalPnl < 0 ? 'var(--danger)' : 'var(--text-main)');
+        document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
+        document.getElementById('ovTotal').style.color = totalPnl > 0 ? 'var(--success)' : (totalPnl < 0 ? 'var(--danger)' : 'var(--text-main)');
         document.getElementById('ovWinRate').innerText = closedCount > 0 ? (wins/closedCount*100).toFixed(1) + "%" : "0%";
         updateChart();
     }
@@ -253,15 +220,20 @@
         ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
     }
 
-    async function loadUserAssets() {
-        const snap = await db.collection('userAssets').doc(auth.currentUser.uid).get();
-        if (snap.exists && snap.data().assets) userAssets = snap.data().assets;
-        const dd = document.getElementById('assetDropdown');
-        if(dd) dd.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+    function setQuickFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+        if(document.getElementById('filter-' + f)) document.getElementById('filter-' + f).classList.add('active');
+        updateChart();
+    }
+
+    async function saveTrade() {
+        const data = { date: document.getElementById('datetime').value, asset: document.getElementById('assetDropdown').value, status: document.getElementById('status').value, mindset: document.getElementById('mindset').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, userId: auth.currentUser.uid };
+        await db.collection('trades').add(data); loadTrades(); showView('Übersicht');
     }
 
     async function quickClose(id) {
-        const pnl = prompt("P&L für diesen Trade (€):", "0");
+        const pnl = prompt("P&L (€):", "0");
         if(pnl !== null) { await db.collection('trades').doc(id).update({ status: 'Geschlossen', pnl: parseFloat(pnl) || 0 }); loadTrades(); }
     }
 
@@ -273,11 +245,33 @@
         document.getElementById('navDrawer').classList.remove('open'); 
     }
 
+    function calculateLots() {
+        const type = document.getElementById('calcAssetType').value;
+        const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
+        const riskPercent = parseFloat(document.getElementById('calcRisk').value) || 0;
+        const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
+        const stop = parseFloat(document.getElementById('calcStop').value) || 0;
+        if (balance > 0 && riskPercent > 0 && entry > 0 && stop > 0 && entry !== stop) {
+            const riskEuro = balance * (riskPercent / 100);
+            const diff = Math.abs(entry - stop);
+            let lots = (type === 'forex') ? riskEuro / (diff * 100000) : (type === 'gold' ? riskEuro / (diff * 100) : riskEuro / diff);
+            document.getElementById('lotResult').innerText = lots.toFixed(2);
+            document.getElementById('riskEuroResult').innerText = riskEuro.toFixed(2) + " €";
+        }
+    }
+
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function handleLogout() { auth.signOut().then(() => location.reload()); }
     function toggleOutcomeFields() { const c = document.getElementById('status').value === 'Geschlossen'; document.getElementById('pnlWrapper').classList.toggle('hidden', !c); document.getElementById('outcomeWrapper').classList.toggle('hidden', !c); }
-    function prepareCreateView() { showView('Trade erstellen'); toggleOutcomeFields(); }
+    function prepareCreateView() { 
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('datetime').value = now.toISOString().slice(0,16);
+        document.getElementById('editId').value = ""; document.getElementById('pnl').value = ""; 
+        loadUserAssets(); // Assets neu laden
+        toggleOutcomeFields(); 
+        showView('Trade erstellen'); 
+    }
     function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
     function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
     async function confirmAddAsset() {
@@ -288,10 +282,6 @@
             loadUserAssets(); closeAssetPopup();
         }
     }
-    async function saveTrade() {
-        const data = { date: document.getElementById('datetime').value, asset: document.getElementById('assetDropdown').value, status: document.getElementById('status').value, mindset: document.getElementById('mindset').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, userId: auth.currentUser.uid };
-        await db.collection('trades').add(data); loadTrades(); showView('Übersicht');
-    }
     function updateNewsWidget() {
         const container = document.getElementById('news-container'); container.innerHTML = '';
         const script = document.createElement('script'); script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js'; script.async = true;
@@ -301,8 +291,11 @@
     async function loadMembers() {
         const snap = await db.collection('members').get();
         const list = document.getElementById('memberList');
-        list.innerHTML = '';
-        snap.forEach(doc => { list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${doc.data().email}</span></div>`; });
+        list.innerHTML = ''; snap.forEach(doc => { list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${doc.data().email}</span></div>`; });
+    }
+    async function addMember() {
+        const email = document.getElementById('newMemberEmail').value;
+        if(email) { await db.collection('members').add({ email: email.toLowerCase() }); document.getElementById('newMemberEmail').value = ''; loadMembers(); }
     }
 </script>
 </body>
