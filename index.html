@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Auto Migration</title>
+    <title>TradeCloud Pro - Final Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -65,12 +65,20 @@
         .dd-warning { background: rgba(255, 61, 0, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
 
+        /* Graph Filters */
+        .filter-row { display: flex; gap: 5px; margin-bottom: 10px; }
+        .filter-btn { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 8px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; }
+        .filter-btn.active { background: var(--accent); color: #000; font-weight: bold; }
+
         /* --- INPUTS --- */
         input, select, textarea { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
         
         .btn-primary { background: var(--accent); color: #000; padding: 14px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; text-transform: uppercase; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; }
         .btn-cancel { background: #333; color: white; margin-top: 10px; font-size: 0.9rem; padding: 10px; }
+
+        .btn-close-trade { background: transparent; border: 1px solid var(--success); color: var(--success); padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-close-trade:hover { background: var(--success); color: black; }
 
         /* --- TABLE --- */
         .table-wrapper { overflow-x: auto; }
@@ -147,7 +155,7 @@
 
     <section id="view-Trade-erstellen" class="view-section">
         <div class="card">
-            <h3>Trade erfassen</h3>
+            <h3 id="form-header">Trade erfassen</h3>
             <input type="hidden" id="editId">
             
             <label>1. Journal wählen</label>
@@ -178,6 +186,7 @@
             <textarea id="inpNote" rows="3"></textarea>
 
             <button onclick="saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
+            <button onclick="showView('Übersicht')" class="btn-cancel">Abbrechen</button>
         </div>
     </section>
 
@@ -281,14 +290,17 @@
 </div>
 
 <script>
+    // CONFIG
     const firebaseConfig = { apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ", authDomain: "trading-journal-acc.firebaseapp.com", projectId: "trading-journal-acc", storageBucket: "trading-journal-acc.firebasestorage.app", messagingSenderId: "68601000570", appId: "1:68601000570:web:87d3ebd5e86416403e41c3" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
+    // STATE
     let myJournals = []; 
     let myTrades = [];
     let currentFilter = ''; 
     let calDate = new Date();
+    let journalCharts = {}; // Store chart instances
 
     if(localStorage.getItem('theme')==='light') document.body.classList.add('light-mode');
 
@@ -328,13 +340,11 @@
         const jSnap = await db.collection('journals').where('userId','==',uid).get();
         myJournals = jSnap.docs.map(d => ({id:d.id, ...d.data()}));
         
-        // Fallback: Create default if empty
         if(myJournals.length === 0) {
             const ref = await db.collection('journals').add({userId:uid, name:'Main Account', hidden:false, startCap:0, maxLoss:0, lossType:'eur'});
             myJournals.push({id:ref.id, name:'Main Account', hidden:false, startCap:0, maxLoss:0, lossType:'eur'});
         }
 
-        // Set default filter to first journal if not set or invalid
         if(!currentFilter || !myJournals.find(j=>j.id===currentFilter)) {
             currentFilter = myJournals[0].id;
         }
@@ -343,23 +353,21 @@
         const tSnap = await db.collection('trades').where('userId','==',uid).get();
         myTrades = tSnap.docs.map(d => ({id:d.id, ...d.data()}));
 
-        // --- MIGRATION: Fix old trades with no journalId ---
+        // --- MIGRATION ---
         const batch = db.batch();
         let migrated = false;
         myTrades.forEach(t => {
             if(!t.journalId) {
-                t.journalId = myJournals[0].id; // Assign locally
+                t.journalId = myJournals[0].id; 
                 batch.update(db.collection('trades').doc(t.id), { journalId: myJournals[0].id });
                 migrated = true;
             }
         });
         if(migrated) await batch.commit();
 
-        // 3. Render
         populateSelectors();
         renderDashboard();
         
-        // Refresh active views
         const active = document.querySelector('.view-section.active').id;
         if(active === 'view-Kalender') renderCalendar();
         if(active === 'view-Historie') renderHistory();
@@ -369,6 +377,10 @@
     function renderDashboard() {
         const container = document.getElementById('dashboard-container');
         container.innerHTML = '';
+        
+        // Clear old charts map to avoid memory leaks
+        journalCharts = {};
+
         const visibleJournals = myJournals.filter(j => !j.hidden);
 
         visibleJournals.forEach(j => {
@@ -376,10 +388,7 @@
             const closed = jTrades.filter(t => t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
             const open = jTrades.filter(t => t.status === 'Aktiv');
 
-            let pnl = 0; let wins = 0;
-            const dataPoints = closed.map(t => { pnl+=t.pnl; if(t.pnl>0)wins++; return pnl; });
-            const winRate = closed.length ? (wins/closed.length*100).toFixed(0) : 0;
-            
+            // Drawdown Check
             let warningHTML = '';
             if(j.maxLoss > 0) {
                 const today = new Date().toDateString();
@@ -394,24 +403,34 @@
             section.innerHTML = `
                 <div class="js-header">
                     <h2 class="js-title">${j.name}</h2>
-                    <div>Start: ${j.startCap}€</div>
                 </div>
                 ${warningHTML}
                 <div class="js-grid">
                     <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px; height:250px;">
-                        <canvas id="chart-${j.id}"></canvas>
+                        <div class="filter-row">
+                            <button class="filter-btn active" onclick="filterChart('${j.id}', 'all', this)">A</button>
+                            <button class="filter-btn" onclick="filterChart('${j.id}', 'year', this)">J</button>
+                            <button class="filter-btn" onclick="filterChart('${j.id}', 'month', this)">M</button>
+                            <button class="filter-btn" onclick="filterChart('${j.id}', 'week', this)">W</button>
+                            <button class="filter-btn" onclick="filterChart('${j.id}', 'yesterday', this)">G</button>
+                            <button class="filter-btn" onclick="filterChart('${j.id}', 'today', this)">H</button>
+                        </div>
+                        <div style="height:210px;"><canvas id="chart-${j.id}"></canvas></div>
                     </div>
                     <div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                            <div class="stat-box"><div class="stat-val" style="color:${pnl>=0?'var(--success)':'var(--danger)'}">${pnl.toFixed(2)}€</div><div class="stat-lbl">Gesamt P&L</div></div>
-                            <div class="stat-box"><div class="stat-val">${winRate}%</div><div class="stat-lbl">Winrate</div></div>
+                            <div class="stat-box"><div class="stat-val" id="stats-pnl-${j.id}">0.00€</div><div class="stat-lbl">P&L</div></div>
+                            <div class="stat-box"><div class="stat-val" id="stats-wr-${j.id}">0%</div><div class="stat-lbl">Winrate</div></div>
                         </div>
                         <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px; height:130px; overflow-y:auto;">
                             <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:5px;">OFFENE TRADES</div>
                             ${open.length === 0 ? '<div style="color:#555;font-size:0.8rem;">Keine offenen Trades</div>' : open.map(t => `
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; font-size:0.9rem;">
                                     <span><b>${t.asset}</b> <small>${t.date.split('T')[0]}</small></span>
-                                    <button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button>
+                                    <div style="display:flex; gap:5px;">
+                                        <button class="btn-close-trade" onclick="editTrade('${t.id}', true)">CLOSE</button>
+                                        <button class="icon-btn" onclick="editTrade('${t.id}', false)">✏️</button>
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
@@ -419,13 +438,144 @@
                 </div>
             `;
             container.appendChild(section);
-
-            new Chart(document.getElementById(`chart-${j.id}`), {
-                type: 'line',
-                data: { labels: closed.map(t=>''), datasets: [{ data: dataPoints, borderColor: '#bb86fc', tension: 0.1, pointRadius:0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x:{display:false}, y:{grid:{color:'#333'}} } }
-            });
+            
+            // Initial Chart Render (All Time)
+            updateChartData(j.id, 'all');
         });
+    }
+
+    function updateChartData(journalId, filter) {
+        const jTrades = myTrades.filter(t => t.journalId === journalId && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
+        
+        // Time Filter logic
+        let filtered = jTrades;
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        if(filter === 'today') {
+            filtered = jTrades.filter(t => new Date(t.date) >= todayStart);
+        } else if(filter === 'yesterday') {
+            const yStart = new Date(todayStart); yStart.setDate(yStart.getDate()-1);
+            filtered = jTrades.filter(t => new Date(t.date) >= yStart && new Date(t.date) < todayStart);
+        } else if(filter === 'week') {
+            const wStart = new Date(now); wStart.setDate(now.getDate() - now.getDay() + (now.getDay()==0?-6:1)); wStart.setHours(0,0,0,0);
+            filtered = jTrades.filter(t => new Date(t.date) >= wStart);
+        } else if(filter === 'month') {
+            filtered = jTrades.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
+        } else if(filter === 'year') {
+            filtered = jTrades.filter(t => new Date(t.date).getFullYear() === now.getFullYear());
+        }
+
+        // Stats calculation based on filtered data
+        let pnl = 0; let wins = 0;
+        const dataPoints = filtered.map(t => { pnl+=t.pnl; if(t.pnl>0)wins++; return pnl; });
+        const winRate = filtered.length ? (wins/filtered.length*100).toFixed(0) : 0;
+
+        // Update DOM Stats
+        const pnlEl = document.getElementById(`stats-pnl-${journalId}`);
+        const wrEl = document.getElementById(`stats-wr-${journalId}`);
+        if(pnlEl && wrEl) {
+            pnlEl.innerText = pnl.toFixed(2) + "€";
+            pnlEl.style.color = pnl >= 0 ? 'var(--success)' : 'var(--danger)';
+            wrEl.innerText = winRate + "%";
+        }
+
+        // Update or Create Chart
+        const ctx = document.getElementById(`chart-${journalId}`);
+        if(ctx) {
+            if(journalCharts[journalId]) {
+                journalCharts[journalId].destroy();
+            }
+            
+            journalCharts[journalId] = new Chart(ctx, {
+                type: 'line',
+                data: { labels: filtered.map(t=>''), datasets: [{ data: dataPoints, borderColor: '#bb86fc', tension: 0.1, pointRadius:0 }] },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: {display:false} }, 
+                    scales: { x:{display:false}, y:{grid:{color:'#333'}} },
+                    animation: false // disable animation for snappy filtering
+                }
+            });
+        }
+    }
+
+    function filterChart(journalId, filter, btn) {
+        // Toggle active button style
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        updateChartData(journalId, filter);
+    }
+
+    // --- TRADE MANAGEMENT ---
+    function prepareCreateView() {
+        document.getElementById('editId').value = "";
+        document.getElementById('inpDate').value = new Date().toISOString().slice(0,16);
+        document.getElementById('inpAsset').value = "";
+        document.getElementById('inpSetup').value = "";
+        document.getElementById('inpResult').value = "";
+        document.getElementById('inpPnl').value = "";
+        document.getElementById('inpNote').value = "";
+        document.getElementById('inpStatus').value = "Aktiv";
+        document.getElementById('form-header').innerText = "Trade erfassen";
+        toggleFields();
+        const sel = document.getElementById('inpJournalSelect');
+        sel.innerHTML = myJournals.map(j => `<option value="${j.id}">${j.name}</option>`).join('');
+        if(currentFilter && myJournals.find(j=>j.id===currentFilter)) sel.value = currentFilter;
+        showView('Trade-erstellen');
+    }
+
+    function toggleFields() {
+        const s = document.getElementById('inpStatus').value;
+        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv');
+    }
+
+    async function saveTrade() {
+        const id = document.getElementById('editId').value;
+        const jId = document.getElementById('inpJournalSelect').value;
+        const status = document.getElementById('inpStatus').value;
+        const data = {
+            userId: auth.currentUser.uid, journalId: jId, status: status,
+            date: document.getElementById('inpDate').value, asset: document.getElementById('inpAsset').value.toUpperCase(),
+            setup: document.getElementById('inpSetup').value, result: document.getElementById('inpResult').value,
+            pnl: parseFloat(document.getElementById('inpPnl').value)||0, note: document.getElementById('inpNote').value
+        };
+        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data);
+        loadData(); showView('Übersicht');
+    }
+
+    function editTrade(id, closeNow = false) {
+        const t = myTrades.find(x => x.id === id);
+        document.getElementById('editId').value = t.id;
+        const sel = document.getElementById('inpJournalSelect');
+        sel.innerHTML = myJournals.map(j => `<option value="${j.id}">${j.name}</option>`).join('');
+        sel.value = t.journalId;
+
+        // Close Logic
+        if(closeNow) {
+            document.getElementById('inpStatus').value = "Geschlossen";
+            document.getElementById('form-header').innerText = "TRADE SCHLIESSEN";
+        } else {
+            document.getElementById('inpStatus').value = t.status;
+            document.getElementById('form-header').innerText = "Trade bearbeiten";
+        }
+
+        document.getElementById('inpDate').value = t.date;
+        document.getElementById('inpAsset').value = t.asset;
+        document.getElementById('inpSetup').value = t.setup||'';
+        document.getElementById('inpResult').value = t.result||'';
+        document.getElementById('inpPnl').value = t.pnl;
+        document.getElementById('inpNote').value = t.note||'';
+        
+        toggleFields();
+        showView('Trade-erstellen');
+    }
+
+    async function delTrade(id) {
+        if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); loadData(); }
     }
 
     // --- SIDEBAR & FILTERS ---
@@ -452,66 +602,15 @@
 
     function changeSidebarFilter(val) {
         currentFilter = val;
-        // Update Labels
         const name = myJournals.find(j=>j.id===val)?.name || '-';
         document.getElementById('cal-filter-label').innerText = "Aktives Journal: " + name;
         document.getElementById('hist-filter-label').innerText = "Aktives Journal: " + name;
-        
         const active = document.querySelector('.view-section.active').id;
         if(active === 'view-Kalender') renderCalendar();
         if(active === 'view-Historie') renderHistory();
     }
 
-    // --- CALENDAR & HISTORY (SINGLE JOURNAL FILTER) ---
-    function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
-    
-    function renderCalendar() {
-        const y=calDate.getFullYear(), m=calDate.getMonth();
-        document.getElementById('cal-month').innerText = new Date(y,m).toLocaleDateString('de-DE', {month:'long', year:'numeric'});
-        
-        const grid = document.getElementById('cal-body'); grid.innerHTML = '';
-        const fd = new Date(y,m,1).getDay(); const start = fd===0?6:fd-1;
-        const ld = new Date(y,m+1,0).getDate();
-
-        // STRICT FILTER
-        const filtered = myTrades.filter(t => t.journalId === currentFilter);
-
-        for(let i=0; i<start; i++) grid.innerHTML += '<div></div>';
-        
-        for(let d=1; d<=ld; d++) {
-            const dateStr = new Date(y,m,d).toDateString();
-            const dayTrades = filtered.filter(t => t.status==='Geschlossen' && new Date(t.date).toDateString()===dateStr);
-            let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
-            
-            let html = `<div class="cal-date">${d}</div>`;
-            if(dayTrades.length > 0) {
-                html += `<div class="cal-val ${sum>=0?'pnl-pos':'pnl-neg'}">${sum.toFixed(0)}</div>`;
-                grid.innerHTML += `<div class="cal-cell has-trade">${html}</div>`;
-            } else {
-                grid.innerHTML += `<div class="cal-cell">${html}</div>`;
-            }
-        }
-    }
-
-    function renderHistory() {
-        // STRICT FILTER
-        const filtered = myTrades.filter(t => t.journalId === currentFilter).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        
-        document.getElementById('hist-body').innerHTML = filtered.map(t => `
-            <tr>
-                <td>${t.date.split('T')[0]}<br><small style="color:#666">${t.date.split('T')[1]}</small></td>
-                <td><b>${t.asset}</b></td>
-                <td>${t.status}</td>
-                <td class="${t.status==='Aktiv'?'':(t.pnl>=0?'pnl-pos':'pnl-neg')}">${t.status==='Aktiv'?'-':t.pnl.toFixed(2)}</td>
-                <td>
-                    <button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button>
-                    <button class="icon-btn trash-btn" onclick="delTrade('${t.id}')">🗑️</button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    // --- JOURNAL CONFIG (EDIT & CREATE) ---
+    // --- JOURNAL CONFIG ---
     function prepareEditJournal(id) {
         const j = myJournals.find(x => x.id === id);
         if(!j) return;
@@ -520,7 +619,6 @@
         document.getElementById('newJStart').value = j.startCap;
         document.getElementById('newJMaxLoss').value = j.maxLoss;
         document.getElementById('newJLossType').value = j.lossType;
-        
         document.getElementById('settings-form-title').innerText = "Journal bearbeiten";
         document.getElementById('btn-save-journal').innerText = "Änderungen speichern";
         document.getElementById('btn-cancel-edit').classList.remove('hidden');
@@ -542,8 +640,7 @@
         if(!name) return alert("Name fehlt");
         
         const data = {
-            userId: auth.currentUser.uid,
-            name: name,
+            userId: auth.currentUser.uid, name: name,
             startCap: parseFloat(document.getElementById('newJStart').value)||0,
             maxLoss: parseFloat(document.getElementById('newJMaxLoss').value)||0,
             lossType: document.getElementById('newJLossType').value,
@@ -552,13 +649,11 @@
         if(id) await db.collection('journals').doc(id).update(data);
         else { data.hidden = false; await db.collection('journals').add(data); }
         
-        cancelEditJournal(); 
-        loadData();
+        cancelEditJournal(); loadData();
     }
 
     async function toggleHideJournal(id, state) {
-        await db.collection('journals').doc(id).update({hidden: state});
-        loadData();
+        await db.collection('journals').doc(id).update({hidden: state}); loadData();
     }
     async function deleteJournal(id) {
         if(confirm("Journal und ALLE TRADES löschen?")) {
@@ -572,56 +667,38 @@
         }
     }
 
-    // --- STANDARD TRADE LOGIC ---
-    function prepareCreateView() {
-        document.getElementById('editId').value = "";
-        document.getElementById('inpDate').value = new Date().toISOString().slice(0,16);
-        document.getElementById('inpAsset').value = "";
-        document.getElementById('inpSetup').value = "";
-        document.getElementById('inpResult').value = "";
-        document.getElementById('inpPnl').value = "";
-        document.getElementById('inpNote').value = "";
-        document.getElementById('inpStatus').value = "Aktiv";
-        toggleFields();
-        const sel = document.getElementById('inpJournalSelect');
-        sel.innerHTML = myJournals.map(j => `<option value="${j.id}">${j.name}</option>`).join('');
-        if(currentFilter && myJournals.find(j=>j.id===currentFilter)) sel.value = currentFilter;
-        showView('Trade-erstellen');
+    // --- CALENDAR & HISTORY ---
+    function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
+    function renderCalendar() {
+        const y=calDate.getFullYear(), m=calDate.getMonth();
+        document.getElementById('cal-month').innerText = new Date(y,m).toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+        const grid = document.getElementById('cal-body'); grid.innerHTML = '';
+        const fd = new Date(y,m,1).getDay(); const start = fd===0?6:fd-1; const ld = new Date(y,m+1,0).getDate();
+        const filtered = myTrades.filter(t => t.journalId === currentFilter);
+        for(let i=0; i<start; i++) grid.innerHTML += '<div></div>';
+        for(let d=1; d<=ld; d++) {
+            const dateStr = new Date(y,m,d).toDateString();
+            const dayTrades = filtered.filter(t => t.status==='Geschlossen' && new Date(t.date).toDateString()===dateStr);
+            let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
+            let html = `<div class="cal-date">${d}</div>`;
+            if(dayTrades.length > 0) {
+                html += `<div class="cal-val ${sum>=0?'pnl-pos':'pnl-neg'}">${sum.toFixed(0)}</div>`;
+                grid.innerHTML += `<div class="cal-cell has-trade">${html}</div>`;
+            } else grid.innerHTML += `<div class="cal-cell">${html}</div>`;
+        }
     }
-    function toggleFields() {
-        const s = document.getElementById('inpStatus').value;
-        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv');
+    function renderHistory() {
+        const filtered = myTrades.filter(t => t.journalId === currentFilter).sort((a,b)=>new Date(b.date)-new Date(a.date));
+        document.getElementById('hist-body').innerHTML = filtered.map(t => `
+            <tr>
+                <td>${t.date.split('T')[0]}<br><small style="color:#666">${t.date.split('T')[1]}</small></td>
+                <td><b>${t.asset}</b></td>
+                <td>${t.status}</td>
+                <td class="${t.status==='Aktiv'?'':(t.pnl>=0?'pnl-pos':'pnl-neg')}">${t.status==='Aktiv'?'-':t.pnl.toFixed(2)}</td>
+                <td><button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button><button class="icon-btn trash-btn" onclick="delTrade('${t.id}')">🗑️</button></td>
+            </tr>`).join('');
     }
-    async function saveTrade() {
-        const id = document.getElementById('editId').value;
-        const jId = document.getElementById('inpJournalSelect').value;
-        const status = document.getElementById('inpStatus').value;
-        const data = {
-            userId: auth.currentUser.uid, journalId: jId, status: status,
-            date: document.getElementById('inpDate').value, asset: document.getElementById('inpAsset').value.toUpperCase(),
-            setup: document.getElementById('inpSetup').value, result: document.getElementById('inpResult').value,
-            pnl: parseFloat(document.getElementById('inpPnl').value)||0, note: document.getElementById('inpNote').value
-        };
-        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data);
-        loadData(); showView('Übersicht');
-    }
-    function editTrade(id) {
-        const t = myTrades.find(x => x.id === id);
-        document.getElementById('editId').value = t.id;
-        const sel = document.getElementById('inpJournalSelect');
-        sel.innerHTML = myJournals.map(j => `<option value="${j.id}">${j.name}</option>`).join('');
-        sel.value = t.journalId;
-        document.getElementById('inpStatus').value = t.status;
-        document.getElementById('inpDate').value = t.date;
-        document.getElementById('inpAsset').value = t.asset;
-        document.getElementById('inpSetup').value = t.setup||'';
-        document.getElementById('inpResult').value = t.result||'';
-        document.getElementById('inpPnl').value = t.pnl;
-        document.getElementById('inpNote').value = t.note||'';
-        toggleFields(); showView('Trade-erstellen');
-    }
-    async function delTrade(id) { if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); loadData(); } }
-    
+
     // --- UTILS ---
     function showView(v) {
         document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active'));
@@ -654,12 +731,8 @@
         document.getElementById('admList').innerHTML = s.docs.map(d => `
             <div style="background:var(--input-bg); padding:10px; margin-bottom:5px; display:flex; justify-content:space-between;">
                 <span>${d.data().email}</span>
-                <div>
-                    <button class="icon-btn" onclick="admStats('${d.id}')">👁️</button>
-                    <button class="icon-btn trash-btn" onclick="admDel('${d.id}')">🗑️</button>
-                </div>
-            </div>
-        `).join('');
+                <div><button class="icon-btn" onclick="admStats('${d.id}')">👁️</button><button class="icon-btn trash-btn" onclick="admDel('${d.id}')">🗑️</button></div>
+            </div>`).join('');
     }
     async function admAdd() { const v=document.getElementById('admInput').value; if(v) await db.collection('members').add({email:v.toLowerCase()}); admLoad(); }
     async function admDel(id) { await db.collection('members').doc(id).delete(); admLoad(); }
