@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro</title>
+    <title>TradeCloud</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -85,7 +85,18 @@
         </div>
         <div id="overview-active-trades" class="card hidden"><h4>OFFENE TRADES</h4><div id="activeListOverview"></div></div>
         <div class="card">
-            <h4>PERFORMANCE</h4>
+            <h4>PERFORMANCE CHART</h4>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                <button class="chart-btn" id="filter-today" onclick="setQuickFilter('today')">Heute</button>
+                <button class="chart-btn" id="filter-week" onclick="setQuickFilter('week')">Woche</button>
+                <button class="chart-btn" id="filter-month" onclick="setQuickFilter('month')">Monat</button>
+                <button class="chart-btn active" id="filter-all" onclick="setQuickFilter('all')">Alles</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                <input type="date" id="chartStart" style="width: auto;" onchange="updateChart()">
+                <span>bis</span>
+                <input type="date" id="chartEnd" style="width: auto;" onchange="updateChart()">
+            </div>
             <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -123,7 +134,7 @@
     
     <section id="view-Lot-Rechner" class="view-section">
         <div class="card">
-            <h4>PRO LOT RECHNER</h4>
+            <h4>LOT RECHNER</h4>
             <div style="display:grid; gap:15px;">
                 <select id="calcAssetType" onchange="calculateLots()">
                     <option value="forex">Forex (EURUSD, GBPUSD, etc.)</option>
@@ -159,7 +170,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
     const adminEmail = "leon.luca.lauterbach@gmail.com";
-    let trades = [], userAssets = ["EURUSD", "BTCUSD", "GOLD"], ovChart;
+    let trades = [], userAssets = ["EURUSD", "BTCUSD", "GOLD"], ovChart, currentFilter = 'all';
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -167,10 +178,12 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('user-greeting').innerText = `HALLO ${user.displayName?.split(' ')[0].toUpperCase() || 'TRADER'}`;
+            
             await loadUserAssets();
             loadTrades();
             updateNewsWidget();
-            if(user.email.toLowerCase() === adminEmail) {
+            
+            if(user.email.toLowerCase() === adminEmail.toLowerCase()) {
                 document.getElementById('admin-link').classList.remove('hidden');
                 loadMembers();
             }
@@ -179,39 +192,32 @@
         }
     });
 
+    function setQuickFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('filter-' + f).classList.add('active');
+        updateChart();
+    }
+
     function calculateLots() {
         const type = document.getElementById('calcAssetType').value;
         const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
         const riskPercent = parseFloat(document.getElementById('calcRisk').value) || 0;
         const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
         const stop = parseFloat(document.getElementById('calcStop').value) || 0;
-        
         const lotRes = document.getElementById('lotResult');
         const euroRes = document.getElementById('riskEuroResult');
-
         if (balance > 0 && riskPercent > 0 && entry > 0 && stop > 0 && entry !== stop) {
             const riskEuro = balance * (riskPercent / 100);
             const diff = Math.abs(entry - stop);
-            let lots = 0;
-
-            if (type === 'forex') lots = riskEuro / (diff * 100000);
-            else if (type === 'gold') lots = riskEuro / (diff * 100);
-            else lots = riskEuro / diff; // Indizes & Crypto
-            
-            lotRes.innerText = lots.toFixed(2);
-            euroRes.innerText = riskEuro.toFixed(2) + " €";
-        } else {
-            lotRes.innerText = "0.00";
-            euroRes.innerText = "0.00 €";
-        }
+            let lots = type === 'forex' ? riskEuro / (diff * 100000) : (type === 'gold' ? riskEuro / (diff * 100) : riskEuro / diff);
+            lotRes.innerText = lots.toFixed(2); euroRes.innerText = riskEuro.toFixed(2) + " €";
+        } else { lotRes.innerText = "0.00"; euroRes.innerText = "0.00 €"; }
     }
 
     async function quickClose(id) {
         const pnl = prompt("Gewinn / Verlust für diesen Trade (€):", "0");
-        if(pnl !== null) {
-            await db.collection('trades').doc(id).update({ status: 'Geschlossen', pnl: parseFloat(pnl) || 0 });
-            loadTrades();
-        }
+        if(pnl !== null) { await db.collection('trades').doc(id).update({ status: 'Geschlossen', pnl: parseFloat(pnl) || 0 }); loadTrades(); }
     }
 
     async function loadUserAssets() {
@@ -228,17 +234,14 @@
     async function confirmAddAsset() {
         const name = document.getElementById('newAssetName').value.toUpperCase().trim();
         if (name && !userAssets.includes(name)) {
-            userAssets.push(name);
-            renderAssetDropdown();
-            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
-            closeAssetPopup();
+            userAssets.push(name); renderAssetDropdown();
+            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets }); closeAssetPopup();
         }
     }
     async function deleteCurrentAsset() {
         const val = document.getElementById('assetDropdown').value;
         if (val && confirm(`${val} löschen?`)) {
-            userAssets = userAssets.filter(a => a !== val);
-            renderAssetDropdown();
+            userAssets = userAssets.filter(a => a !== val); renderAssetDropdown();
             await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
         }
     }
@@ -304,7 +307,13 @@
 
     function updateChart() {
         const ctx = document.getElementById('ovChart').getContext('2d');
-        let filtered = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
+        let filtered = trades.filter(t => t.status === 'Geschlossen');
+        const now = new Date();
+        if(currentFilter === 'today') filtered = filtered.filter(t => new Date(t.date).toDateString() === now.toDateString());
+        else if(currentFilter === 'week') { const weekAgo = new Date(); weekAgo.setDate(now.getDate()-7); filtered = filtered.filter(t => new Date(t.date) >= weekAgo); }
+        else if(currentFilter === 'month') { const monthAgo = new Date(); monthAgo.setMonth(now.getMonth()-1); filtered = filtered.filter(t => new Date(t.date) >= monthAgo); }
+        
+        filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
         let sum = 0; const points = filtered.map(t => { sum += (parseFloat(t.pnl) || 0); return sum; });
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
