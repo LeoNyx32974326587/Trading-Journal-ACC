@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Smart Finish</title>
+    <title>TradeCloud Pro - Final Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -35,7 +35,6 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         a { color: var(--accent); text-decoration: none; font-weight: bold; }
         .open-trade-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; }
-        .open-trade-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -79,14 +78,10 @@
             <h1 id="user-greeting">HALLO</h1>
             <button class="btn-small" onclick="prepareCreateView()">+ Trade erstellen</button>
         </div>
-        
-        <div class="card" style="border-left: 4px solid var(--info); padding: 20px;">
+        <div class="card" style="border-left: 4px solid var(--info);">
             <h4>📍 OFFENE POSITIONEN</h4>
-            <div id="open-trades-list">
-                <p style="color:#666; font-size: 0.85rem;">Keine laufenden Trades.</p>
-            </div>
+            <div id="open-trades-list"></div>
         </div>
-
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h4>PERFORMANCE</h4>
@@ -99,7 +94,6 @@
             </div>
             <div style="height: 300px;"><canvas id="ovChart"></canvas></div>
         </div>
-
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="card"><div>PROFIT</div><div id="ovTotal" style="font-size:2rem; font-weight:800;">0.00 €</div></div>
             <div class="card"><div>WIN RATE</div><div id="ovWinRate" style="font-size:2rem; font-weight:800;">0%</div></div>
@@ -138,6 +132,25 @@
         </div>
     </section>
 
+    <section id="view-Lot-Rechner" class="view-section">
+        <div class="card">
+            <h4>LOT RECHNER</h4>
+            <select id="calcType" onchange="calcLots()"><option value="forex">Forex (100k)</option><option value="gold">Gold (100oz)</option><option value="indices">Indizes (1.0)</option></select>
+            <input type="number" id="calcBal" placeholder="Kontostand (€)" oninput="calcLots()">
+            <input type="number" id="calcRisk" placeholder="Risiko (%)" oninput="calcLots()">
+            <input type="number" id="calcEnt" placeholder="Einstieg" oninput="calcLots()">
+            <input type="number" id="calcSl" placeholder="Stop Loss" oninput="calcLots()">
+            <div style="background:#000; padding:20px; border-radius:12px; text-align:center; margin-top:10px;">
+                <div id="lotResult" style="font-size:2.5rem; color:var(--success); font-weight:800;">0.00</div>
+                <div>LOTS</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-News" class="view-section">
+        <div class="card" style="height:650px; padding:10px;"><div id="news-container" style="height:100%;"></div></div>
+    </section>
+
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
             <h4>ADMIN: MITGLIEDER</h4>
@@ -163,7 +176,10 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('user-greeting').innerText = `HALLO ${user.displayName?.split(' ')[0].toUpperCase() || 'TRADER'}`;
-            if(user.email.toLowerCase() === "leon.luca.lauterbach@gmail.com") document.getElementById('admin-link').classList.remove('hidden');
+            if(user.email.toLowerCase() === "leon.luca.lauterbach@gmail.com") {
+                document.getElementById('admin-link').classList.remove('hidden');
+                adminLoad();
+            }
             await syncAssets();
             loadTrades();
         }
@@ -224,7 +240,6 @@
         `).join('');
     }
 
-    // FIX: autoClose Parameter hinzugefügt
     function editTrade(id, autoClose = false) {
         const t = trades.find(x => x.id === id);
         document.getElementById('editId').value = t.id;
@@ -236,7 +251,6 @@
         document.getElementById('imgSetup').value = t.imgSetup || "";
         document.getElementById('imgResult').value = t.imgResult || "";
         document.getElementById('note').value = t.note || "";
-
         if(autoClose) {
             document.getElementById('status').value = 'Geschlossen';
             document.getElementById('form-header').innerText = 'TRADE ABSCHLIESSEN';
@@ -244,24 +258,13 @@
             document.getElementById('status').value = t.status;
             document.getElementById('form-header').innerText = 'TRADE LOGGER';
         }
-
         toggleOutcomeFields(); 
         showView('Trade erstellen');
     }
 
     async function saveTrade() {
         const id = document.getElementById('editId').value;
-        const obj = { 
-            date: document.getElementById('datetime').value, 
-            asset: document.getElementById('assetDropdown').value, 
-            status: document.getElementById('status').value, 
-            mindset: document.getElementById('mindset').value, 
-            pnl: parseFloat(document.getElementById('pnl').value) || 0, 
-            imgSetup: document.getElementById('imgSetup').value, 
-            imgResult: document.getElementById('imgResult').value || "", 
-            note: document.getElementById('note').value, 
-            userId: auth.currentUser.uid 
-        };
+        const obj = { date: document.getElementById('datetime').value, asset: document.getElementById('assetDropdown').value, status: document.getElementById('status').value, mindset: document.getElementById('mindset').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value || "", note: document.getElementById('note').value, userId: auth.currentUser.uid };
         id ? await db.collection('trades').doc(id).update(obj) : await db.collection('trades').add(obj);
         loadTrades(); showView('Übersicht');
     }
@@ -272,10 +275,29 @@
         if(document.getElementById(targetId)) document.getElementById(targetId).classList.add('active');
         document.getElementById('view-title').innerText = v.toUpperCase();
         document.getElementById('navDrawer').classList.remove('open');
-        if(v === 'Trade erstellen') {
-            if(!document.getElementById('editId').value) document.getElementById('form-header').innerText = 'TRADE LOGGER';
+        if(v === 'News') {
+            const cont = document.getElementById('news-container'); cont.innerHTML = '';
+            const scr = document.createElement('script'); scr.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"; scr.async = true;
+            scr.innerHTML = JSON.stringify({"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "de"});
+            cont.appendChild(scr);
         }
     }
+
+    function calcLots() {
+        const bal = parseFloat(document.getElementById('calcBal').value), risk = parseFloat(document.getElementById('calcRisk').value), ent = parseFloat(document.getElementById('calcEnt').value), sl = parseFloat(document.getElementById('calcSl').value), type = document.getElementById('calcType').value;
+        if(bal && ent && sl && ent !== sl) {
+            const riskEur = bal * (risk/100), diff = Math.abs(ent - sl);
+            let lots = (type === 'forex') ? riskEur / (diff * 100000) : (type === 'gold' ? riskEur / (diff * 100) : riskEur / diff);
+            document.getElementById('lotResult').innerText = lots.toFixed(2);
+        }
+    }
+
+    async function adminLoad() {
+        const snap = await db.collection('members').get();
+        document.getElementById('admin-list').innerHTML = snap.docs.map(doc => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;"><span>${doc.data().email}</span><button onclick="adminDel('${doc.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;">Löschen</button></div>`).join('');
+    }
+    async function adminAdd() { const e = document.getElementById('adminEmailInput').value.toLowerCase().trim(); if(e) { await db.collection('members').add({ email: e }); document.getElementById('adminEmailInput').value = ''; adminLoad(); } }
+    async function adminDel(id) { if(confirm('Mitglied wirklich löschen?')) { await db.collection('members').doc(id).delete(); adminLoad(); } }
 
     function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
     function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
@@ -291,13 +313,7 @@
     function setQuickFilter(f, btn) { currentFilter = f; document.querySelectorAll('#filter-container .chart-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderDashboard(); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function toggleOutcomeFields() { document.getElementById('pnlWrapper').classList.toggle('hidden', document.getElementById('status').value !== 'Geschlossen'); }
-    function prepareCreateView() { 
-        document.getElementById('editId').value = ""; 
-        document.getElementById('form-header').innerText = 'TRADE LOGGER';
-        document.getElementById('datetime').value = new Date().toISOString().slice(0,16); 
-        document.getElementById('status').value = 'Aktiv';
-        updateAssetDropdown(); toggleOutcomeFields(); showView('Trade erstellen'); 
-    }
+    function prepareCreateView() { document.getElementById('editId').value = ""; document.getElementById('form-header').innerText = 'TRADE LOGGER'; document.getElementById('datetime').value = new Date().toISOString().slice(0,16); document.getElementById('status').value = 'Aktiv'; toggleOutcomeFields(); showView('Trade erstellen'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function handleLogout() { auth.signOut().then(() => location.reload()); }
     async function deleteTrade(id) { if(confirm('Löschen?')) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
