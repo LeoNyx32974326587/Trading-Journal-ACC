@@ -35,8 +35,6 @@
         .popup-content { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--accent); width: 300px; text-align: center; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .action-btns button { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-right: 5px; }
-        .link-icon { color: var(--accent); text-decoration: none; font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -83,11 +81,11 @@
         <div id="overview-active-trades" class="card hidden"><h4>OFFENE TRADES</h4><div id="activeListOverview"></div></div>
         <div class="card">
             <h4>PERFORMANCE CHART</h4>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
-                <button class="chart-btn" id="filter-today" onclick="setQuickFilter('today')">Heute</button>
-                <button class="chart-btn" id="filter-week" onclick="setQuickFilter('week')">Woche</button>
-                <button class="chart-btn" id="filter-month" onclick="setQuickFilter('month')">Monat</button>
-                <button class="chart-btn active" id="filter-all" onclick="setQuickFilter('all')">Alles</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;" id="chart-filters">
+                <button class="chart-btn" onclick="setQuickFilter('today')">Heute</button>
+                <button class="chart-btn" onclick="setQuickFilter('week')">Woche</button>
+                <button class="chart-btn" onclick="setQuickFilter('month')">Monat</button>
+                <button class="chart-btn active" onclick="setQuickFilter('all')">Alles</button>
             </div>
             <div style="height: 300px; width: 100%;"><canvas id="ovChart"></canvas></div>
         </div>
@@ -122,20 +120,7 @@
 
     <section id="view-Historie" class="view-section">
         <div class="card" style="padding:0; overflow-x:auto;">
-            <table id="historyTable">
-                <thead>
-                    <tr>
-                        <th>Datum</th>
-                        <th>Asset</th>
-                        <th>P&L</th>
-                        <th>Setup</th>
-                        <th>Result</th>
-                        <th>Notiz</th>
-                        <th>Aktion</th>
-                    </tr>
-                </thead>
-                <tbody id="tradeBody"></tbody>
-            </table>
+            <table><thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Links</th><th>Notiz</th><th>Aktion</th></tr></thead><tbody id="tradeBody"></tbody></table>
         </div>
     </section>
 
@@ -148,16 +133,20 @@
                 <input type="number" id="calcRisk" placeholder="Risiko (%)" oninput="calculateLots()">
                 <input type="number" id="calcEntry" placeholder="Einstieg" oninput="calculateLots()">
                 <input type="number" id="calcStop" placeholder="Stop Loss" oninput="calculateLots()">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="card" style="background:#0a0a0a; text-align:center; padding:15px; margin:0;"><div style="font-size:0.7rem; color:#888;">LOTS</div><div id="lotResult" style="font-size:1.8rem; font-weight:800; color:var(--success);">0.00</div></div>
-                    <div class="card" style="background:#0a0a0a; text-align:center; padding:15px; margin:0;"><div style="font-size:0.7rem; color:#888;">RISIKO €</div><div id="riskEuroResult" style="font-size:1.8rem; font-weight:800; color:var(--danger);">0.00 €</div></div>
-                </div>
+                <div id="lotResult" style="font-size:1.8rem; font-weight:800; color:var(--success); text-align:center;">0.00</div>
             </div>
         </div>
     </section>
 
-    <section id="view-News" class="view-section"><div class="card"><div id="news-container" style="height: 600px;"></div></div></section>
-    <section id="view-Einstellungen" class="view-section"><div class="card"><h4>EINSTELLUNGEN</h4><div style="display:flex;gap:10px;margin-bottom:20px;"><input type="email" id="newMemberEmail" placeholder="E-Mail"><button onclick="addMember()" class="chart-btn">Hinzufügen</button></div><div id="memberList"></div></div></section>
+    <section id="view-News" class="view-section">
+        <div class="card" style="min-height: 600px;">
+            <div id="news-container"></div>
+        </div>
+    </section>
+
+    <section id="view-Einstellungen" class="view-section">
+        <div class="card"><h4>EINSTELLUNGEN</h4><div id="memberList"></div></div>
+    </section>
 </div>
 
 <script>
@@ -173,10 +162,9 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('user-greeting').innerText = `HALLO ${user.displayName?.split(' ')[0].toUpperCase() || 'TRADER'}`;
-            if(user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) { document.getElementById('admin-link').classList.remove('hidden'); loadMembers(); }
+            if(user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) document.getElementById('admin-link').classList.remove('hidden');
             await loadUserAssets();
             loadTrades();
-            updateNewsWidget();
         } else { document.getElementById('auth-overlay').classList.remove('hidden'); }
     });
 
@@ -201,86 +189,25 @@
             } else {
                 totalPnl += pVal; closedCount++; if(pVal > 0) wins++;
             }
-            
-            const setupHtml = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" class="link-icon">🖼️</a>` : '-';
-            const resultHtml = t.imgResult ? `<a href="${t.imgResult}" target="_blank" class="link-icon">📈</a>` : '-';
-            const noteText = t.note ? (t.note.length > 20 ? t.note.substring(0,20) + '...' : t.note) : '-';
-
-            body.innerHTML += `
-                <tr>
-                    <td>${t.date.split('T')[0]}</td>
-                    <td>${t.asset}</td>
-                    <td style="color:${pVal>=0?'var(--success)':'var(--danger)'}">${pVal.toFixed(2)}€</td>
-                    <td>${setupHtml}</td>
-                    <td>${resultHtml}</td>
-                    <td title="${t.note || ''}">${noteText}</td>
-                    <td class="action-btns">
-                        <button onclick="editTrade('${t.id}')">✏️</button>
-                        <button onclick="deleteTrade('${t.id}')">🗑️</button>
-                    </td>
-                </tr>`;
+            body.innerHTML += `<tr><td>${t.date.split('T')[0]}</td><td>${t.asset}</td><td style="color:${pVal>=0?'var(--success)':'var(--danger)'}">${pVal.toFixed(2)}€</td><td>${t.imgSetup ? '🖼️' : ''} ${t.imgResult ? '📈' : ''}</td><td>...</td><td><button onclick="editTrade('${t.id}')">✏️</button></td></tr>`;
         });
 
         document.getElementById('overview-active-trades').classList.toggle('hidden', !hasActive);
         document.getElementById('ovTotal').innerText = totalPnl.toFixed(2) + " €";
-        document.getElementById('ovTotal').style.color = totalPnl > 0 ? 'var(--success)' : (totalPnl < 0 ? 'var(--danger)' : 'var(--text-main)');
         document.getElementById('ovWinRate').innerText = closedCount > 0 ? (wins/closedCount*100).toFixed(1) + "%" : "0%";
         updateChart();
     }
 
-    async function saveTrade() {
-        const id = document.getElementById('editId').value;
-        const data = { 
-            date: document.getElementById('datetime').value, 
-            asset: document.getElementById('assetDropdown').value, 
-            status: document.getElementById('status').value, 
-            mindset: document.getElementById('mindset').value, 
-            pnl: parseFloat(document.getElementById('pnl').value) || 0, 
-            imgSetup: document.getElementById('imgSetup').value, 
-            imgResult: document.getElementById('imgResult').value, 
-            note: document.getElementById('note').value, 
-            userId: auth.currentUser.uid 
-        };
-        id ? await db.collection('trades').doc(id).update(data) : await db.collection('trades').add(data);
-        loadTrades(); showView('Übersicht');
+    function setQuickFilter(f) {
+        currentFilter = f;
+        const btns = document.querySelectorAll('#chart-filters .chart-btn');
+        btns.forEach(b => {
+            b.classList.remove('active');
+            if(b.innerText.toLowerCase() === f || (f === 'all' && b.innerText === 'Alles')) b.classList.add('active');
+        });
+        updateChart();
     }
 
-    function editTrade(id) {
-        const t = trades.find(x => x.id === id);
-        document.getElementById('editId').value = t.id;
-        document.getElementById('datetime').value = t.date;
-        document.getElementById('assetDropdown').value = t.asset;
-        document.getElementById('status').value = t.status;
-        document.getElementById('mindset').value = t.mindset;
-        document.getElementById('pnl').value = t.pnl;
-        document.getElementById('imgSetup').value = t.imgSetup;
-        document.getElementById('imgResult').value = t.imgResult;
-        document.getElementById('note').value = t.note;
-        document.getElementById('trade-form-title').innerText = "TRADE BEARBEITEN";
-        toggleOutcomeFields();
-        showView('Trade erstellen');
-    }
-
-    async function deleteTrade(id) {
-        if(confirm("Diesen Trade wirklich löschen?")) {
-            await db.collection('trades').doc(id).delete();
-            loadTrades();
-        }
-    }
-
-    function prepareCreateView() { 
-        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('datetime').value = now.toISOString().slice(0,16);
-        document.getElementById('editId').value = ""; 
-        document.getElementById('pnl').value = ""; 
-        document.getElementById('imgSetup').value = "";
-        document.getElementById('imgResult').value = "";
-        document.getElementById('note').value = "";
-        document.getElementById('trade-form-title').innerText = "TRADE ERSTELLEN";
-        toggleOutcomeFields(); showView('Trade erstellen'); 
-    }
-
-    // Hilfsfunktionen (Chart, Filter, Assets, UI)
     function updateChart() {
         const ctx = document.getElementById('ovChart').getContext('2d');
         let filtered = trades.filter(t => t.status === 'Geschlossen');
@@ -288,45 +215,42 @@
         if(currentFilter === 'today') filtered = filtered.filter(t => new Date(t.date).toDateString() === now.toDateString());
         else if(currentFilter === 'week') { const weekAgo = new Date(); weekAgo.setDate(now.getDate()-7); filtered = filtered.filter(t => new Date(t.date) >= weekAgo); }
         else if(currentFilter === 'month') { const monthAgo = new Date(); monthAgo.setMonth(now.getMonth()-1); filtered = filtered.filter(t => new Date(t.date) >= monthAgo); }
+        
         filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
         let sum = 0; const points = filtered.map(t => { sum += (parseFloat(t.pnl) || 0); return sum; });
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', tension: 0.2, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
     }
-    function setQuickFilter(f) { currentFilter = f; document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active')); document.getElementById('filter-' + f).classList.add('active'); updateChart(); }
+
+    function updateNewsWidget() {
+        const container = document.getElementById('news-container');
+        container.innerHTML = '';
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+        script.async = true;
+        script.innerHTML = JSON.stringify({ "colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "600", "locale": "de_DE", "importanceFilter": "-1,0,1" });
+        container.appendChild(script);
+    }
+
+    function showView(v) { 
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); 
+        const target = document.getElementById('view-' + v.replace(/\s+/g, '-'));
+        if(target) target.classList.add('active');
+        document.getElementById('view-title').innerText = v; 
+        document.getElementById('navDrawer').classList.remove('open');
+        if(v === 'News') updateNewsWidget();
+    }
+
     async function loadUserAssets() { const snap = await db.collection('userAssets').doc(auth.currentUser.uid).get(); if (snap.exists && snap.data().assets) userAssets = snap.data().assets; updateAssetDropdown(); }
     function updateAssetDropdown() { document.getElementById('assetDropdown').innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join(''); }
     function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
     function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
     async function confirmAddAsset() { const name = document.getElementById('newAssetName').value.toUpperCase().trim(); if (name && !userAssets.includes(name)) { userAssets.push(name); await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets }); updateAssetDropdown(); document.getElementById('newAssetName').value = ''; closeAssetPopup(); } }
-    function showView(v) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); const target = document.getElementById('view-' + v.replace(/\s+/g, '-')); if(target) target.classList.add('active'); document.getElementById('view-title').innerText = v; document.getElementById('navDrawer').classList.remove('open'); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function handleLogout() { auth.signOut().then(() => location.reload()); }
     function toggleOutcomeFields() { const c = document.getElementById('status').value === 'Geschlossen'; document.getElementById('pnlWrapper').classList.toggle('hidden', !c); document.getElementById('outcomeWrapper').classList.toggle('hidden', !c); }
-    async function quickClose(id) { const pnl = prompt("P&L (€):", "0"); if(pnl !== null) { await db.collection('trades').doc(id).update({ status: 'Geschlossen', pnl: parseFloat(pnl) || 0 }); loadTrades(); } }
-    function calculateLots() {
-        const type = document.getElementById('calcAssetType').value;
-        const balance = parseFloat(document.getElementById('calcBalance').value) || 0;
-        const riskPercent = parseFloat(document.getElementById('calcRisk').value) || 0;
-        const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
-        const stop = parseFloat(document.getElementById('calcStop').value) || 0;
-        if (balance > 0 && riskPercent > 0 && entry > 0 && stop > 0 && entry !== stop) {
-            const riskEuro = balance * (riskPercent / 100);
-            const diff = Math.abs(entry - stop);
-            let lots = (type === 'forex') ? riskEuro / (diff * 100000) : (type === 'gold' ? riskEuro / (diff * 100) : riskEuro / diff);
-            document.getElementById('lotResult').innerText = lots.toFixed(2);
-            document.getElementById('riskEuroResult').innerText = riskEuro.toFixed(2) + " €";
-        }
-    }
-    function updateNewsWidget() {
-        const container = document.getElementById('news-container'); container.innerHTML = '';
-        const script = document.createElement('script'); script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-events.js'; script.async = true;
-        script.innerHTML = JSON.stringify({ "colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "de_DE", "importanceFilter": "-1,0,1" });
-        container.appendChild(script);
-    }
-    async function loadMembers() { const snap = await db.collection('members').get(); const list = document.getElementById('memberList'); list.innerHTML = ''; snap.forEach(doc => { list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${doc.data().email}</span></div>`; }); }
-    async function addMember() { const email = document.getElementById('newMemberEmail').value; if(email) { await db.collection('members').add({ email: email.toLowerCase() }); document.getElementById('newMemberEmail').value = ''; loadMembers(); } }
+    function prepareCreateView() { showView('Trade erstellen'); toggleOutcomeFields(); }
 </script>
 </body>
 </html>
