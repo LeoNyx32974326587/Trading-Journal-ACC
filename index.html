@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Secure Login</title>
+    <title>TradeCloud Pro - Access Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -222,22 +222,26 @@
 
     let trades = [], ovChart = null, currentFilter = 'all';
 
-    // AUTH CHECK MIT WHITELIST
+    // AUTH CHECK MIT WHITELIST + FEHLERDIAGNOSE
     auth.onAuthStateChanged(async (user) => {
         if (user) {
-            // Check Admin Hardcode (WICHTIG: Kleinbuchstaben)
             const userEmail = user.email.toLowerCase().trim();
             const isAdmin = userEmail === "leon.luca.lauterbach@gmail.com";
-            
             let isAllowed = isAdmin;
+            let errorMsg = "";
             
             if(!isAllowed) {
                 try {
-                    // WICHTIG: Suche nach der E-Mail auch in Kleinbuchstaben
                     const snap = await db.collection('members').where('email', '==', userEmail).get();
-                    if(!snap.empty) isAllowed = true;
+                    if(!snap.empty) {
+                        isAllowed = true;
+                    } else {
+                        errorMsg = "Email nicht in Datenbank gefunden: " + userEmail;
+                    }
                 } catch(e) {
-                    console.error("Auth check failed", e);
+                    // Fehler fangen (z.B. Permissions)
+                    console.error("Auth Error", e);
+                    errorMsg = "Datenbank-Zugriff verweigert (Prüfe Firestore Rules!).";
                 }
             }
 
@@ -255,8 +259,8 @@
                 await loadTrades();
                 setInterval(loadTrades, 5000);
             } else {
-                // ZEIGE DIE ABGELEHNTE EMAIL AN
-                alert(`Kein Zugriff für: ${userEmail}\nBitte Admin kontaktieren.`);
+                // DETAILLIERTE FEHLERMELDUNG
+                alert(`Kein Zugriff!\nGrund: ${errorMsg || 'Nicht freigeschaltet'}\n\nBitte Admin kontaktieren.`);
                 await auth.signOut();
                 location.reload();
             }
@@ -265,9 +269,11 @@
 
     async function loadTrades() {
         if(!auth.currentUser) return;
-        const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
-        trades = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        render();
+        try {
+            const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
+            trades = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            render();
+        } catch(e) { console.log("Ladefehler (evtl. neu eingeloggt):", e); }
     }
 
     function render() {
@@ -439,7 +445,7 @@
         const val = document.getElementById('admEmail').value.trim().toLowerCase();
         if(!val) return;
         await db.collection('members').add({email: val}); 
-        alert("Nutzer hinzugefügt: " + val); // BESTÄTIGUNG
+        alert("Freigeschaltet: " + val); 
         document.getElementById('admEmail').value = ""; 
         admLoad(); 
     }
