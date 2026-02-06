@@ -97,7 +97,7 @@
 
     <section id="view-Trade-erstellen" class="view-section">
         <div class="card">
-            <h4 id="trade-form-title">TRADE LOGGER</h4>
+            <h4>TRADE LOGGER</h4>
             <input type="hidden" id="editId">
             <input type="datetime-local" id="datetime">
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -122,7 +122,7 @@
     <section id="view-Historie" class="view-section">
         <div class="card" style="padding:0; overflow-x:auto;">
             <table>
-                <thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Links</th><th>Aktion</th></tr></thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Links</th><th>Notiz</th><th>Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
@@ -173,7 +173,7 @@
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('user-greeting').innerText = `HALLO ${user.displayName?.split(' ')[0].toUpperCase() || 'TRADER'}`;
             
-            if(user.email === "leon.luca.lauterbach@gmail.com") {
+            if(user.email.toLowerCase() === "leon.luca.lauterbach@gmail.com") {
                 document.getElementById('admin-link').classList.remove('hidden');
                 adminLoad();
             }
@@ -184,7 +184,7 @@
 
     async function syncAssets() {
         const doc = await db.collection('userAssets').doc(auth.currentUser.uid).get();
-        if(doc.exists) userAssets = doc.data().assets;
+        if(doc.exists && doc.data().assets) userAssets = doc.data().assets;
         else await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
         updateAssetDropdown();
     }
@@ -228,6 +228,7 @@
                     ${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank">S</a>` : ''} 
                     ${t.imgResult ? `| <a href="${t.imgResult}" target="_blank">R</a>` : ''}
                 </td>
+                <td style="font-size:0.7rem; color:#888; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.note || '-'}</td>
                 <td><button onclick="editTrade('${t.id}')" style="background:none;border:none;cursor:pointer;">✏️</button> <button onclick="deleteTrade('${t.id}')" style="background:none;border:none;cursor:pointer;">🗑️</button></td>
             </tr>
         `).join('');
@@ -235,9 +236,23 @@
 
     async function saveTrade() {
         const id = document.getElementById('editId').value;
-        const obj = { date: document.getElementById('datetime').value, asset: document.getElementById('assetDropdown').value, status: document.getElementById('status').value, mindset: document.getElementById('mindset').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value || "", note: document.getElementById('note').value, userId: auth.currentUser.uid };
+        const selectedAsset = document.getElementById('assetDropdown').value; // FIX: Nur das ausgewählte Asset lesen
+        
+        const obj = { 
+            date: document.getElementById('datetime').value, 
+            asset: selectedAsset, 
+            status: document.getElementById('status').value, 
+            mindset: document.getElementById('mindset').value, 
+            pnl: parseFloat(document.getElementById('pnl').value) || 0, 
+            imgSetup: document.getElementById('imgSetup').value, 
+            imgResult: document.getElementById('imgResult').value || "", 
+            note: document.getElementById('note').value, 
+            userId: auth.currentUser.uid 
+        };
+        
         id ? await db.collection('trades').doc(id).update(obj) : await db.collection('trades').add(obj);
-        loadTrades(); showView('Übersicht');
+        loadTrades(); 
+        showView('Übersicht');
     }
 
     function editTrade(id) {
