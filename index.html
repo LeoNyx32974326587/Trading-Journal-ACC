@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Final Dashboard</title>
+    <title>TradeCloud Pro - Final</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -77,7 +77,7 @@
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; }
         .btn-cancel { background: #333; color: white; margin-top: 10px; font-size: 0.9rem; padding: 10px; }
 
-        .btn-close-trade { background: transparent; border: 1px solid var(--success); color: var(--success); padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-close-trade { background: transparent; border: 1px solid var(--success); color: var(--success); padding: 6px 12px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-close-trade:hover { background: var(--success); color: black; }
 
         /* --- TABLE --- */
@@ -149,6 +149,7 @@
 <div id="app-content" class="container hidden">
 
     <section id="view-Übersicht" class="view-section active">
+        <h1 id="user-greeting" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;">HALLO TRADER</h1>
         <div id="dashboard-container">
             </div>
     </section>
@@ -300,7 +301,7 @@
     let myTrades = [];
     let currentFilter = ''; 
     let calDate = new Date();
-    let journalCharts = {}; // Store chart instances
+    let journalCharts = {}; 
 
     if(localStorage.getItem('theme')==='light') document.body.classList.add('light-mode');
 
@@ -320,6 +321,9 @@
                 document.getElementById('main-header').classList.remove('hidden');
                 document.getElementById('navDrawer').classList.remove('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
+                
+                // Set Greeting
+                document.getElementById('user-greeting').innerText = `HALLO ${user.displayName ? user.displayName.split(' ')[0].toUpperCase() : 'TRADER'}`;
                 
                 if(isAdmin) {
                     document.getElementById('admin-link').classList.remove('hidden');
@@ -378,7 +382,6 @@
         const container = document.getElementById('dashboard-container');
         container.innerHTML = '';
         
-        // Clear old charts map to avoid memory leaks
         journalCharts = {};
 
         const visibleJournals = myJournals.filter(j => !j.hidden);
@@ -427,10 +430,7 @@
                             ${open.length === 0 ? '<div style="color:#555;font-size:0.8rem;">Keine offenen Trades</div>' : open.map(t => `
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; font-size:0.9rem;">
                                     <span><b>${t.asset}</b> <small>${t.date.split('T')[0]}</small></span>
-                                    <div style="display:flex; gap:5px;">
-                                        <button class="btn-close-trade" onclick="editTrade('${t.id}', true)">CLOSE</button>
-                                        <button class="icon-btn" onclick="editTrade('${t.id}', false)">✏️</button>
-                                    </div>
+                                    <button class="btn-close-trade" onclick="editTrade('${t.id}', true)">CLOSE</button>
                                 </div>
                             `).join('')}
                         </div>
@@ -438,8 +438,6 @@
                 </div>
             `;
             container.appendChild(section);
-            
-            // Initial Chart Render (All Time)
             updateChartData(j.id, 'all');
         });
     }
@@ -447,7 +445,6 @@
     function updateChartData(journalId, filter) {
         const jTrades = myTrades.filter(t => t.journalId === journalId && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
         
-        // Time Filter logic
         let filtered = jTrades;
         const now = new Date();
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -466,12 +463,10 @@
             filtered = jTrades.filter(t => new Date(t.date).getFullYear() === now.getFullYear());
         }
 
-        // Stats calculation based on filtered data
         let pnl = 0; let wins = 0;
         const dataPoints = filtered.map(t => { pnl+=t.pnl; if(t.pnl>0)wins++; return pnl; });
         const winRate = filtered.length ? (wins/filtered.length*100).toFixed(0) : 0;
 
-        // Update DOM Stats
         const pnlEl = document.getElementById(`stats-pnl-${journalId}`);
         const wrEl = document.getElementById(`stats-wr-${journalId}`);
         if(pnlEl && wrEl) {
@@ -480,33 +475,21 @@
             wrEl.innerText = winRate + "%";
         }
 
-        // Update or Create Chart
         const ctx = document.getElementById(`chart-${journalId}`);
         if(ctx) {
-            if(journalCharts[journalId]) {
-                journalCharts[journalId].destroy();
-            }
-            
+            if(journalCharts[journalId]) { journalCharts[journalId].destroy(); }
             journalCharts[journalId] = new Chart(ctx, {
                 type: 'line',
                 data: { labels: filtered.map(t=>''), datasets: [{ data: dataPoints, borderColor: '#bb86fc', tension: 0.1, pointRadius:0 }] },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: {display:false} }, 
-                    scales: { x:{display:false}, y:{grid:{color:'#333'}} },
-                    animation: false // disable animation for snappy filtering
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x:{display:false}, y:{grid:{color:'#333'}} }, animation: false }
             });
         }
     }
 
     function filterChart(journalId, filter, btn) {
-        // Toggle active button style
         const parent = btn.parentElement;
         parent.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
         updateChartData(journalId, filter);
     }
 
@@ -554,7 +537,6 @@
         sel.innerHTML = myJournals.map(j => `<option value="${j.id}">${j.name}</option>`).join('');
         sel.value = t.journalId;
 
-        // Close Logic
         if(closeNow) {
             document.getElementById('inpStatus').value = "Geschlossen";
             document.getElementById('form-header').innerText = "TRADE SCHLIESSEN";
@@ -569,7 +551,6 @@
         document.getElementById('inpResult').value = t.result||'';
         document.getElementById('inpPnl').value = t.pnl;
         document.getElementById('inpNote').value = t.note||'';
-        
         toggleFields();
         showView('Trade-erstellen');
     }
