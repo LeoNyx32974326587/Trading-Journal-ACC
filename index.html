@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Final Config</title>
+    <title>TradeCloud Pro - New Calendar</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -11,17 +11,23 @@
     <style>
         /* --- THEMES & COLORS --- */
         :root { 
-            --bg-dark: #0f0f0f; --card-bg: #1a1a1a; --text-main: #e0e0e0; 
-            --accent: #bb86fc; --success: #03dac6; --danger: #cf6679; --border: #2c2c2c; 
+            --bg-dark: #050505; /* Sehr dunkler Hintergrund wie im Bild */
+            --card-bg: #121212; 
+            --cell-bg: #1e1e1e;
+            --text-main: #e0e0e0; 
+            --accent: #bb86fc; 
+            --success: #00c853; /* Knalliges Grün */
+            --danger: #ff3d00; /* Knalliges Rot */
+            --border: #2c2c2c; 
             --blur: 0px;
         }
         body.light-mode {
-            --bg-dark: #f0f2f5; --card-bg: #ffffff; --text-main: #1c1e21;
+            --bg-dark: #f0f2f5; --card-bg: #ffffff; --cell-bg: #e4e6eb; --text-main: #1c1e21;
             --accent: #6200ee; --border: #ddd;
         }
 
         /* --- GLOBAL LAYOUT --- */
-        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 40px; transition: background 0.3s, color 0.3s; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 40px; transition: background 0.3s; }
         .hidden { display: none !important; }
         
         .view-section { display: none; animation: fadeIn 0.3s; }
@@ -29,14 +35,11 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* --- HEADER --- */
-        header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .header-left { display: flex; align-items: center; }
-        .menu-btn { cursor: pointer; font-size: 1.8rem; color: var(--accent); background: none; border: none; padding: 5px; margin-right: 15px; }
-        #view-title { font-weight: 800; color: var(--accent); letter-spacing: 1px; }
-        
-        /* Privacy Blur Effect */
-        .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
+        header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-dark); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .menu-btn { cursor: pointer; font-size: 1.8rem; color: var(--text-main); background: none; border: none; padding: 0; margin-right: 15px; }
+        #view-title { font-weight: 700; font-size: 1.2rem; color: var(--text-main); }
         .icon-btn-header { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--text-main); }
+        .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
 
         /* --- NAVIGATION DRAWER --- */
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 60px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
@@ -44,83 +47,106 @@
         .nav-drawer button { display: block; width: 100%; padding: 18px 25px; text-align: left; background: none; border: none; color: var(--text-main); cursor: pointer; border-bottom: 1px solid var(--border); font-size: 1rem; }
 
         /* --- CARDS & CONTAINERS --- */
-        .container { max-width: 1000px; margin: 15px auto; padding: 0 15px; box-sizing: border-box; }
-        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; transition: background 0.3s; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
         
-        /* --- ALERTS --- */
-        .dd-alert { border: 2px solid var(--danger); box-shadow: 0 0 15px rgba(207, 102, 121, 0.3); background: rgba(207, 102, 121, 0.1); color: var(--danger); text-align: center; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(207, 102, 121, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(207, 102, 121, 0); } 100% { box-shadow: 0 0 0 0 rgba(207, 102, 121, 0); } }
-
         /* --- INPUTS & BUTTONS --- */
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
-        
-        .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; text-decoration: none; display: inline-block; margin: 2px 0; min-width: 30px; text-align: center; }
-        .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
-        
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; text-transform: uppercase; margin-top: 10px; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; text-decoration: none; display: inline-block; margin: 2px 0; min-width: 30px; text-align: center; }
+        .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
+
+        /* --- ALERTS --- */
+        .dd-alert { border: 2px solid var(--danger); box-shadow: 0 0 15px rgba(255, 61, 0, 0.3); background: rgba(255, 61, 0, 0.1); color: var(--danger); text-align: center; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 61, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 61, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 61, 0, 0); } }
+
+        /* --- NEW CALENDAR STYLES (MATCHING BILD 1) --- */
+        .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .cal-month-name { font-size: 1.4rem; font-weight: bold; margin: 0; }
+        .cal-stats-row { display: flex; justify-content: space-between; color: #888; font-size: 0.9rem; margin-bottom: 10px; }
+        .cal-stat-pnl { font-weight: bold; font-size: 1.1rem; }
         
-        /* --- TABLES & PREVIEW --- */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .cal-day-label { text-align: center; color: #666; font-size: 0.75rem; padding-bottom: 5px; }
+        
+        .cal-cell { 
+            background: var(--cell-bg); 
+            border-radius: 8px; 
+            aspect-ratio: 1/1.2; /* Hochformat-Rechtecke */
+            position: relative; 
+            border: 1px solid transparent; 
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .cal-cell:active { transform: scale(0.95); }
+        .cal-cell.empty { background: transparent; border: none; cursor: default; }
+        
+        .cal-date { position: absolute; top: 8px; left: 8px; font-size: 0.9rem; font-weight: 600; color: #aaa; }
+        .cal-pnl { position: absolute; bottom: 25px; left: 0; right: 0; text-align: center; font-size: 0.85rem; font-weight: bold; }
+        .cal-trades { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 0.7rem; color: #666; display: flex; justify-content: center; align-items: center; gap: 3px; }
+        
+        .text-green { color: var(--success); }
+        .text-red { color: var(--danger); }
+
+        /* --- NEW DAY DETAIL VIEW (MATCHING BILD 2) --- */
+        .day-view-container { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg-dark); z-index: 500; overflow-y: auto; 
+            display: none; padding-bottom: 50px;
+        }
+        .day-view-container.open { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .dv-header { padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); background: var(--bg-dark); position: sticky; top:0; z-index:10; }
+        .dv-back-btn { background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
+        .dv-title { font-size: 1.2rem; font-weight: bold; margin: 0; }
+        
+        .dv-chart-area { padding: 20px 15px; height: 250px; position: relative; }
+        
+        .dv-stats-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 20px 20px 20px; 
+        }
+        .dv-stat-item h5 { margin: 0 0 5px 0; color: #666; font-size: 0.85rem; font-weight: normal; }
+        .dv-stat-item div { font-size: 1.2rem; font-weight: bold; }
+
+        .dv-list-header { padding: 10px 20px; font-size: 1.1rem; font-weight: bold; border-top: 1px solid var(--border); margin-top: 10px; }
+        .dv-trade-list { padding: 0 15px; }
+        .dv-trade-item { 
+            background: var(--cell-bg); border-radius: 8px; padding: 12px; margin-bottom: 8px; 
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .dv-trade-left { display: flex; align-items: center; gap: 12px; }
+        .dv-arrow { font-size: 1.2rem; }
+        .dv-time { font-size: 0.75rem; color: #888; }
+        .dv-symbol { font-weight: bold; font-size: 0.95rem; }
+        .dv-pnl { font-weight: bold; font-size: 1rem; }
+        .dv-chevron { color: #555; font-size: 1.2rem; margin-left: 10px; }
+
+        /* Table & Utils */
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 500px; }
         th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        .link-badge { background: #333; color: var(--accent); padding: 4px 8px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.75rem; margin-right: 4px; border: 1px solid #444; display: inline-block; cursor: pointer; }
-        
-        /* Image Preview Tooltip */
-        #img-preview { position: fixed; display: none; width: 300px; height: 180px; background-size: cover; background-position: center; border: 2px solid var(--accent); border-radius: 8px; z-index: 999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background-color: #000; pointer-events: none; }
-
-        /* --- CALENDAR (BIG NUMBERS) --- */
-        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .cal-nav button { background: #333; border: none; color: white; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .cal-cell { background: var(--bg-dark); border-radius: 6px; min-height: 80px; padding: 5px; position: relative; border: 1px solid var(--border); }
-        
-        /* Bigger Numbers */
-        .cal-date { font-size: 1rem; font-weight: bold; color: #888; position: absolute; top: 5px; right: 8px; }
-        .cal-pnl { font-size: 1.1rem; font-weight: 800; position: absolute; bottom: 8px; left: 5px; right: 5px; text-align: center; }
-        
-        .cal-green { background: rgba(3, 218, 198, 0.1); border-color: var(--success); }
-        .cal-red { background: rgba(207, 102, 121, 0.1); border-color: var(--danger); }
-        .cal-pnl-pos { color: var(--success); }
-        .cal-pnl-neg { color: var(--danger); }
-
-        /* --- UTILS --- */
-        .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; color: #888; transition: 0.2s; }
-        .icon-btn:hover { color: var(--accent); transform: scale(1.1); }
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 5px; color: #888; }
         .icon-trash { color: var(--danger); }
         
-        /* --- POPUPS --- */
-        #auth-overlay, #stats-popup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        #assetInput { text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        /* Image Preview */
+        #img-preview { position: fixed; display: none; width: 300px; height: 180px; background-size: cover; background-position: center; border: 2px solid var(--accent); border-radius: 8px; z-index: 999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background-color: #000; pointer-events: none; }
     </style>
 </head>
 <body>
 
-<div id="auth-overlay">
+<div id="auth-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:center; z-index:1000;">
     <div class="card" style="text-align: center; width: 300px; border: 1px solid var(--accent);">
         <h2 style="color: var(--accent); letter-spacing: 2px;">TRADECLOUD</h2>
         <button onclick="loginGoogle()" class="btn-primary">LOGIN</button>
-        <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">Nur für zugelassene Mitglieder</p>
     </div>
 </div>
 
 <div id="img-preview"></div>
 
-<div id="stats-popup" class="hidden">
-    <div class="card" style="width: 320px; position: relative; border: 1px solid var(--success);">
-        <button onclick="closeStats()" style="position: absolute; top:10px; right:10px; background:none; border:none; color:var(--text-main); font-size:1.2rem; cursor:pointer;">✕</button>
-        <h3 style="color: var(--success); margin-top:0;">USER STATS</h3>
-        <p id="stats-email" style="color:#888; font-size:0.9rem; margin-bottom:20px;">-</p>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
-            <div style="background:var(--bg-dark); padding:10px; border-radius:8px;">Trades<br><b id="st-count">0</b></div>
-            <div style="background:var(--bg-dark); padding:10px; border-radius:8px;">Win Rate<br><b id="st-win">0%</b></div>
-            <div style="background:var(--bg-dark); padding:10px; border-radius:8px; grid-column: span 2;">P&L<br><b id="st-pnl">0.00 €</b></div>
-        </div>
-    </div>
-</div>
-
 <header id="main-header" class="hidden">
-    <div class="header-left">
+    <div class="header-left" style="display:flex; align-items:center;">
         <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
         <div id="view-title">DASHBOARD</div>
     </div>
@@ -131,8 +157,8 @@
 
 <nav class="nav-drawer" id="navDrawer">
     <button onclick="showView('Übersicht')">🏠 Dashboard</button>
-    <button onclick="showView('Lot Rechner')">📊 Lot Rechner</button>
     <button onclick="showView('Kalender')">📅 Kalender</button>
+    <button onclick="showView('Lot Rechner')">📊 Lot Rechner</button>
     <button onclick="showView('News')">📰 News / Events</button>
     <button onclick="prepareCreateView()">➕ Neuer Trade</button>
     <button onclick="showView('Historie')">📜 Journal</button>
@@ -148,7 +174,7 @@
         
         <div id="dd-banner" class="card dd-alert hidden">
             <h3 style="margin:0;">⚠️ TAGES-LIMIT ERREICHT ⚠️</h3>
-            <p style="margin:5px 0 0 0;">Stop Trading für heute!</p>
+            <p>Stop Trading für heute!</p>
         </div>
 
         <div class="card">
@@ -163,16 +189,14 @@
             <div style="display:flex; justify-content:space-between; margin-bottom:15px; flex-wrap:wrap;">
                 <h4 style="margin:0;">PERFORMANCE</h4>
                 <div id="filter-container">
-                    <button class="chart-btn" onclick="setFilter('today', this)">H</button>
-                    <button class="chart-btn" onclick="setFilter('yesterday', this)">G</button>
-                    <button class="chart-btn" onclick="setFilter('week', this)">W</button>
+                    <button class="chart-btn active" onclick="setFilter('all', this)">Alle</button>
                     <button class="chart-btn" onclick="setFilter('month', this)">M</button>
-                    <button class="chart-btn active" onclick="setFilter('all', this)">A</button>
+                    <button class="chart-btn" onclick="setFilter('today', this)">H</button>
                 </div>
             </div>
             <div style="height: 250px;"><canvas id="ovChart"></canvas></div>
         </div>
-
+        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div class="card" style="text-align: center;">
                 <div style="color:#888; font-size:0.8rem;">TOTAL P&L</div>
@@ -184,6 +208,53 @@
             </div>
         </div>
     </section>
+
+    <section id="view-Kalender" class="view-section">
+        <div style="padding: 10px 5px;">
+            <div class="cal-header-row">
+                <div>
+                    <h2 id="cal-month-title" class="cal-month-name">January 2026</h2>
+                    <div style="display:flex; gap:10px; margin-top:5px;">
+                        <button class="chart-btn" onclick="changeCalMonth(-1)">❮</button>
+                        <button class="chart-btn" onclick="changeCalMonth(1)">❯</button>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="showView('Einstellungen')">⚙️</button>
+            </div>
+            
+            <div class="cal-stats-row">
+                <span id="cal-trading-days">0 Trading days</span>
+                <span id="cal-total-pnl" class="cal-stat-pnl sensitive">€0.00</span>
+            </div>
+
+            <div class="calendar-grid">
+                <div class="cal-day-label">Sun</div><div class="cal-day-label">Mon</div><div class="cal-day-label">Tue</div>
+                <div class="cal-day-label">Wed</div><div class="cal-day-label">Thu</div><div class="cal-day-label">Fri</div><div class="cal-day-label">Sat</div>
+            </div>
+            <div id="cal-days-grid" class="calendar-grid"></div>
+        </div>
+    </section>
+
+    <div id="day-detail-view" class="day-view-container">
+        <div class="dv-header">
+            <button class="dv-back-btn" onclick="closeDayDetail()">❮</button>
+            <h2 id="dv-date-title" class="dv-title">Date</h2>
+        </div>
+        
+        <div class="dv-chart-area">
+            <canvas id="dayChart"></canvas>
+        </div>
+        
+        <div class="dv-stats-grid">
+            <div class="dv-stat-item"><h5>PnL</h5><div id="dv-pnl" class="sensitive">-</div></div>
+            <div class="dv-stat-item"><h5>Win rate</h5><div id="dv-winrate">-</div></div>
+            <div class="dv-stat-item"><h5>Profit factor</h5><div id="dv-pf">-</div></div>
+            <div class="dv-stat-item"><h5>Trades count</h5><div id="dv-count">-</div></div>
+        </div>
+
+        <div class="dv-list-header">Closed Trades</div>
+        <div id="dv-list" class="dv-trade-list"></div>
+    </div>
 
     <section id="view-Trade-erstellen" class="view-section">
         <div class="card">
@@ -197,12 +268,12 @@
             </select>
 
             <label>Asset</label>
-            <input type="text" id="assetInput" placeholder="z.B. EURUSD" required>
+            <input type="text" id="assetInput" placeholder="z.B. XAUUSD" required>
 
             <label>Datum & Zeit</label>
             <input type="datetime-local" id="datetime">
 
-            <label>Setup Link (Chart Bild)</label>
+            <label>Setup Link (Bild)</label>
             <input type="url" id="imgSetup" placeholder="https://...">
 
             <label>Notizen</label>
@@ -211,8 +282,7 @@
             <div id="closedFields" class="hidden">
                 <label style="color:var(--success);">Gewinn/Verlust (€)</label>
                 <input type="number" id="pnl" placeholder="0.00" step="0.01">
-                
-                <label>Ergebnis Link (Optional)</label>
+                <label>Ergebnis Link</label>
                 <input type="url" id="imgResult" placeholder="https://...">
             </div>
             
@@ -221,19 +291,9 @@
         </div>
     </section>
 
-    <section id="view-Kalender" class="view-section">
-        <div class="card">
-            <div class="cal-nav"><button onclick="changeCalMonth(-1)">❮</button><h4 id="cal-month-title" style="margin:0;">-</h4><button onclick="changeCalMonth(1)">❯</button></div>
-            <div class="calendar-grid"><div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div></div>
-            <div id="cal-days-grid" class="calendar-grid"></div>
-        </div>
-    </section>
-
     <section id="view-Historie" class="view-section">
         <div class="card" style="padding:0;">
-            <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                <h4 style="margin:0;">JOURNAL</h4>
-                </div>
+            <div style="padding:15px;"><h4>JOURNAL</h4></div>
             <div class="table-wrapper">
                 <table>
                     <thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Links</th><th>Action</th></tr></thead>
@@ -246,35 +306,27 @@
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
             <h4>EINSTELLUNGEN</h4>
-            
-            <label>Design Modus</label>
+            <label>Design</label>
             <div style="display:flex; gap:10px; margin-bottom:20px;">
                 <button onclick="setTheme('dark')" class="chart-btn" style="flex:1;">🌑 Dark</button>
                 <button onclick="setTheme('light')" class="chart-btn" style="flex:1; background:#ddd; color:black;">☀️ Light</button>
             </div>
-
-            <hr style="border-color:var(--border); opacity:0.3; margin:20px 0;">
-
+            <hr style="border-color:var(--border); opacity:0.3;">
             <label>Startkapital (€)</label>
-            <input type="number" id="settingStartCap" placeholder="z.B. 10000">
-
-            <label>Drawdown Limit (Tagesverlust)</label>
+            <input type="number" id="settingStartCap" placeholder="10000">
+            <label>Max. Tagesverlust</label>
             <div style="display:flex; gap:10px;">
-                <input type="number" id="settingMaxLoss" placeholder="Wert (z.B. 500)">
-                <select id="settingLossType" style="width:120px;">
-                    <option value="eur">EUR (€)</option>
-                    <option value="perc">Prozent (%)</option>
-                </select>
+                <input type="number" id="settingMaxLoss" placeholder="Wert">
+                <select id="settingLossType" style="width:120px;"><option value="eur">EUR (€)</option><option value="perc">%</option></select>
             </div>
-            
-            <button onclick="saveUserSettings()" class="btn-primary" style="margin-top:20px;">SPEICHERN</button>
+            <button onclick="saveUserSettings()" class="btn-primary">SPEICHERN</button>
         </div>
     </section>
 
     <section id="view-Lot-Rechner" class="view-section">
         <div class="card">
             <h4>LOT RECHNER</h4>
-            <select id="cType" onchange="updateContractSize()"><option value="forex">Forex</option><option value="indices">Indizes / Krypto</option><option value="custom">Benutzerdefiniert</option></select>
+            <select id="cType" onchange="updateContractSize()"><option value="forex">Forex</option><option value="indices">Indizes / Krypto</option></select>
             <input type="number" id="cBal" placeholder="Konto"><input type="number" id="cRisk" placeholder="Risiko %">
             <div style="display:flex; gap:10px;"><input type="number" id="cEnt" placeholder="Entry"><input type="number" id="cSl" placeholder="SL"></div>
             <label>Kontraktgröße</label><input type="number" id="cSize" value="100000">
@@ -286,13 +338,7 @@
     <section id="view-News" class="view-section"><div class="card" style="height:600px; padding:0;"><div id="news-box" style="height:100%;"></div></div></section>
 
     <section id="view-Mitglieder" class="view-section">
-        <div class="card">
-            <h4>MITGLIEDER VERWALTUNG</h4>
-            <p style="font-size:0.9rem; color:#888;">Nutzer freischalten</p>
-            <input type="email" id="admEmail" placeholder="E-Mail">
-            <button onclick="admAdd()" class="btn-primary">Hinzufügen</button>
-            <div id="admList" style="margin-top:20px;"></div>
-        </div>
+        <div class="card"><h4>MITGLIEDER</h4><input type="email" id="admEmail" placeholder="E-Mail"><button onclick="admAdd()" class="btn-primary">Hinzufügen</button><div id="admList" style="margin-top:20px;"></div></div>
     </section>
 </div>
 
@@ -301,46 +347,37 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    let trades = [], ovChart = null, currentFilter = 'all', calDate = new Date();
+    let trades = [], ovChart = null, dayChart = null, currentFilter = 'all', calDate = new Date();
     let privacyMode = false;
 
-    // Load Theme
-    const storedTheme = localStorage.getItem('tradeTheme') || 'dark';
-    if(storedTheme === 'light') document.body.classList.add('light-mode');
+    // Theme Load
+    if(localStorage.getItem('tradeTheme') === 'light') document.body.classList.add('light-mode');
     
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const email = user.email.toLowerCase().trim();
-            const isAdmin = email === "leon.luca.lauterbach@gmail.com";
-            let allowed = isAdmin;
-            
+            let allowed = (email === "leon.luca.lauterbach@gmail.com");
             if(!allowed) {
                 try {
                     const s = await db.collection('members').where('email', '==', email).get();
                     if(!s.empty) { allowed=true; s.forEach(d=>d.ref.update({uid:user.uid})); }
                 } catch(e){}
             }
-
             if(allowed) {
                 document.getElementById('auth-overlay').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('main-header').classList.remove('hidden');
-                document.getElementById('user-greeting').innerText = `HALLO ${user.displayName?.split(' ')[0].toUpperCase()}`;
-                
-                if(isAdmin) {
+                if(email === "leon.luca.lauterbach@gmail.com") {
                     document.getElementById('admin-link').classList.remove('hidden');
                     admLoad();
                 }
-
-                // Load Settings
+                // Settings Load
                 if(localStorage.getItem('startCap')) document.getElementById('settingStartCap').value = localStorage.getItem('startCap');
                 if(localStorage.getItem('maxLoss')) document.getElementById('settingMaxLoss').value = localStorage.getItem('maxLoss');
                 if(localStorage.getItem('lossType')) document.getElementById('settingLossType').value = localStorage.getItem('lossType');
                 
                 await loadTrades(); setInterval(loadTrades, 5000);
-            } else {
-                alert("Kein Zugriff."); await auth.signOut(); location.reload();
-            }
+            } else { alert("Kein Zugriff."); await auth.signOut(); location.reload(); }
         }
     });
 
@@ -353,60 +390,157 @@
         } catch(e){}
     }
 
-    // --- FORM LOGIC (Open/Closed) ---
-    function toggleFormFields() {
-        const s = document.getElementById('status').value;
-        const closedFields = document.getElementById('closedFields');
-        if(s === 'Aktiv') {
-            closedFields.classList.add('hidden');
-        } else {
-            closedFields.classList.remove('hidden');
+    /* --- NEW CALENDAR LOGIC --- */
+    function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
+    
+    function renderCalendar() {
+        const y = calDate.getFullYear(), m = calDate.getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        document.getElementById('cal-month-title').innerText = `${monthNames[m]} ${y}`;
+        
+        const grid = document.getElementById('cal-days-grid'); 
+        grid.innerHTML = "";
+        
+        const firstDay = new Date(y, m, 1).getDay();
+        const lastDay = new Date(y, m + 1, 0).getDate();
+        
+        // Header Stats
+        let monthTrades = trades.filter(t => t.status==='Geschlossen' && new Date(t.date).getMonth() === m && new Date(t.date).getFullYear() === y);
+        let monthPnl = monthTrades.reduce((a, b) => a + b.pnl, 0);
+        let uniqueDays = [...new Set(monthTrades.map(t => new Date(t.date).toDateString()))].length;
+        
+        document.getElementById('cal-trading-days').innerText = `${uniqueDays} Trading days`;
+        const pnlEl = document.getElementById('cal-total-pnl');
+        pnlEl.innerText = (monthPnl < 0 ? '-' : '+') + '€' + Math.abs(monthPnl).toFixed(2);
+        pnlEl.className = `cal-stat-pnl sensitive ${monthPnl >= 0 ? 'text-green' : 'text-red'}`;
+
+        // Empty cells
+        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell empty"></div>`;
+        
+        // Days
+        for(let d=1; d<=lastDay; d++) {
+            const dateStr = new Date(y, m, d).toDateString();
+            const dayTrades = trades.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
+            let dayPnl = dayTrades.reduce((a,b) => a + b.pnl, 0);
+            let count = dayTrades.length;
+            
+            let cellHtml = `<div class="cal-date">${d}</div>`;
+            let cssClass = "cal-cell";
+            let clickAttr = "";
+
+            if(count > 0) {
+                clickAttr = `onclick="openDayDetail('${y}-${m+1}-${d}')"`;
+                let pnlClass = dayPnl >= 0 ? 'text-green' : 'text-red';
+                cssClass += " has-trade"; // Add visual indicator if needed
+                
+                cellHtml += `
+                    <div class="cal-pnl sensitive ${pnlClass}">${dayPnl < 0 ? '' : '+'}€${dayPnl.toFixed(0)}</div>
+                    <div class="cal-trades">
+                        <span>${count}</span> 
+                        <span style="font-size:0.6rem">📶</span>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML += `<div class="${cssClass}" ${clickAttr}>${cellHtml}</div>`;
         }
     }
 
-    function prepareCreateView() { 
-        document.getElementById('editId').value=""; 
-        document.getElementById('datetime').value=new Date().toISOString().slice(0,16); 
-        document.getElementById('assetInput').value=""; 
-        document.getElementById('pnl').value=""; 
-        document.getElementById('imgSetup').value=""; 
-        document.getElementById('imgResult').value="";
-        document.getElementById('note').value="";
+    /* --- NEW DAY DETAIL LOGIC --- */
+    function openDayDetail(dateStr) {
+        const dateObj = new Date(dateStr);
+        const dayTrades = trades.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateObj.toDateString()).sort((a,b) => new Date(a.date) - new Date(b.date));
         
-        // Default to "Aktiv"
-        document.getElementById('status').value = "Aktiv";
-        document.getElementById('form-header').innerText='NEUER TRADE'; 
-        toggleFormFields(); 
-        showView('Trade erstellen'); 
+        // Header
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('dv-date-title').innerText = dateObj.toLocaleDateString('en-GB', options); // "Friday, 16 January 2026"
+        
+        // Stats
+        let pnl = dayTrades.reduce((a,b)=>a+b.pnl,0);
+        let wins = dayTrades.filter(t=>t.pnl>0).length;
+        let losses = dayTrades.filter(t=>t.pnl<=0).length;
+        let grossProfit = dayTrades.filter(t=>t.pnl>0).reduce((a,b)=>a+b.pnl,0);
+        let grossLoss = Math.abs(dayTrades.filter(t=>t.pnl<0).reduce((a,b)=>a+b.pnl,0));
+        let pf = grossLoss === 0 ? (grossProfit>0?99:0) : (grossProfit/grossLoss);
+        
+        document.getElementById('dv-pnl').innerText = (pnl<0?'-':'+') + '€' + Math.abs(pnl).toFixed(2);
+        document.getElementById('dv-pnl').className = `sensitive ${pnl>=0?'text-green':'text-red'}`;
+        document.getElementById('dv-winrate').innerText = dayTrades.length ? ((wins/dayTrades.length)*100).toFixed(2)+'%' : '0%';
+        document.getElementById('dv-pf').innerText = pf.toFixed(2);
+        document.getElementById('dv-count').innerText = dayTrades.length;
+
+        // Chart (Running PnL)
+        let running = 0;
+        const chartData = dayTrades.map(t => { running += t.pnl; return running; });
+        const chartLabels = dayTrades.map(t => t.date.split('T')[1].slice(0,5)); // HH:MM
+        
+        const ctx = document.getElementById('dayChart').getContext('2d');
+        if(dayChart) dayChart.destroy();
+        
+        // Gradient
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        if(pnl >= 0) { gradient.addColorStop(0, 'rgba(0, 200, 83, 0.2)'); gradient.addColorStop(1, 'rgba(0, 200, 83, 0)'); }
+        else { gradient.addColorStop(0, 'rgba(255, 61, 0, 0.2)'); gradient.addColorStop(1, 'rgba(255, 61, 0, 0)'); }
+
+        dayChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartData,
+                    borderColor: pnl >= 0 ? '#00c853' : '#ff3d00',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { grid: { color: '#222' }, ticks: { color: '#666' } }
+                }
+            }
+        });
+
+        // List
+        const listEl = document.getElementById('dv-list');
+        listEl.innerHTML = dayTrades.map(t => {
+            const isWin = t.pnl >= 0;
+            const arrow = isWin ? '↗' : '↘'; // Simple arrows
+            const arrowClass = isWin ? 'text-green' : 'text-red';
+            const timeStr = t.date.replace('T', ' ');
+            
+            return `
+            <div class="dv-trade-item">
+                <div class="dv-trade-left">
+                    <div class="dv-arrow ${arrowClass}">${arrow}</div>
+                    <div>
+                        <div class="dv-time">${timeStr}</div>
+                        <div class="dv-symbol">${t.asset}</div>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <div class="dv-pnl sensitive ${arrowClass}">${t.pnl.toFixed(2)}</div>
+                    <div class="dv-chevron">›</div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // Show View
+        const dv = document.getElementById('day-detail-view');
+        dv.classList.add('open');
     }
 
-    // --- DRAWDOWN CHECK (€ or %) ---
-    function checkDrawdown() {
-        const val = parseFloat(localStorage.getItem('maxLoss'));
-        const type = localStorage.getItem('lossType') || 'eur';
-        const startCap = parseFloat(localStorage.getItem('startCap')) || 0;
-        
-        if(!val) return;
-        
-        let limit = 0;
-        if(type === 'eur') limit = val;
-        else if(type === 'perc' && startCap > 0) limit = startCap * (val / 100);
-        
-        if(limit === 0) return;
-
-        const today = new Date().toDateString();
-        let todayPnL = 0;
-        trades.forEach(t => { if(t.status === 'Geschlossen' && new Date(t.date).toDateString() === today) todayPnL += t.pnl; });
-        
-        const banner = document.getElementById('dd-banner');
-        if(todayPnL <= -Math.abs(limit)) {
-            banner.classList.remove('hidden');
-            banner.querySelector('p').innerText = `Verlustlimit (${limit.toFixed(2)}€) erreicht!`;
-        } else {
-            banner.classList.add('hidden');
-        }
+    function closeDayDetail() {
+        document.getElementById('day-detail-view').classList.remove('open');
     }
 
+    /* --- STANDARD FUNCTIONS --- */
     function render() {
         const open = trades.filter(t => t.status === 'Aktiv');
         document.getElementById('open-trades-list').innerHTML = open.length ? open.map(t => `
@@ -420,10 +554,7 @@
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
         if(currentFilter === 'today') closed = closed.filter(t => new Date(t.date) >= todayStart);
-        else if(currentFilter === 'yesterday') { const yStart = new Date(todayStart); yStart.setDate(yStart.getDate() - 1); closed = closed.filter(t => new Date(t.date) >= yStart && new Date(t.date) < todayStart); }
-        else if(currentFilter === 'week') { const w = new Date(now); w.setDate(now.getDate() - now.getDay() + (now.getDay() == 0 ? -6:1)); w.setHours(0,0,0,0); closed = closed.filter(t => new Date(t.date) >= w); }
         else if(currentFilter === 'month') closed = closed.filter(t => new Date(t.date).getMonth() === now.getMonth());
-        else if(currentFilter === 'year') closed = closed.filter(t => new Date(t.date).getFullYear() === now.getFullYear());
 
         let sum = 0, wins = 0;
         const points = closed.map(t => { sum += t.pnl; if(t.pnl > 0) wins++; return sum; });
@@ -435,7 +566,6 @@
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, { type: 'line', data: { labels: closed.map(t => t.date.split('T')[0]), datasets: [{ data: points, borderColor: '#bb86fc', backgroundColor: 'rgba(187, 134, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } });
 
-        // Table with Pencil AND TRASH ICON
         document.getElementById('tradeBody').innerHTML = trades.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
             <tr>
                 <td>${t.date.split('T')[0]}</td><td><b>${t.asset}</b></td>
@@ -452,45 +582,48 @@
         `).join('');
     }
 
-    // --- OTHER LOGIC ---
-    function togglePrivacy() {
-        const root = document.documentElement;
-        if(privacyMode) { root.style.setProperty('--blur', '0px'); privacyMode = false; }
-        else { root.style.setProperty('--blur', '6px'); privacyMode = true; }
+    function toggleFormFields() {
+        const s = document.getElementById('status').value;
+        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv');
     }
-    function setTheme(mode) {
-        if(mode === 'light') document.body.classList.add('light-mode');
-        else document.body.classList.remove('light-mode');
-        localStorage.setItem('tradeTheme', mode);
+
+    function checkDrawdown() {
+        const val = parseFloat(localStorage.getItem('maxLoss'));
+        const type = localStorage.getItem('lossType') || 'eur';
+        const startCap = parseFloat(localStorage.getItem('startCap')) || 0;
+        if(!val) return;
+        let limit = type === 'eur' ? val : (startCap > 0 ? startCap * (val / 100) : 0);
+        if(limit === 0) return;
+        const today = new Date().toDateString();
+        let todayPnL = trades.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === today).reduce((a,b)=>a+b.pnl,0);
+        const banner = document.getElementById('dd-banner');
+        if(todayPnL <= -Math.abs(limit)) { banner.classList.remove('hidden'); banner.querySelector('p').innerText = `Limit (${limit.toFixed(2)}€) erreicht!`; } 
+        else banner.classList.add('hidden');
+    }
+
+    function prepareCreateView() { 
+        document.getElementById('editId').value=""; 
+        document.getElementById('datetime').value=new Date().toISOString().slice(0,16); 
+        document.getElementById('assetInput').value=""; document.getElementById('pnl').value=""; 
+        document.getElementById('imgSetup').value=""; document.getElementById('imgResult').value=""; document.getElementById('note').value="";
+        document.getElementById('status').value = "Aktiv"; document.getElementById('form-header').innerText='NEUER TRADE'; 
+        toggleFormFields(); showView('Trade erstellen'); 
+    }
+
+    function togglePrivacy() { document.documentElement.style.setProperty('--blur', privacyMode ? '0px' : '6px'); privacyMode = !privacyMode; }
+    function setTheme(mode) { 
+        if(mode==='light')document.body.classList.add('light-mode'); else document.body.classList.remove('light-mode'); 
+        localStorage.setItem('tradeTheme', mode); 
     }
     function saveUserSettings() {
         localStorage.setItem('maxLoss', document.getElementById('settingMaxLoss').value);
         localStorage.setItem('startCap', document.getElementById('settingStartCap').value);
         localStorage.setItem('lossType', document.getElementById('settingLossType').value);
-        alert("Einstellungen gespeichert!"); checkDrawdown();
+        alert("Gespeichert!"); checkDrawdown();
     }
-    function showPreview(url, e) {
-        const el = document.getElementById('img-preview');
-        el.style.display = 'block'; el.style.backgroundImage = `url('${url}')`;
-        el.style.top = (e.clientY + 10) + 'px'; el.style.left = (e.clientX - 150) + 'px';
-    }
-    function hidePreview() { document.getElementById('img-preview').style.display = 'none'; }
-    function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
+    function showPreview(url, e) { const el=document.getElementById('img-preview'); el.style.display='block'; el.style.backgroundImage=`url('${url}')`; el.style.top=(e.clientY+10)+'px'; el.style.left=(e.clientX-150)+'px'; }
+    function hidePreview() { document.getElementById('img-preview').style.display='none'; }
     
-    function renderCalendar() {
-        const y=calDate.getFullYear(), m=calDate.getMonth();
-        document.getElementById('cal-month-title').innerText = new Date(y,m).toLocaleString('de-DE', {month:'long', year:'numeric'});
-        const grid=document.getElementById('cal-days-grid'); grid.innerHTML="";
-        const fd=new Date(y,m,1).getDay(); const start=fd===0?6:fd-1;
-        for(let i=0;i<start;i++)grid.innerHTML+=`<div></div>`;
-        const ld=new Date(y,m+1,0).getDate();
-        for(let d=1;d<=ld;d++){
-            let sum=0; trades.forEach(t=>{if(t.status==='Geschlossen'&&new Date(t.date).toDateString()===new Date(y,m,d).toDateString())sum+=t.pnl;});
-            let c="cal-cell"; if(sum>0)c+=" cal-green"; if(sum<0)c+=" cal-red";
-            grid.innerHTML+=`<div class="${c}"><div class="cal-date">${d}</div><div class="cal-pnl ${sum>0?'cal-pnl-pos':(sum<0?'cal-pnl-neg':'')}">${sum!==0?sum.toFixed(0):''}</div></div>`;
-        }
-    }
-
     async function saveTrade() {
         const id = document.getElementById('editId').value;
         const asset = document.getElementById('assetInput').value.toUpperCase();
@@ -526,17 +659,9 @@
     function calcLots() { const b=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), e=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value), s=parseFloat(document.getElementById('cSize').value); if(b&&r&&e&&sl&&s) document.getElementById('cRes').innerText=((b*(r/100))/(Math.abs(e-sl)*s)).toFixed(2)+" Lot"; }
     
     /* ADMIN */
-    async function admLoad() { const s=await db.collection('members').get(); document.getElementById('admList').innerHTML=s.docs.map(d=>`<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;"><span>${d.data().email}</span><div><button class="icon-btn" onclick="viewStats('${d.id}')">👁️</button><button class="icon-btn" onclick="admDel('${d.id}')">🗑️</button></div></div>`).join(''); }
+    async function admLoad() { const s=await db.collection('members').get(); document.getElementById('admList').innerHTML=s.docs.map(d=>`<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;"><span>${d.data().email}</span><div><button class="icon-btn" onclick="admDel('${d.id}')">🗑️</button></div></div>`).join(''); }
     async function admAdd() { const v=document.getElementById('admEmail').value.trim().toLowerCase(); if(v){ await db.collection('members').add({email:v}); document.getElementById('admEmail').value=""; admLoad(); }}
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); }}
-    async function viewStats(id) {
-        const m = (await db.collection('members').doc(id).get()).data(); if(!m.uid) return alert("User war nie eingeloggt.");
-        const t = (await db.collection('trades').where('userId','==',m.uid).get()).docs.map(d=>d.data());
-        const cl = t.filter(x=>x.status==='Geschlossen'); let w=0, p=0; cl.forEach(x=>{p+=x.pnl; if(x.pnl>0)w++;});
-        document.getElementById('stats-email').innerText=m.email; document.getElementById('st-count').innerText=cl.length; document.getElementById('st-win').innerText=cl.length?(w/cl.length*100).toFixed(0)+'%':'0%'; document.getElementById('st-pnl').innerText=p.toFixed(2)+'€';
-        document.getElementById('stats-popup').classList.remove('hidden');
-    }
-    function closeStats() { document.getElementById('stats-popup').classList.add('hidden'); }
 </script>
 </body>
 </html>
