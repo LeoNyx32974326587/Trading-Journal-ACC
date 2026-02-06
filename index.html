@@ -108,6 +108,7 @@
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="assetDropdown" style="flex:1; margin:0;"></select>
                 <button type="button" onclick="openAssetPopup()" class="chart-btn">+</button>
+                <button type="button" onclick="deleteCurrentAsset()" class="chart-btn" style="color:var(--danger)">X</button>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                 <select id="status" onchange="toggleOutcomeFields()"><option value="Aktiv">Offen</option><option value="Geschlossen">Geschlossen</option></select>
@@ -188,12 +189,15 @@
     async function syncAssets() {
         const doc = await db.collection('userAssets').doc(auth.currentUser.uid).get();
         if(doc.exists && doc.data().assets) userAssets = doc.data().assets;
+        else await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
         updateAssetDropdown();
     }
 
     function updateAssetDropdown() {
         const select = document.getElementById('assetDropdown');
-        if(select) select.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+        if(select) {
+            select.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+        }
     }
 
     async function loadTrades() {
@@ -281,6 +285,7 @@
             scr.innerHTML = JSON.stringify({"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "de"});
             cont.appendChild(scr);
         }
+        if(v === 'Trade erstellen' || v === 'Übersicht') updateAssetDropdown();
     }
 
     function calcLots() {
@@ -301,19 +306,31 @@
 
     function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
     function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
+    
     async function confirmAddAsset() {
         const val = document.getElementById('newAssetName').value.toUpperCase().trim();
         if(val && !userAssets.includes(val)) {
-            userAssets.push(val); updateAssetDropdown();
+            userAssets.push(val); 
+            updateAssetDropdown();
             await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
-            document.getElementById('newAssetName').value = ''; closeAssetPopup();
+            document.getElementById('newAssetName').value = ''; 
+            closeAssetPopup();
+        }
+    }
+
+    async function deleteCurrentAsset() {
+        const val = document.getElementById('assetDropdown').value;
+        if(val && confirm(`${val} aus Liste löschen?`)) {
+            userAssets = userAssets.filter(a => a !== val);
+            updateAssetDropdown();
+            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
         }
     }
 
     function setQuickFilter(f, btn) { currentFilter = f; document.querySelectorAll('#filter-container .chart-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderDashboard(); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function toggleOutcomeFields() { document.getElementById('pnlWrapper').classList.toggle('hidden', document.getElementById('status').value !== 'Geschlossen'); }
-    function prepareCreateView() { document.getElementById('editId').value = ""; document.getElementById('form-header').innerText = 'TRADE LOGGER'; document.getElementById('datetime').value = new Date().toISOString().slice(0,16); document.getElementById('status').value = 'Aktiv'; toggleOutcomeFields(); showView('Trade erstellen'); }
+    function prepareCreateView() { document.getElementById('editId').value = ""; document.getElementById('form-header').innerText = 'TRADE LOGGER'; document.getElementById('datetime').value = new Date().toISOString().slice(0,16); document.getElementById('status').value = 'Aktiv'; updateAssetDropdown(); toggleOutcomeFields(); showView('Trade erstellen'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function handleLogout() { auth.signOut().then(() => location.reload()); }
     async function deleteTrade(id) { if(confirm('Löschen?')) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
