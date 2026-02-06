@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Final Fix</title>
+    <title>TradeCloud Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -297,7 +297,7 @@
         document.getElementById('admin-list').innerHTML = snap.docs.map(doc => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;"><span>${doc.data().email}</span><button onclick="adminDel('${doc.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;">Löschen</button></div>`).join('');
     }
     async function adminAdd() { const e = document.getElementById('adminEmailInput').value.toLowerCase().trim(); if(e) { await db.collection('members').add({ email: e }); document.getElementById('adminEmailInput').value = ''; adminLoad(); } }
-    async function adminDel(id) { if(confirm('Mitglied wirklich löschen?')) { await db.collection('members').doc(id).delete(); adminLoad(); } }
+    async function adminDel(id) { if(confirm('Löschen?')) { await db.collection('members').doc(id).delete(); adminLoad(); } }
 
     function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
     function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
