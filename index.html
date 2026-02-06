@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Color Calendar</title>
+    <title>TradeCloud Pro - Full Filters</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -16,8 +16,8 @@
             --cell-bg: #1e1e1e;
             --text-main: #e0e0e0; 
             --accent: #bb86fc; 
-            --success: #00e676; /* Helles Neongrün */
-            --danger: #ff1744; /* Helles Neonrot */
+            --success: #00e676; 
+            --danger: #ff1744; 
             --border: #2c2c2c; 
             --blur: 0px;
         }
@@ -52,6 +52,8 @@
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; font-family: inherit; font-size: 16px; box-sizing: border-box;}
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; text-transform: uppercase; margin-top: 10px; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        /* Filter Buttons Style */
         .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; margin: 2px 0; min-width: 30px; text-align: center; }
         .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
 
@@ -59,71 +61,38 @@
         .dd-alert { border: 2px solid var(--danger); box-shadow: 0 0 15px rgba(255, 61, 0, 0.3); background: rgba(255, 61, 0, 0.1); color: var(--danger); text-align: center; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 61, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 61, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 61, 0, 0); } }
 
-        /* --- COLORED CALENDAR STYLES --- */
+        /* --- CALENDAR STYLES --- */
         .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .cal-month-name { font-size: 1.4rem; font-weight: bold; margin: 0; }
         .cal-stats-row { display: flex; justify-content: space-between; color: #888; font-size: 0.9rem; margin-bottom: 10px; }
         .cal-stat-pnl { font-weight: bold; font-size: 1.1rem; }
-        
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
         .cal-day-label { text-align: center; color: #666; font-size: 0.75rem; padding-bottom: 5px; }
-        
-        .cal-cell { 
-            background: var(--cell-bg); 
-            border-radius: 8px; 
-            aspect-ratio: 1/1.2; 
-            position: relative; 
-            border: 1px solid transparent; 
-            cursor: pointer;
-            transition: 0.2s;
-            overflow: hidden;
-        }
+        .cal-cell { background: var(--cell-bg); border-radius: 8px; aspect-ratio: 1/1.2; position: relative; border: 1px solid transparent; cursor: pointer; transition: 0.2s; overflow: hidden; }
         .cal-cell.empty { background: transparent; border: none; cursor: default; }
         .cal-cell:hover { transform: translateY(-2px); }
-
-        /* --- HIER SIND DIE FARBEN FÜR DIE FELDER --- */
-        .cal-cell.profit { 
-            background: rgba(0, 230, 118, 0.15); /* Grüner Hintergrund */
-            border: 1px solid var(--success); 
-            box-shadow: 0 0 8px rgba(0, 230, 118, 0.1);
-        }
-        .cal-cell.loss { 
-            background: rgba(255, 23, 68, 0.15); /* Roter Hintergrund */
-            border: 1px solid var(--danger); 
-            box-shadow: 0 0 8px rgba(255, 23, 68, 0.1);
-        }
-
+        .cal-cell.profit { background: rgba(0, 230, 118, 0.15); border: 1px solid var(--success); box-shadow: 0 0 8px rgba(0, 230, 118, 0.1); }
+        .cal-cell.loss { background: rgba(255, 23, 68, 0.15); border: 1px solid var(--danger); box-shadow: 0 0 8px rgba(255, 23, 68, 0.1); }
         .cal-date { position: absolute; top: 8px; left: 8px; font-size: 0.9rem; font-weight: 600; color: #aaa; }
         .cal-pnl { position: absolute; bottom: 25px; left: 0; right: 0; text-align: center; font-size: 0.85rem; font-weight: bold; }
         .cal-trades { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 0.7rem; color: #aaa; opacity: 0.7; }
-        
         .text-green { color: var(--success); }
         .text-red { color: var(--danger); }
 
         /* --- POPUP STYLES --- */
-        .day-view-container { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: var(--bg-dark); z-index: 500; overflow-y: auto; 
-            display: none; padding-bottom: 50px;
-        }
+        .day-view-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 500; overflow-y: auto; display: none; padding-bottom: 50px; }
         .day-view-container.open { display: block; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
         .dv-header { padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); background: var(--bg-dark); position: sticky; top:0; z-index:10; }
         .dv-back-btn { background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
         .dv-title { font-size: 1.2rem; font-weight: bold; margin: 0; }
-        
         .dv-chart-area { padding: 20px 15px; height: 250px; }
         .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 20px 20px 20px; }
         .dv-stat-item h5 { margin: 0 0 5px 0; color: #666; font-size: 0.85rem; font-weight: normal; }
         .dv-stat-item div { font-size: 1.2rem; font-weight: bold; }
-
         .dv-list-header { padding: 10px 20px; font-size: 1.1rem; font-weight: bold; border-top: 1px solid var(--border); margin-top: 10px; }
         .dv-trade-list { padding: 0 15px; }
-        .dv-trade-item { 
-            background: var(--cell-bg); border-radius: 8px; padding: 12px; margin-bottom: 8px; 
-            display: flex; align-items: center; justify-content: space-between;
-        }
+        .dv-trade-item { background: var(--cell-bg); border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
         
         .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 500px; }
@@ -182,9 +151,12 @@
             <div style="display:flex; justify-content:space-between; margin-bottom:15px; flex-wrap:wrap;">
                 <h4 style="margin:0;">PERFORMANCE</h4>
                 <div id="filter-container">
-                    <button class="chart-btn active" onclick="setFilter('all', this)">Alle</button>
-                    <button class="chart-btn" onclick="setFilter('month', this)">M</button>
-                    <button class="chart-btn" onclick="setFilter('today', this)">H</button>
+                    <button class="chart-btn" onclick="setFilter('today', this)" title="Heute">H</button>
+                    <button class="chart-btn" onclick="setFilter('yesterday', this)" title="Gestern">G</button>
+                    <button class="chart-btn" onclick="setFilter('week', this)" title="Woche">W</button>
+                    <button class="chart-btn" onclick="setFilter('month', this)" title="Monat">M</button>
+                    <button class="chart-btn" onclick="setFilter('year', this)" title="Jahr">J</button>
+                    <button class="chart-btn active" onclick="setFilter('all', this)" title="Alles">A</button>
                 </div>
             </div>
             <div style="height: 250px;"><canvas id="ovChart"></canvas></div>
@@ -304,7 +276,6 @@
     let trades = [], ovChart = null, dayChart = null, currentFilter = 'all', calDate = new Date();
     let privacyMode = false;
 
-    // Theme Load
     if(localStorage.getItem('tradeTheme') === 'light') document.body.classList.add('light-mode');
     
     auth.onAuthStateChanged(async (user) => {
@@ -325,7 +296,6 @@
                     document.getElementById('admin-link').classList.remove('hidden');
                     admLoad();
                 }
-                // Settings Load
                 if(localStorage.getItem('startCap')) document.getElementById('settingStartCap').value = localStorage.getItem('startCap');
                 if(localStorage.getItem('maxLoss')) document.getElementById('settingMaxLoss').value = localStorage.getItem('maxLoss');
                 if(localStorage.getItem('lossType')) document.getElementById('settingLossType').value = localStorage.getItem('lossType');
@@ -344,7 +314,6 @@
         } catch(e){}
     }
 
-    /* --- NEW COLORED CALENDAR LOGIC --- */
     function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
     
     function renderCalendar() {
@@ -381,26 +350,16 @@
 
             if(count > 0) {
                 clickAttr = `onclick="openDayDetail('${y}-${m+1}-${d}')"`;
-                // Add Profit/Loss Class to the CELL
                 if(dayPnl > 0) cssClass += " profit";
                 else if(dayPnl < 0) cssClass += " loss";
-                
                 let pnlClass = dayPnl >= 0 ? 'text-green' : 'text-red';
-                
-                cellHtml += `
-                    <div class="cal-pnl sensitive ${pnlClass}">${dayPnl < 0 ? '' : '+'}€${dayPnl.toFixed(0)}</div>
-                    <div class="cal-trades">
-                        <span>${count}</span> 
-                        <span style="font-size:0.6rem">Trades</span>
-                    </div>
-                `;
+                cellHtml += `<div class="cal-pnl sensitive ${pnlClass}">${dayPnl < 0 ? '' : '+'}€${dayPnl.toFixed(0)}</div><div class="cal-trades"><span>${count}</span> <span style="font-size:0.6rem">Trades</span></div>`;
             }
 
             grid.innerHTML += `<div class="${cssClass}" ${clickAttr}>${cellHtml}</div>`;
         }
     }
 
-    /* --- POPUP LOGIC --- */
     function openDayDetail(dateStr) {
         const dateObj = new Date(dateStr);
         const dayTrades = trades.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateObj.toDateString()).sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -449,8 +408,14 @@
         document.getElementById('open-trades-list').innerHTML = open.length ? open.map(t => `<div class="open-trade-item"><div><span style="color:var(--accent); font-weight:bold;">${t.asset}</span><br><small>${t.date.split('T')[0]}</small></div><button onclick="editTrade('${t.id}', true)" class="chart-btn" style="color:var(--success);">CLOSE</button></div>`).join('') : '<p>Keine offenen Trades.</p>';
         let closed = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
         const now = new Date(); const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() == 0 ? -6:1)); weekStart.setHours(0,0,0,0);
+
         if(currentFilter === 'today') closed = closed.filter(t => new Date(t.date) >= todayStart);
-        else if(currentFilter === 'month') closed = closed.filter(t => new Date(t.date).getMonth() === now.getMonth());
+        else if(currentFilter === 'yesterday') { const yStart = new Date(todayStart); yStart.setDate(yStart.getDate() - 1); closed = closed.filter(t => new Date(t.date) >= yStart && new Date(t.date) < todayStart); }
+        else if(currentFilter === 'week') closed = closed.filter(t => new Date(t.date) >= weekStart);
+        else if(currentFilter === 'month') closed = closed.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
+        else if(currentFilter === 'year') closed = closed.filter(t => new Date(t.date).getFullYear() === now.getFullYear());
+
         let sum = 0, wins = 0; const points = closed.map(t => { sum += t.pnl; if(t.pnl > 0) wins++; return sum; });
         document.getElementById('ovTotal').innerText = sum.toFixed(2) + " €"; document.getElementById('ovTotal').style.color = sum >= 0 ? 'var(--success)' : 'var(--danger)';
         document.getElementById('ovWinRate').innerText = closed.length ? (wins/closed.length*100).toFixed(0) + "%" : "0%";
