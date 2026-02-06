@@ -73,7 +73,10 @@
 
 <div id="app-content" class="container hidden">
     <section id="view-Übersicht" class="view-section active">
-        <h1 id="user-greeting">HALLO</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h1 id="user-greeting">HALLO</h1>
+            <button class="btn-small" onclick="prepareCreateView()">+ Trade erstellen</button>
+        </div>
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h4>PERFORMANCE</h4>
@@ -94,7 +97,7 @@
 
     <section id="view-Trade-erstellen" class="view-section">
         <div class="card">
-            <h4>TRADE ERSTELLEN</h4>
+            <h4 id="trade-form-title">TRADE LOGGER</h4>
             <input type="hidden" id="editId">
             <input type="datetime-local" id="datetime">
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -188,7 +191,9 @@
 
     function updateAssetDropdown() {
         const select = document.getElementById('assetDropdown');
-        select.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+        if(select) {
+            select.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+        }
     }
 
     async function loadTrades() {
@@ -239,7 +244,7 @@
         const t = trades.find(x => x.id === id);
         document.getElementById('editId').value = t.id;
         document.getElementById('datetime').value = t.date;
-        updateAssetDropdown(); // Zwingt Refresh
+        updateAssetDropdown();
         document.getElementById('assetDropdown').value = t.asset;
         document.getElementById('status').value = t.status;
         document.getElementById('pnl').value = t.pnl;
@@ -254,7 +259,7 @@
         document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active');
         document.getElementById('view-title').innerText = v.toUpperCase();
         document.getElementById('navDrawer').classList.remove('open');
-        if(v === 'Trade erstellen') updateAssetDropdown();
+        if(v === 'Trade erstellen' || v === 'Übersicht') updateAssetDropdown();
         if(v === 'News') {
             const cont = document.getElementById('news-container'); cont.innerHTML = '';
             const scr = document.createElement('script'); scr.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"; scr.async = true;
