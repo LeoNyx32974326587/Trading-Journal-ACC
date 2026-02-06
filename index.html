@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Final Manual</title>
+    <title>TradeCloud Pro - Final Links</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -22,7 +22,7 @@
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
         .view-section { display: none; }
         .view-section.active { display: block; }
-        .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+        .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; text-decoration: none; display: inline-block; }
         .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
         input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; }
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; text-transform: uppercase; }
@@ -31,9 +31,10 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
         .open-trade-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
         #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        
-        /* Speziell für manuelles Asset Input */
         #assetInput { text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        /* Link Buttons Style */
+        .link-badge { background: #333; color: var(--accent); padding: 2px 6px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.75rem; margin-right: 3px; border: 1px solid #444; }
+        .link-badge:hover { background: var(--accent); color: black; }
     </style>
 </head>
 <body>
@@ -102,8 +103,8 @@
             <h4 id="form-header">TRADE ERFASSEN</h4>
             <input type="hidden" id="editId">
             
-            <label>Asset (Manuelle Eingabe)</label>
-            <input type="text" id="assetInput" placeholder="z.B. EURUSD, GOLD, DAX" required>
+            <label>Asset (Manuell)</label>
+            <input type="text" id="assetInput" placeholder="z.B. EURUSD" required>
             
             <label>Status</label>
             <select id="status" onchange="togglePnl()">
@@ -119,8 +120,11 @@
             <label>Datum & Zeit</label>
             <input type="datetime-local" id="datetime">
             
-            <label>Screenshot (Optional)</label>
-            <input type="url" id="imgSetup" placeholder="https://tradingview.com/...">
+            <label>Setup Link (TradingView etc.)</label>
+            <input type="url" id="imgSetup" placeholder="https://...">
+            
+            <label>Ergebnis Link (Optional)</label>
+            <input type="url" id="imgResult" placeholder="https://...">
 
             <label>Notizen</label>
             <textarea id="note" rows="3" placeholder="Setup, Gefühle, Fehler..."></textarea>
@@ -134,7 +138,7 @@
         <div class="card" style="padding:10px; overflow-x:auto;">
             <h4>JOURNAL HISTORIE</h4>
             <table>
-                <thead><tr><th>Datum</th><th>Asset</th><th>Ergebnis</th><th></th></tr></thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>Ergebnis</th><th>Links</th><th></th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
@@ -148,7 +152,7 @@
                 <option value="indices">Indizes / Gold</option>
             </select>
             <input type="number" id="cBal" placeholder="Kontostand (€)">
-            <input type="number" id="cRisk" placeholder="Risiko in % (z.B. 1)">
+            <input type="number" id="cRisk" placeholder="Risiko in %">
             <input type="number" id="cEnt" placeholder="Entry Preis">
             <input type="number" id="cSl" placeholder="Stop Loss Preis">
             <button onclick="calcLots()" class="btn-primary">BERECHNEN</button>
@@ -165,7 +169,6 @@
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
             <h4>ADMIN EINSTELLUNGEN</h4>
-            <p style="font-size:0.8rem; color:#888;">Team-Mitglieder verwalten</p>
             <input type="email" id="admEmail" placeholder="E-Mail Adresse">
             <button onclick="admAdd()" class="btn-primary" style="margin-bottom:20px;">Hinzufügen</button>
             <div id="admList"></div>
@@ -217,6 +220,9 @@
                     <span style="color:var(--accent); font-weight:bold;">${t.asset}</span> <br>
                     <small style="color:#888;">${t.date.split('T')[0]}</small>
                 </div>
+                <div>
+                     ${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" class="link-badge">S</a>` : ''}
+                </div>
                 <button onclick="editTrade('${t.id}', true)" class="chart-btn" style="color:var(--success); border-color:var(--success);">CLOSE</button>
             </div>
         `).join('') : '<p style="color:#555;">Keine aktiven Trades.</p>';
@@ -259,13 +265,17 @@
             } 
         });
 
-        // Historie Tabelle
+        // Historie Tabelle (MIT NEUEN LINKS S & E)
         document.getElementById('tradeBody').innerHTML = trades.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
             <tr>
                 <td>${t.date.split('T')[0]}</td>
                 <td><b>${t.asset}</b></td>
                 <td style="color:${t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)')}">
                     ${t.status === 'Aktiv' ? 'LAUFEND' : t.pnl.toFixed(2)+'€'}
+                </td>
+                <td>
+                    ${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" class="link-badge" title="Setup">S</a>` : ''}
+                    ${t.imgResult ? `<a href="${t.imgResult}" target="_blank" class="link-badge" title="Ergebnis">E</a>` : ''}
                 </td>
                 <td>
                     <button class="chart-btn" onclick="editTrade('${t.id}')">✏️</button>
@@ -288,6 +298,7 @@
             status: document.getElementById('status').value,
             pnl: parseFloat(document.getElementById('pnl').value) || 0,
             imgSetup: document.getElementById('imgSetup').value,
+            imgResult: document.getElementById('imgResult').value, // NEU
             note: document.getElementById('note').value,
             userId: auth.currentUser.uid
         };
@@ -300,11 +311,15 @@
         const t = trades.find(x => x.id === id);
         document.getElementById('editId').value = t.id;
         document.getElementById('datetime').value = t.date;
-        document.getElementById('assetInput').value = t.asset; // Manuelles Feld füllen
+        document.getElementById('assetInput').value = t.asset;
         document.getElementById('status').value = closeMode ? 'Geschlossen' : t.status;
         document.getElementById('pnl').value = t.pnl;
         document.getElementById('imgSetup').value = t.imgSetup || '';
+        document.getElementById('imgResult').value = t.imgResult || ''; // NEU
         document.getElementById('note').value = t.note || '';
+        
+        document.getElementById('form-header').innerText = closeMode ? 'TRADE BEENDEN' : 'TRADE BEARBEITEN';
+        
         togglePnl(); 
         showView('Trade erstellen');
     }
@@ -322,6 +337,9 @@
         document.getElementById('datetime').value = new Date().toISOString().slice(0,16); 
         document.getElementById('assetInput').value = "";
         document.getElementById('pnl').value = "";
+        document.getElementById('imgSetup').value = "";
+        document.getElementById('imgResult').value = "";
+        document.getElementById('form-header').innerText = 'NEUER TRADE';
         togglePnl(); 
         showView('Trade erstellen'); 
     }
