@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Access Fix</title>
+    <title>TradeCloud Pro - Admin Stats</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -31,10 +31,8 @@
         
         /* BUTTONS & INPUTS */
         input, select, textarea { background: #0a0a0a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; }
-        
         .chart-btn { background: #222; border: 1px solid #333; color: white; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; text-decoration: none; display: inline-block; margin: 2px 0; min-width: 30px; text-align: center; }
         .chart-btn.active { background: var(--accent); color: black; font-weight: bold; }
-        
         .btn-primary { background: var(--accent); color: black; padding: 16px; border: none; font-weight: 800; cursor: pointer; border-radius: 10px; width: 100%; font-size: 1rem; text-transform: uppercase; margin-top: 10px; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
         
@@ -48,10 +46,15 @@
         
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         #filter-container { display: flex; gap: 4px; flex-wrap: wrap; }
-        .icon-btn { background: none; border: none; cursor: pointer; padding: 5px; color: #888; transition: 0.2s; }
-        .icon-btn:hover { color: var(--danger); }
+        
+        /* Icon Buttons */
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; color: #888; transition: 0.2s; }
+        .icon-btn:hover { color: white; transform: scale(1.1); }
+        .icon-trash:hover { color: var(--danger); }
+        .icon-eye:hover { color: var(--info, #03a9f4); }
 
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        /* Popups */
+        #auth-overlay, #stats-popup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         #assetInput { text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
     </style>
 </head>
@@ -62,6 +65,30 @@
         <h2 style="color: var(--accent); letter-spacing: 2px;">TRADECLOUD</h2>
         <button onclick="loginGoogle()" class="btn-primary">LOGIN</button>
         <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">Nur für zugelassene Mitglieder</p>
+    </div>
+</div>
+
+<div id="stats-popup" class="hidden">
+    <div class="card" style="width: 320px; position: relative; border: 1px solid var(--info, #03a9f4);">
+        <button onclick="closeStats()" style="position: absolute; top:10px; right:10px; background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
+        <h3 style="color: var(--info, #03a9f4); margin-top:0;">USER STATS</h3>
+        <p id="stats-email" style="color:#888; font-size:0.9rem; margin-bottom:20px;">-</p>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center;">
+            <div style="background:#222; padding:10px; border-radius:8px;">
+                <div style="font-size:0.8rem; color:#aaa;">Trades</div>
+                <div id="st-count" style="font-size:1.2rem; font-weight:bold;">0</div>
+            </div>
+            <div style="background:#222; padding:10px; border-radius:8px;">
+                <div style="font-size:0.8rem; color:#aaa;">Win Rate</div>
+                <div id="st-win" style="font-size:1.2rem; font-weight:bold;">0%</div>
+            </div>
+            <div style="background:#222; padding:10px; border-radius:8px; grid-column: span 2;">
+                <div style="font-size:0.8rem; color:#aaa;">Total P&L</div>
+                <div id="st-pnl" style="font-size:1.5rem; font-weight:bold;">0.00 €</div>
+            </div>
+        </div>
+        <button onclick="closeStats()" class="btn-outline" style="border-color:#555; color:white; margin-top:15px;">Schließen</button>
     </div>
 </div>
 
@@ -96,12 +123,12 @@
             <div class="chart-header">
                 <h4 style="margin:0;">PERFORMANCE</h4>
                 <div id="filter-container">
-                    <button class="chart-btn" onclick="setFilter('today', this)" title="Heute">H</button>
-                    <button class="chart-btn" onclick="setFilter('yesterday', this)" title="Gestern">G</button>
-                    <button class="chart-btn" onclick="setFilter('week', this)" title="Diese Woche">W</button>
-                    <button class="chart-btn" onclick="setFilter('month', this)" title="Dieser Monat">M</button>
-                    <button class="chart-btn" onclick="setFilter('year', this)" title="Dieses Jahr">J</button>
-                    <button class="chart-btn active" onclick="setFilter('all', this)" title="Alles">A</button>
+                    <button class="chart-btn" onclick="setFilter('today', this)">H</button>
+                    <button class="chart-btn" onclick="setFilter('yesterday', this)">G</button>
+                    <button class="chart-btn" onclick="setFilter('week', this)">W</button>
+                    <button class="chart-btn" onclick="setFilter('month', this)">M</button>
+                    <button class="chart-btn" onclick="setFilter('year', this)">J</button>
+                    <button class="chart-btn active" onclick="setFilter('all', this)">A</button>
                 </div>
             </div>
             <div style="height: 250px;"><canvas id="ovChart"></canvas></div>
@@ -162,37 +189,12 @@
     <section id="view-Lot-Rechner" class="view-section">
         <div class="card">
             <h4>LOT RECHNER</h4>
-            
-            <label>Asset Klasse</label>
-            <select id="cType" onchange="updateContractSize()">
-                <option value="forex">Forex (Standard)</option>
-                <option value="indices">Indizes / Krypto</option>
-                <option value="custom">Benutzerdefiniert</option>
-            </select>
-
-            <label>Kontostand (€)</label>
-            <input type="number" id="cBal" placeholder="z.B. 10000">
-
-            <label>Risiko (%)</label>
-            <input type="number" id="cRisk" placeholder="z.B. 1.0">
-
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1;">
-                    <label>Entry Preis</label>
-                    <input type="number" id="cEnt" placeholder="Preis">
-                </div>
-                <div style="flex:1;">
-                    <label>Stop Loss</label>
-                    <input type="number" id="cSl" placeholder="Preis">
-                </div>
-            </div>
-
-            <label>Kontraktgröße (Contract Size)</label>
-            <input type="number" id="cSize" value="100000">
-            <small style="color:#888; display:block; margin-top:-8px; margin-bottom:10px;">Forex: 100.000, Indizes oft 1 (oder Punktwert)</small>
-
+            <select id="cType" onchange="updateContractSize()"><option value="forex">Forex</option><option value="indices">Indizes / Krypto</option><option value="custom">Benutzerdefiniert</option></select>
+            <input type="number" id="cBal" placeholder="Kontostand (€)">
+            <input type="number" id="cRisk" placeholder="Risiko (%)">
+            <div style="display:flex; gap:10px;"><input type="number" id="cEnt" placeholder="Entry"><input type="number" id="cSl" placeholder="Stop Loss"></div>
+            <label>Kontraktgröße</label><input type="number" id="cSize" value="100000">
             <button onclick="calcLots()" class="btn-primary">BERECHNEN</button>
-            
             <div id="cRes" style="font-size:2rem; text-align:center; margin-top:20px; color:var(--success); font-weight:bold;">0.00 Lot</div>
             <div id="cRiskAmount" style="text-align:center; color:#888; font-size:0.9rem;">Risiko Betrag: 0.00 €</div>
         </div>
@@ -206,8 +208,8 @@
 
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
-            <h4>ADMIN</h4>
-            <p style="color:#888; font-size:0.9rem;">Füge Mitglieder hinzu, damit sie sich einloggen können.</p>
+            <h4>ADMIN PANEL</h4>
+            <p style="color:#888; font-size:0.9rem;">Mitgliederverwaltung</p>
             <input type="email" id="admEmail" placeholder="E-Mail des Mitglieds">
             <button onclick="admAdd()" class="btn-primary">Hinzufügen</button>
             <div id="admList" style="margin-top:20px;"></div>
@@ -222,26 +224,25 @@
 
     let trades = [], ovChart = null, currentFilter = 'all';
 
-    // AUTH CHECK MIT WHITELIST + FEHLERDIAGNOSE
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userEmail = user.email.toLowerCase().trim();
             const isAdmin = userEmail === "leon.luca.lauterbach@gmail.com";
             let isAllowed = isAdmin;
             let errorMsg = "";
-            
+
             if(!isAllowed) {
                 try {
                     const snap = await db.collection('members').where('email', '==', userEmail).get();
                     if(!snap.empty) {
                         isAllowed = true;
+                        // UID SPEICHERN FÜR STATS
+                        snap.forEach(doc => doc.ref.update({ uid: user.uid }));
                     } else {
-                        errorMsg = "Email nicht in Datenbank gefunden: " + userEmail;
+                        errorMsg = "Email nicht gefunden: " + userEmail;
                     }
                 } catch(e) {
-                    // Fehler fangen (z.B. Permissions)
-                    console.error("Auth Error", e);
-                    errorMsg = "Datenbank-Zugriff verweigert (Prüfe Firestore Rules!).";
+                    errorMsg = "Datenbank-Regeln blockieren Zugriff.";
                 }
             }
 
@@ -259,8 +260,7 @@
                 await loadTrades();
                 setInterval(loadTrades, 5000);
             } else {
-                // DETAILLIERTE FEHLERMELDUNG
-                alert(`Kein Zugriff!\nGrund: ${errorMsg || 'Nicht freigeschaltet'}\n\nBitte Admin kontaktieren.`);
+                alert(`Zugriff verweigert!\n${errorMsg}\nBitte Admin kontaktieren.`);
                 await auth.signOut();
                 location.reload();
             }
@@ -273,17 +273,14 @@
             const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
             trades = snap.docs.map(d => ({id: d.id, ...d.data()}));
             render();
-        } catch(e) { console.log("Ladefehler (evtl. neu eingeloggt):", e); }
+        } catch(e) {}
     }
 
     function render() {
         const open = trades.filter(t => t.status === 'Aktiv');
         document.getElementById('open-trades-list').innerHTML = open.length ? open.map(t => `
             <div class="open-trade-item">
-                <div>
-                    <span style="color:var(--accent); font-weight:bold;">${t.asset}</span> <br>
-                    <small style="color:#888;">${t.date.split('T')[0]}</small>
-                </div>
+                <div><span style="color:var(--accent); font-weight:bold;">${t.asset}</span><br><small style="color:#888;">${t.date.split('T')[0]}</small></div>
                 <div>${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" class="link-badge">S</a>` : ''}</div>
                 <button onclick="editTrade('${t.id}', true)" class="chart-btn" style="color:var(--success); border-color:var(--success);">CLOSE</button>
             </div>
@@ -294,18 +291,11 @@
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() == 0 ? -6:1)); weekStart.setHours(0,0,0,0);
         
-        if(currentFilter === 'today') {
-            closed = closed.filter(t => new Date(t.date) >= todayStart);
-        } else if(currentFilter === 'yesterday') {
-            const yStart = new Date(todayStart); yStart.setDate(yStart.getDate() - 1);
-            closed = closed.filter(t => { const d = new Date(t.date); return d >= yStart && d < todayStart; });
-        } else if(currentFilter === 'week') {
-            closed = closed.filter(t => new Date(t.date) >= weekStart);
-        } else if(currentFilter === 'month') {
-            closed = closed.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
-        } else if(currentFilter === 'year') {
-            closed = closed.filter(t => new Date(t.date).getFullYear() === now.getFullYear());
-        }
+        if(currentFilter === 'today') closed = closed.filter(t => new Date(t.date) >= todayStart);
+        else if(currentFilter === 'yesterday') { const yStart = new Date(todayStart); yStart.setDate(yStart.getDate() - 1); closed = closed.filter(t => new Date(t.date) >= yStart && new Date(t.date) < todayStart); }
+        else if(currentFilter === 'week') closed = closed.filter(t => new Date(t.date) >= weekStart);
+        else if(currentFilter === 'month') closed = closed.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
+        else if(currentFilter === 'year') closed = closed.filter(t => new Date(t.date).getFullYear() === now.getFullYear());
 
         let sum = 0, wins = 0;
         const points = closed.map(t => { sum += t.pnl; if(t.pnl > 0) wins++; return sum; });
@@ -319,15 +309,11 @@
 
         document.getElementById('tradeBody').innerHTML = trades.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
             <tr>
-                <td>${t.date.split('T')[0]}</td>
-                <td><b>${t.asset}</b></td>
+                <td>${t.date.split('T')[0]}</td><td><b>${t.asset}</b></td>
                 <td style="color:${t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)')}">${t.status === 'Aktiv' ? 'OFFEN' : t.pnl.toFixed(2)}</td>
                 <td class="note-cell">${t.note || '-'}</td>
                 <td>${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" class="link-badge">S</a>` : ''}${t.imgResult ? `<a href="${t.imgResult}" target="_blank" class="link-badge">E</a>` : ''}</td>
-                <td>
-                    <button class="chart-btn" onclick="editTrade('${t.id}')">✏️</button>
-                    <button class="chart-btn" style="color:var(--danger); border-color:var(--danger);" onclick="delTrade('${t.id}')">X</button>
-                </td>
+                <td><button class="chart-btn" onclick="editTrade('${t.id}')">✏️</button><button class="chart-btn" style="color:var(--danger); border-color:var(--danger);" onclick="delTrade('${t.id}')">X</button></td>
             </tr>
         `).join('');
     }
@@ -336,126 +322,65 @@
         const id = document.getElementById('editId').value;
         const assetVal = document.getElementById('assetInput').value.toUpperCase();
         if(!assetVal) return alert("Bitte Asset eingeben!");
-        const data = {
-            date: document.getElementById('datetime').value,
-            asset: assetVal,
-            status: document.getElementById('status').value,
-            pnl: parseFloat(document.getElementById('pnl').value) || 0,
-            imgSetup: document.getElementById('imgSetup').value,
-            imgResult: document.getElementById('imgResult').value,
-            note: document.getElementById('note').value,
-            userId: auth.currentUser.uid
-        };
+        const data = { date: document.getElementById('datetime').value, asset: assetVal, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, userId: auth.currentUser.uid };
         id ? await db.collection('trades').doc(id).update(data) : await db.collection('trades').add(data);
         showView('Übersicht'); loadTrades();
     }
-
-    function editTrade(id, closeMode = false) {
-        const t = trades.find(x => x.id === id);
-        document.getElementById('editId').value = t.id;
-        document.getElementById('datetime').value = t.date;
-        document.getElementById('assetInput').value = t.asset;
-        document.getElementById('status').value = closeMode ? 'Geschlossen' : t.status;
-        document.getElementById('pnl').value = t.pnl;
-        document.getElementById('imgSetup').value = t.imgSetup || '';
-        document.getElementById('imgResult').value = t.imgResult || '';
-        document.getElementById('note').value = t.note || '';
-        document.getElementById('form-header').innerText = closeMode ? 'TRADE BEENDEN' : 'TRADE BEARBEITEN';
-        togglePnl(); showView('Trade erstellen');
-    }
-
+    
+    function editTrade(id, c) { const t=trades.find(x=>x.id===id); document.getElementById('editId').value=t.id; document.getElementById('datetime').value=t.date; document.getElementById('assetInput').value=t.asset; document.getElementById('status').value=c?'Geschlossen':t.status; document.getElementById('pnl').value=t.pnl; document.getElementById('imgSetup').value=t.imgSetup||''; document.getElementById('imgResult').value=t.imgResult||''; document.getElementById('note').value=t.note||''; document.getElementById('form-header').innerText=c?'BEENDEN':'BEARBEITEN'; togglePnl(); showView('Trade erstellen'); }
     async function delTrade(id) { if(confirm('Löschen?')) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
-
-    function prepareCreateView() { 
-        document.getElementById('editId').value = ""; 
-        document.getElementById('datetime').value = new Date().toISOString().slice(0,16); 
-        document.getElementById('assetInput').value = "";
-        document.getElementById('pnl').value = "";
-        document.getElementById('imgSetup').value = "";
-        document.getElementById('imgResult').value = "";
-        document.getElementById('note').value = "";
-        document.getElementById('form-header').innerText = 'NEUER TRADE';
-        togglePnl(); showView('Trade erstellen'); 
-    }
-
-    function showView(v) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-        document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active');
-        document.getElementById('view-title').innerText = v.toUpperCase();
-        document.getElementById('navDrawer').classList.remove('open');
-        if(v === 'News') {
-            const b = document.getElementById('news-box'); b.innerHTML = '';
-            const s = document.createElement('script'); s.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async = true;
-            s.innerHTML = JSON.stringify({"colorTheme": "dark", "width": "100%", "height": "100%", "locale": "de"}); 
-            b.appendChild(s);
-        }
-    }
-
-    function setFilter(f, btn) {
-        currentFilter = f;
-        document.querySelectorAll('#filter-container .chart-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        render();
-    }
-
-    function togglePnl() { document.getElementById('pnlDiv').classList.toggle('hidden', document.getElementById('status').value === 'Aktiv'); }
+    function prepareCreateView() { document.getElementById('editId').value=""; document.getElementById('datetime').value=new Date().toISOString().slice(0,16); document.getElementById('assetInput').value=""; document.getElementById('pnl').value=""; document.getElementById('imgSetup').value=""; document.getElementById('imgResult').value=""; document.getElementById('note').value=""; document.getElementById('form-header').innerText='NEUER TRADE'; togglePnl(); showView('Trade erstellen'); }
+    function showView(v) { document.querySelectorAll('.view-section').forEach(s=>s.classList.remove('active')); document.getElementById('view-'+v.replace(/\s+/g, '-')).classList.add('active'); document.getElementById('view-title').innerText=v.toUpperCase(); document.getElementById('navDrawer').classList.remove('open'); if(v==='News'){const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":"dark","width":"100%","height":"100%","locale":"de"}); b.appendChild(s);}}
+    function setFilter(f,b) { currentFilter=f; document.querySelectorAll('#filter-container .chart-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(); }
+    function togglePnl() { document.getElementById('pnlDiv').classList.toggle('hidden', document.getElementById('status').value==='Aktiv'); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function handleLogout() { auth.signOut().then(() => location.reload()); }
-    
-    function updateContractSize() {
-        const type = document.getElementById('cType').value;
-        const sizeInput = document.getElementById('cSize');
-        if (type === 'forex') sizeInput.value = 100000;
-        else if (type === 'indices') sizeInput.value = 1;
-    }
+    function handleLogout() { auth.signOut().then(()=>location.reload()); }
+    function updateContractSize() { const t=document.getElementById('cType').value; if(t==='forex')document.getElementById('cSize').value=100000; else if(t==='indices')document.getElementById('cSize').value=1; }
+    function calcLots() { const b=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), e=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value), s=parseFloat(document.getElementById('cSize').value); if(b&&r&&e&&sl&&s){ const ra=b*(r/100); const l=ra/(Math.abs(e-sl)*s); document.getElementById('cRes').innerText=l.toFixed(2)+" Lot"; document.getElementById('cRiskAmount').innerText="Risk: "+ra.toFixed(2)+" €"; } }
 
-    function calcLots() {
-        const bal = parseFloat(document.getElementById('cBal').value);
-        const riskPerc = parseFloat(document.getElementById('cRisk').value);
-        const entry = parseFloat(document.getElementById('cEnt').value);
-        const sl = parseFloat(document.getElementById('cSl').value);
-        const size = parseFloat(document.getElementById('cSize').value);
-
-        if(bal && riskPerc && entry && sl && size) {
-            const riskAmount = bal * (riskPerc / 100);
-            const distance = Math.abs(entry - sl);
-            const lots = riskAmount / (distance * size);
-            document.getElementById('cRes').innerText = lots.toFixed(2) + " Lot";
-            document.getElementById('cRiskAmount').innerText = "Risiko Betrag: " + riskAmount.toFixed(2) + " €";
-        }
-    }
-    
+    /* ADMIN FUNKTIONEN */
     async function admLoad() { 
         const s = await db.collection('members').get(); 
         document.getElementById('admList').innerHTML = s.docs.map(d => `
-            <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-                <span>${d.data().email}</span> 
-                <button onclick="admDel('${d.id}')" class="icon-btn" title="Löschen">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                      <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                    </svg>
-                </button>
+            <div style="padding:12px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.9rem;">${d.data().email}</span>
+                <div>
+                    <button onclick="viewMemberStats('${d.id}')" class="icon-btn icon-eye" title="Stats">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>
+                    </button>
+                    <button onclick="admDel('${d.id}')" class="icon-btn icon-trash" title="Löschen">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                    </button>
+                </div>
             </div>
         `).join(''); 
     }
-
-    async function admAdd() { 
-        const val = document.getElementById('admEmail').value.trim().toLowerCase();
-        if(!val) return;
-        await db.collection('members').add({email: val}); 
-        alert("Freigeschaltet: " + val); 
-        document.getElementById('admEmail').value = ""; 
-        admLoad(); 
+    
+    async function viewMemberStats(memId) {
+        const memDoc = await db.collection('members').doc(memId).get();
+        const memData = memDoc.data();
+        if(!memData.uid) return alert("User war noch nie eingeloggt (keine UID).");
+        
+        const snaps = await db.collection('trades').where('userId', '==', memData.uid).get();
+        const tList = snaps.docs.map(d => d.data());
+        
+        let wins=0, totalPnl=0;
+        const closed = tList.filter(t => t.status === 'Geschlossen');
+        closed.forEach(t => { totalPnl += t.pnl; if(t.pnl>0) wins++; });
+        
+        document.getElementById('stats-email').innerText = memData.email;
+        document.getElementById('st-count').innerText = closed.length;
+        document.getElementById('st-win').innerText = closed.length ? (wins/closed.length*100).toFixed(0)+"%" : "0%";
+        document.getElementById('st-pnl').innerText = totalPnl.toFixed(2) + " €";
+        document.getElementById('st-pnl').style.color = totalPnl >= 0 ? 'var(--success)' : 'var(--danger)';
+        
+        document.getElementById('stats-popup').classList.remove('hidden');
     }
 
-    async function admDel(id) { 
-        if(confirm("Nutzer entfernen?")) {
-            await db.collection('members').doc(id).delete(); 
-            admLoad(); 
-        }
-    }
+    function closeStats() { document.getElementById('stats-popup').classList.add('hidden'); }
+    async function admAdd() { const v=document.getElementById('admEmail').value.trim().toLowerCase(); if(!v)return; await db.collection('members').add({email:v}); alert("OK: "+v); document.getElementById('admEmail').value=""; admLoad(); }
+    async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
 </script>
 </body>
 </html>
