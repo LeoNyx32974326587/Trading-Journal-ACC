@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeCloud Pro - Final</title>
+    <title>TradeCloud Pro - Final Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -33,6 +33,7 @@
         #asset-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        a { color: var(--accent); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -40,7 +41,7 @@
 <div id="asset-popup" class="hidden">
     <div class="card" style="width: 300px; text-align: center;">
         <h4>Asset hinzufügen</h4>
-        <input type="text" id="newAssetName" placeholder="z.B. BTCUSD" style="text-align: center; text-transform: uppercase;">
+        <input type="text" id="newAssetName" placeholder="z.B. NAS100" style="text-align: center; text-transform: uppercase;">
         <div style="display: flex; gap: 10px;">
             <button onclick="closeAssetPopup()" class="chart-btn" style="flex: 1;">Abbrechen</button>
             <button onclick="confirmAddAsset()" class="btn-small" style="flex: 1;">OK</button>
@@ -72,7 +73,7 @@
 
 <div id="app-content" class="container hidden">
     <section id="view-Übersicht" class="view-section active">
-        <h1 id="user-greeting" style="margin-bottom: 25px;">HALLO</h1>
+        <h1 id="user-greeting">HALLO</h1>
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h4>PERFORMANCE</h4>
@@ -95,28 +96,22 @@
         <div class="card">
             <h4>TRADE ERSTELLEN</h4>
             <input type="hidden" id="editId">
-            <label style="font-size:0.8rem;">Zeitpunkt</label>
             <input type="datetime-local" id="datetime">
-            
-            <label style="font-size:0.8rem;">Asset</label>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="assetDropdown" style="flex:1; margin:0;"></select>
                 <button type="button" onclick="openAssetPopup()" class="chart-btn">+</button>
                 <button type="button" onclick="deleteCurrentAsset()" class="chart-btn" style="color:var(--danger)">X</button>
             </div>
-
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                 <select id="status" onchange="toggleOutcomeFields()"><option value="Aktiv">Offen</option><option value="Geschlossen">Geschlossen</option></select>
                 <select id="mindset"><option value="Neutral">😐 Neutral</option><option value="Sicher">😊 Sicher</option><option value="Angst">😨 Angst</option></select>
             </div>
-
             <div id="pnlWrapper" class="hidden">
                 <input type="number" id="pnl" placeholder="P&L (€)" step="0.01">
-                <input type="url" id="imgResult" placeholder="TradingView Ergebnis Link">
+                <input type="url" id="imgResult" placeholder="Ergebnis Link (URL)">
             </div>
-
-            <input type="url" id="imgSetup" placeholder="TradingView Setup Link">
-            <textarea id="note" placeholder="Notizen zum Trade..."></textarea>
+            <input type="url" id="imgSetup" placeholder="Setup Link (URL)">
+            <textarea id="note" placeholder="Notizen..."></textarea>
             <button onclick="saveTrade()" class="btn-primary">SPEICHERN</button>
         </div>
     </section>
@@ -124,7 +119,7 @@
     <section id="view-Historie" class="view-section">
         <div class="card" style="padding:0; overflow-x:auto;">
             <table>
-                <thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Notiz</th><th>Aktion</th></tr></thead>
+                <thead><tr><th>Datum</th><th>Asset</th><th>P&L</th><th>Links</th><th>Aktion</th></tr></thead>
                 <tbody id="tradeBody"></tbody>
             </table>
         </div>
@@ -140,23 +135,23 @@
             <input type="number" id="calcSl" placeholder="Stop Loss" oninput="calcLots()">
             <div style="background:#000; padding:20px; border-radius:12px; text-align:center; margin-top:10px;">
                 <div id="lotResult" style="font-size:2.5rem; color:var(--success); font-weight:800;">0.00</div>
-                <div style="font-size:0.8rem;">LOTS</div>
+                <div>LOTS</div>
             </div>
         </div>
     </section>
 
     <section id="view-News" class="view-section">
-        <div class="card" style="height:650px; padding:10px;"><div id="news-widget" style="height:100%;"></div></div>
+        <div class="card" style="height:650px; padding:10px;"><div id="news-container" style="height:100%;"></div></div>
     </section>
 
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
-            <h4>MITGLIEDER VERWALTEN</h4>
-            <div style="display:flex; gap:10px;">
-                <input type="email" id="adminNewEmail" placeholder="E-Mail">
-                <button onclick="adminAddMember()" class="btn-small">Add</button>
+            <h4>ADMIN: MITGLIEDER</h4>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <input type="email" id="adminEmailInput" placeholder="E-Mail" style="margin:0;">
+                <button onclick="adminAdd()" class="btn-small">Add</button>
             </div>
-            <div id="admin-member-list" style="margin-top:20px;"></div>
+            <div id="admin-list"></div>
         </div>
     </section>
 </div>
@@ -166,7 +161,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
     
-    let trades = [], userAssets = ["EURUSD", "NAS100", "GOLD", "DAX", "BTCUSD"], ovChart, currentFilter = 'all';
+    let trades = [], userAssets = ["EURUSD", "NAS100", "GOLD"], ovChart, currentFilter = 'all';
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -177,57 +172,26 @@
             
             if(user.email === "leon.luca.lauterbach@gmail.com") {
                 document.getElementById('admin-link').classList.remove('hidden');
-                adminLoadMembers();
+                adminLoad();
             }
-
-            // Wichtig: Erst Assets laden, DANN Trades
-            await syncUserAssets();
-            loadData();
+            await syncAssets();
+            loadTrades();
         }
     });
 
-    // --- ASSETS LOGIK ---
-    async function syncUserAssets() {
+    async function syncAssets() {
         const doc = await db.collection('userAssets').doc(auth.currentUser.uid).get();
-        if(doc.exists && doc.data().assets) {
-            userAssets = doc.data().assets;
-        } else {
-            // Initiales Speichern der Standard-Liste falls nichts existiert
-            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
-        }
+        if(doc.exists) userAssets = doc.data().assets;
+        else await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
         updateAssetDropdown();
     }
 
     function updateAssetDropdown() {
-        const dd = document.getElementById('assetDropdown');
-        dd.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
+        const select = document.getElementById('assetDropdown');
+        select.innerHTML = userAssets.map(a => `<option value="${a}">${a}</option>`).join('');
     }
 
-    function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
-    function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
-
-    async function confirmAddAsset() {
-        const name = document.getElementById('newAssetName').value.toUpperCase().trim();
-        if(name && !userAssets.includes(name)) {
-            userAssets.push(name);
-            updateAssetDropdown();
-            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
-            document.getElementById('newAssetName').value = '';
-            closeAssetPopup();
-        }
-    }
-
-    async function deleteCurrentAsset() {
-        const current = document.getElementById('assetDropdown').value;
-        if(confirm(`${current} löschen?`)) {
-            userAssets = userAssets.filter(a => a !== current);
-            updateAssetDropdown();
-            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
-        }
-    }
-
-    // --- DATEN LADEN & CHART ---
-    async function loadData() {
+    async function loadTrades() {
         const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
         trades = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderDashboard();
@@ -236,98 +200,94 @@
     function renderDashboard() {
         let filtered = trades.filter(t => t.status === 'Geschlossen');
         const now = new Date();
-        
         if(currentFilter === 'today') filtered = filtered.filter(t => new Date(t.date).toDateString() === now.toDateString());
         if(currentFilter === 'week') { const d = new Date(); d.setDate(d.getDate()-7); filtered = filtered.filter(t => new Date(t.date) >= d); }
         if(currentFilter === 'month') { const d = new Date(); d.setMonth(d.getMonth()-1); filtered = filtered.filter(t => new Date(t.date) >= d); }
-
         filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
-        
-        let runningProfit = 0, totalP = 0, wins = 0;
-        const chartData = filtered.map(t => {
-            let val = parseFloat(t.pnl) || 0;
-            runningProfit += val; totalP += val;
-            if(val > 0) wins++;
-            return runningProfit;
-        });
 
-        document.getElementById('ovTotal').innerText = totalP.toFixed(2) + " €";
+        let sum = 0, total = 0, wins = 0;
+        const data = filtered.map(t => { let p = parseFloat(t.pnl) || 0; sum += p; total += p; if(p > 0) wins++; return sum; });
+        document.getElementById('ovTotal').innerText = total.toFixed(2) + " €";
         document.getElementById('ovWinRate').innerText = filtered.length > 0 ? (wins/filtered.length*100).toFixed(0) + "%" : "0%";
 
         const ctx = document.getElementById('ovChart').getContext('2d');
         if(ovChart) ovChart.destroy();
-        ovChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: filtered.map(t => t.date.split('T')[0]),
-                datasets: [{ data: chartData, borderColor: '#bb86fc', tension: 0.3, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-
+        ovChart = new Chart(ctx, { type: 'line', data: { labels: filtered.map(t => t.date.split('T')[0]), datasets: [{ data: data, borderColor: '#bb86fc', tension: 0.3, fill: true, backgroundColor: 'rgba(187,134,252,0.1)' }] }, options: { responsive: true, maintainAspectRatio: false } });
+        
         document.getElementById('tradeBody').innerHTML = trades.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
             <tr>
                 <td>${t.date.split('T')[0]}</td>
                 <td>${t.asset}</td>
                 <td style="color:${t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}">${(t.pnl || 0).toFixed(2)}€</td>
-                <td style="font-size:0.75rem; color:#888;">${t.note ? t.note.substring(0,15)+'...' : '-'}</td>
+                <td>
+                    ${t.imgSetup ? `<a href="${t.imgSetup}" target="_blank">S</a>` : ''} 
+                    ${t.imgResult ? `| <a href="${t.imgResult}" target="_blank">R</a>` : ''}
+                </td>
                 <td><button onclick="editTrade('${t.id}')" style="background:none;border:none;cursor:pointer;">✏️</button> <button onclick="deleteTrade('${t.id}')" style="background:none;border:none;cursor:pointer;">🗑️</button></td>
             </tr>
         `).join('');
     }
 
-    // --- FUNKTIONEN ---
     async function saveTrade() {
         const id = document.getElementById('editId').value;
-        const payload = {
-            date: document.getElementById('datetime').value,
-            asset: document.getElementById('assetDropdown').value,
-            status: document.getElementById('status').value,
-            mindset: document.getElementById('mindset').value,
-            pnl: parseFloat(document.getElementById('pnl').value) || 0,
-            imgSetup: document.getElementById('imgSetup').value,
-            imgResult: document.getElementById('imgResult').value,
-            note: document.getElementById('note').value,
-            userId: auth.currentUser.uid
-        };
-        id ? await db.collection('trades').doc(id).update(payload) : await db.collection('trades').add(payload);
-        loadData(); showView('Übersicht');
+        const obj = { date: document.getElementById('datetime').value, asset: document.getElementById('assetDropdown').value, status: document.getElementById('status').value, mindset: document.getElementById('mindset').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value || "", note: document.getElementById('note').value, userId: auth.currentUser.uid };
+        id ? await db.collection('trades').doc(id).update(obj) : await db.collection('trades').add(obj);
+        loadTrades(); showView('Übersicht');
     }
 
     function editTrade(id) {
         const t = trades.find(x => x.id === id);
         document.getElementById('editId').value = t.id;
         document.getElementById('datetime').value = t.date;
+        updateAssetDropdown(); // Zwingt Refresh
         document.getElementById('assetDropdown').value = t.asset;
         document.getElementById('status').value = t.status;
         document.getElementById('pnl').value = t.pnl;
-        document.getElementById('imgSetup').value = t.imgSetup;
-        document.getElementById('imgResult').value = t.imgResult || '';
-        document.getElementById('note').value = t.note;
+        document.getElementById('imgSetup').value = t.imgSetup || "";
+        document.getElementById('imgResult').value = t.imgResult || "";
+        document.getElementById('note').value = t.note || "";
         toggleOutcomeFields(); showView('Trade erstellen');
     }
-
-    async function deleteTrade(id) { if(confirm('Löschen?')) { await db.collection('trades').doc(id).delete(); loadData(); } }
 
     function showView(v) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active');
         document.getElementById('view-title').innerText = v.toUpperCase();
         document.getElementById('navDrawer').classList.remove('open');
+        if(v === 'Trade erstellen') updateAssetDropdown();
         if(v === 'News') {
-            const container = document.getElementById('news-widget'); container.innerHTML = '';
-            const script = document.createElement('script'); script.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"; script.async = true;
-            script.innerHTML = JSON.stringify({"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "de"});
-            container.appendChild(script);
+            const cont = document.getElementById('news-container'); cont.innerHTML = '';
+            const scr = document.createElement('script'); scr.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"; scr.async = true;
+            scr.innerHTML = JSON.stringify({"colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "de"});
+            cont.appendChild(scr);
+        }
+    }
+
+    function openAssetPopup() { document.getElementById('asset-popup').classList.remove('hidden'); }
+    function closeAssetPopup() { document.getElementById('asset-popup').classList.add('hidden'); }
+    async function confirmAddAsset() {
+        const val = document.getElementById('newAssetName').value.toUpperCase().trim();
+        if(val && !userAssets.includes(val)) {
+            userAssets.push(val); updateAssetDropdown();
+            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
+            document.getElementById('newAssetName').value = ''; closeAssetPopup();
+        }
+    }
+    async function deleteCurrentAsset() {
+        const val = document.getElementById('assetDropdown').value;
+        if(val && confirm(`${val} löschen?`)) {
+            userAssets = userAssets.filter(a => a !== val); updateAssetDropdown();
+            await db.collection('userAssets').doc(auth.currentUser.uid).set({ assets: userAssets });
         }
     }
 
     function setQuickFilter(f, btn) { currentFilter = f; document.querySelectorAll('#filter-container .chart-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderDashboard(); }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
     function toggleOutcomeFields() { document.getElementById('pnlWrapper').classList.toggle('hidden', document.getElementById('status').value !== 'Geschlossen'); }
-    function prepareCreateView() { document.getElementById('editId').value = ""; document.getElementById('datetime').value = new Date().toISOString().slice(0,16); toggleOutcomeFields(); showView('Trade erstellen'); }
+    function prepareCreateView() { document.getElementById('editId').value = ""; document.getElementById('datetime').value = new Date().toISOString().slice(0,16); updateAssetDropdown(); toggleOutcomeFields(); showView('Trade erstellen'); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function handleLogout() { auth.signOut().then(() => location.reload()); }
+    async function deleteTrade(id) { if(confirm('Löschen?')) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
     
     function calcLots() {
         const bal = parseFloat(document.getElementById('calcBal').value), risk = parseFloat(document.getElementById('calcRisk').value), ent = parseFloat(document.getElementById('calcEnt').value), sl = parseFloat(document.getElementById('calcSl').value), type = document.getElementById('calcType').value;
@@ -338,21 +298,12 @@
         }
     }
 
-    // --- ADMIN FUNKTIONEN ---
-    async function adminLoadMembers() {
+    async function adminLoad() {
         const snap = await db.collection('members').get();
-        document.getElementById('admin-member-list').innerHTML = snap.docs.map(doc => `
-            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;">
-                <span>${doc.data().email}</span>
-                <button onclick="adminDeleteMember('${doc.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;">Löschen</button>
-            </div>
-        `).join('');
+        document.getElementById('admin-list').innerHTML = snap.docs.map(doc => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;"><span>${doc.data().email}</span><button onclick="adminDel('${doc.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;">Del</button></div>`).join('');
     }
-    async function adminAddMember() {
-        const email = document.getElementById('adminNewEmail').value.toLowerCase().trim();
-        if(email) { await db.collection('members').add({ email: email }); document.getElementById('adminNewEmail').value = ''; adminLoadMembers(); }
-    }
-    async function adminDeleteMember(id) { if(confirm('Entfernen?')) { await db.collection('members').doc(id).delete(); adminLoadMembers(); } }
+    async function adminAdd() { const e = document.getElementById('adminEmailInput').value.toLowerCase().trim(); if(e) { await db.collection('members').add({ email: e }); document.getElementById('adminEmailInput').value = ''; adminLoad(); } }
+    async function adminDel(id) { if(confirm('Löschen?')) { await db.collection('members').doc(id).delete(); adminLoad(); } }
 </script>
 </body>
 </html>
