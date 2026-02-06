@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Secure Login</title>
+    <title>TradeCloud Pro - Admin Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -50,6 +50,10 @@
         /* Chart Header Mobile Layout */
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         #filter-container { display: flex; gap: 4px; flex-wrap: wrap; }
+
+        /* Icon Button */
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 5px; color: #888; transition: 0.2s; }
+        .icon-btn:hover { color: var(--danger); }
 
         #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         #assetInput { text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
@@ -226,14 +230,15 @@
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             // Check Admin Hardcode
-            const isAdmin = user.email.toLowerCase() === "leon.luca.lauterbach@gmail.com";
+            const userEmail = user.email.toLowerCase(); // WICHTIG: Kleinbuchstaben
+            const isAdmin = userEmail === "leon.luca.lauterbach@gmail.com";
             
             let isAllowed = isAdmin;
             
             if(!isAllowed) {
-                // Check Firestore Whitelist
                 try {
-                    const snap = await db.collection('members').where('email', '==', user.email).get();
+                    // WICHTIG: Suche nach der E-Mail auch in Kleinbuchstaben
+                    const snap = await db.collection('members').where('email', '==', userEmail).get();
                     if(!snap.empty) isAllowed = true;
                 } catch(e) {
                     console.error("Auth check failed", e);
@@ -241,7 +246,6 @@
             }
 
             if(isAllowed) {
-                // ZUGRIFF ERLAUBT
                 document.getElementById('auth-overlay').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('main-header').classList.remove('hidden');
@@ -255,7 +259,6 @@
                 await loadTrades();
                 setInterval(loadTrades, 5000);
             } else {
-                // ZUGRIFF VERWEIGERT
                 alert("Kein Zugriff! Dein Account wurde vom Admin nicht freigeschaltet.");
                 await auth.signOut();
                 location.reload();
@@ -420,9 +423,36 @@
         }
     }
     
-    async function admLoad() { const s = await db.collection('members').get(); document.getElementById('admList').innerHTML = s.docs.map(d => `<div style="padding:10px; border-bottom:1px solid #333;">${d.data().email} <button onclick="admDel('${d.id}')" style="color:red; background:none; border:none; float:right;">X</button></div>`).join(''); }
-    async function admAdd() { await db.collection('members').add({email: document.getElementById('admEmail').value}); admLoad(); }
-    async function admDel(id) { await db.collection('members').doc(id).delete(); admLoad(); }
+    async function admLoad() { 
+        const s = await db.collection('members').get(); 
+        document.getElementById('admList').innerHTML = s.docs.map(d => `
+            <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                <span>${d.data().email}</span> 
+                <button onclick="admDel('${d.id}')" class="icon-btn" title="Löschen">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                      <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                    </svg>
+                </button>
+            </div>
+        `).join(''); 
+    }
+
+    async function admAdd() { 
+        // WICHTIG: E-Mail bereinigen (trim und lowercase)
+        const val = document.getElementById('admEmail').value.trim().toLowerCase();
+        if(!val) return;
+        await db.collection('members').add({email: val}); 
+        document.getElementById('admEmail').value = ""; // Feld leeren
+        admLoad(); 
+    }
+
+    async function admDel(id) { 
+        if(confirm("Nutzer entfernen?")) {
+            await db.collection('members').doc(id).delete(); 
+            admLoad(); 
+        }
+    }
 </script>
 </body>
 </html>
