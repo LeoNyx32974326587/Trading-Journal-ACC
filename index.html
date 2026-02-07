@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Clean Table</title>
+    <title>TradeCloud Pro - Final Clean</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -1149,7 +1149,6 @@
             <tr>
                 <td>${date}<span class="time-sub">${time}</span></td>
                 <td><b>${t.asset}</b></td>
-                <td class="note-cell" title="${t.note || ''}">${t.note ? (t.note.length > 30 ? t.note.substring(0,30)+'...' : t.note) : '-'}</td>
                 <td style="text-align:right;">${pnlHtml}</td>
                 <td style="text-align:right;">
                     <button class="btn-icon" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')" title="Details">ℹ️</button>
