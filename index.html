@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Share Options</title>
+    <title>TradeCloud Pro - Notifications</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -485,6 +485,11 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             
+            // NOTIFICATION PERMISSION
+            if("Notification" in window) {
+                Notification.requestPermission();
+            }
+            
             await loadData();
             loadChat(); 
         }
@@ -578,6 +583,7 @@
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
             const canvasId = `chart-${journal.id}`;
             
+            // MAX LOSS CHECK
             let warningHtml = '';
             if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
                 const limit = parseFloat(journal.maxDD);
@@ -657,6 +663,21 @@
     // --- CHAT LOGIC ---
     function loadChat() {
         db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
+            if(!snapshot.empty && !document.hidden && document.getElementById('view-Chat').classList.contains('active') === false) {
+               // Only notify if not looking at chat
+               const changes = snapshot.docChanges();
+               changes.forEach(change => {
+                   if (change.type === "added" && !change.doc.metadata.hasPendingWrites) {
+                       new Notification("Neue Chat Nachricht", { body: "Jemand hat in TradeCloud Pro geschrieben!" });
+                       const audio = new Audio('https://freesound.org/data/previews/234/234524_4019029-lq.mp3'); // Simple beep
+                       audio.play().catch(e=>{});
+                       document.title = "(1) TradeCloud Pro";
+                   }
+               });
+            }
+            // Reset title on focus
+            window.onfocus = () => { document.title = "TradeCloud Pro"; };
+
             const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
