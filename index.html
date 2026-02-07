@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Thumbnails & Time</title>
+    <title>TradeCloud Pro - Header Button</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -103,7 +103,7 @@
         .hist-table th { text-align: left; padding: 10px; border-bottom: 1px solid #333; color: #888; font-weight: 600; }
         .hist-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
         
-        /* Thumbnails for History */
+        /* Thumbnails */
         .hist-thumb {
             width: 40px; height: 30px; object-fit: cover; border-radius: 4px;
             border: 1px solid var(--border); vertical-align: middle; margin-right: 5px;
@@ -111,6 +111,13 @@
         }
         .hist-thumb:hover { transform: scale(2.5); z-index: 100; position: relative; border-color: var(--accent); }
         
+        .dash-thumb {
+            width: 30px; height: 20px; object-fit: cover; border-radius: 3px; 
+            border: 1px solid var(--border); margin-right: 8px; vertical-align: middle;
+            transition: transform 0.2s;
+        }
+        .dash-thumb:hover { transform: scale(3); z-index: 100; border-color: var(--accent); }
+
         .note-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa; cursor: help; }
         .time-sub { display: block; font-size: 0.7rem; color: #666; margin-top: 2px; }
 
@@ -227,7 +234,10 @@
 <div id="app-content" class="container hidden">
     
     <section id="view-Übersicht" class="view-section active">
-        <h2 style="margin-top:0; margin-bottom:20px;">Hallo <span id="user-greeting-name" style="color:var(--accent);">Trader</span> 👋</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="margin:0;">Hallo <span id="user-greeting-name" style="color:var(--accent);">Trader</span> 👋</h2>
+            <button onclick="prepareCreateView()" class="btn-primary" style="width:auto; padding: 10px 20px; margin:0; font-size:0.8rem;">+ NEUER TRADE</button>
+        </div>
         <div id="dashboard-journals-list"></div>
     </section>
 
@@ -478,7 +488,6 @@
                 const limit = parseFloat(journal.maxDD);
                 let threshold = limit;
                 if(journal.ddType === 'percent') {
-                    // Check against current Balance (Start + PnL)
                     const currentBalance = Math.max(startCap + totalPnL, 0); 
                     threshold = currentBalance * (limit / 100);
                 }
@@ -494,12 +503,19 @@
 
             let openTradesHtml = '<p style="color:#666; font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
             if(open.length > 0) {
-                openTradesHtml = open.map(t => `
+                openTradesHtml = open.map(t => {
+                    const thumb = t.imgSetup ? 
+                        `<a href="${t.imgSetup}" target="_blank"><img src="${t.imgSetup}" class="dash-thumb" title="Setup"></a>` : '';
+
+                    return `
                     <div class="ot-list-item">
-                        <span style="font-weight:bold; color:var(--accent);">${t.asset}</span>
+                        <div style="display:flex; align-items:center;">
+                            ${thumb}
+                            <span style="font-weight:bold; color:var(--accent);">${t.asset}</span>
+                        </div>
                         <button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button>
-                    </div>
-                `).join('');
+                    </div>`;
+                }).join('');
             }
 
             container.innerHTML += `
@@ -619,15 +635,13 @@
         const filtered = trades.filter(t => (t.journal||'Main') === activeJournal).sort((a,b)=>new Date(b.date)-new Date(a.date));
         
         document.getElementById('tradeBody').innerHTML = filtered.map(t => {
-            const time = t.date.split('T')[1]; // HH:MM
-            const date = t.date.split('T')[0]; // YYYY-MM-DD
+            const time = t.date.split('T')[1]; 
+            const date = t.date.split('T')[0];
             
-            // Generate Thumbnails
             let mediaHtml = '';
             if(t.imgSetup) mediaHtml += `<a href="${t.imgSetup}" target="_blank"><img src="${t.imgSetup}" class="hist-thumb" title="Setup"></a>`;
             if(t.imgResult) mediaHtml += `<a href="${t.imgResult}" target="_blank"><img src="${t.imgResult}" class="hist-thumb" title="Result"></a>`;
             
-            // PnL or Open
             let pnlHtml = '';
             if(t.status === 'Aktiv') {
                 pnlHtml = '<span style="color:#888; font-style:italic;">Offen</span>';
