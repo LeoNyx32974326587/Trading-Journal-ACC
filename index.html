@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - History Details</title>
+    <title>TradeCloud Pro - Final History</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -135,10 +135,16 @@
         .td-pnl { font-size: 2.5rem; font-weight: 900; margin-top: 5px; display:block; }
         
         .td-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .td-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; }
+        .td-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; display:flex; flex-direction:column; justify-content:center; }
+        
+        .td-val-row { display: flex; align-items: center; justify-content: space-between; }
         .td-label { color: #888; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px; display: block; }
         .td-val { color: white; font-size: 1rem; font-weight: 600; }
-        .td-note { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; margin-bottom: 20px; font-style: italic; color: #ccc; font-size: 0.9rem; }
+        
+        .copy-icon { cursor: pointer; font-size: 0.9rem; margin-left: 8px; color: var(--accent); background:none; border:none; padding:0; }
+        .copy-icon:active { transform: scale(0.9); }
+        
+        .td-note { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; margin-bottom: 20px; font-style: italic; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
         
         .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; }
@@ -462,7 +468,6 @@
                     <tr>
                         <th style="min-width:90px;">Date/Time</th>
                         <th>Asset</th>
-                        <th>Media</th>
                         <th>Note</th>
                         <th style="text-align:right;">PnL</th>
                         <th></th>
@@ -953,11 +958,26 @@
             </div>
             
             <div class="td-grid">
-                <div class="td-box"><span class="td-label">Entry</span><span class="td-val">${t.entry || '-'}</span></div>
-                <div class="td-box"><span class="td-label">Stop Loss</span><span class="td-val" style="color:#ff453a">${t.sl || '-'}</span></div>
-                <div class="td-box"><span class="td-label">Take Profit 1</span><span class="td-val" style="color:#30d158">${t.tp1 || '-'}</span></div>
-                <div class="td-box"><span class="td-label">Take Profit 2</span><span class="td-val" style="color:#30d158">${t.tp2 || '-'}</span></div>
-                <div class="td-box"><span class="td-label">Take Profit 3</span><span class="td-val" style="color:#30d158">${t.tp3 || '-'}</span></div>
+                <div class="td-box">
+                    <div class="td-val-row"><span class="td-label">Entry</span><button id="btn-copy-entry" class="copy-icon" onclick="copyText('${t.entry || ''}', 'btn-copy-entry')">📋</button></div>
+                    <span class="td-val">${t.entry || '-'}</span>
+                </div>
+                <div class="td-box">
+                    <div class="td-val-row"><span class="td-label">Stop Loss</span><button id="btn-copy-sl" class="copy-icon" onclick="copyText('${t.sl || ''}', 'btn-copy-sl')">📋</button></div>
+                    <span class="td-val" style="color:#ff453a">${t.sl || '-'}</span>
+                </div>
+                <div class="td-box">
+                    <div class="td-val-row"><span class="td-label">TP 1</span><button id="btn-copy-tp1" class="copy-icon" onclick="copyText('${t.tp1 || ''}', 'btn-copy-tp1')">📋</button></div>
+                    <span class="td-val" style="color:#30d158">${t.tp1 || '-'}</span>
+                </div>
+                <div class="td-box">
+                    <div class="td-val-row"><span class="td-label">TP 2</span><button id="btn-copy-tp2" class="copy-icon" onclick="copyText('${t.tp2 || ''}', 'btn-copy-tp2')">📋</button></div>
+                    <span class="td-val" style="color:#30d158">${t.tp2 || '-'}</span>
+                </div>
+                <div class="td-box">
+                    <div class="td-val-row"><span class="td-label">TP 3</span><button id="btn-copy-tp3" class="copy-icon" onclick="copyText('${t.tp3 || ''}', 'btn-copy-tp3')">📋</button></div>
+                    <span class="td-val" style="color:#30d158">${t.tp3 || '-'}</span>
+                </div>
                 <div class="td-box"><span class="td-label">Date</span><span class="td-val">${t.date.split('T')[0]}</span></div>
             </div>
         `;
@@ -979,13 +999,11 @@
     function closeTradeDetail() {
         document.getElementById('trade-detail-view').classList.remove('open');
         document.getElementById('trade-detail-view').classList.add('hidden');
-        // Only close overlay if not coming from day detail
-        if(document.getElementById('day-detail-view').classList.contains('hidden')) {
-             document.getElementById('popup-overlay').classList.remove('open');
-        }
+        document.getElementById('popup-overlay').classList.remove('open');
     }
     
     function copyText(val, btnId) {
+        if(!val) return;
         navigator.clipboard.writeText(val).then(() => {
             const btn = document.getElementById(btnId);
             btn.innerText = '✓'; setTimeout(() => { btn.innerText = '📋'; }, 1500);
@@ -1116,12 +1134,8 @@
         document.getElementById('tradeBody').innerHTML = filtered.map(t => {
             const time = t.date.split('T')[1]; 
             const date = t.date.split('T')[0];
-            let mediaHtml = '';
-            if(t.imgSetup) mediaHtml += `<a href="${t.imgSetup}" target="_blank"><img src="${t.imgSetup}" class="hist-thumb" title="Setup"></a>`;
-            if(t.imgResult) mediaHtml += `<a href="${t.imgResult}" target="_blank"><img src="${t.imgResult}" class="hist-thumb" title="Result"></a>`;
             
-            const hasLink = t.imgSetup || t.imgResult;
-            const shareBtn = hasLink ? `<button class="btn-icon btn-share" onclick="shareTrade('${t.id}')" title="Share">🚀</button>` : '';
+            const shareBtn = (t.imgSetup || t.imgResult) ? `<button class="btn-icon btn-share" onclick="shareTrade('${t.id}')" title="Share">🚀</button>` : '';
 
             // INFO BUTTON ADDED HERE
             const tradeDataString = encodeURIComponent(JSON.stringify(t));
@@ -1133,8 +1147,7 @@
             <tr>
                 <td>${date}<span class="time-sub">${time}</span></td>
                 <td><b>${t.asset}</b></td>
-                <td>${mediaHtml}</td>
-                <td class="note-cell" title="${t.note || ''}">${t.note || '-'}</td>
+                <td class="note-cell" title="${t.note || ''}">${t.note ? (t.note.length > 30 ? t.note.substring(0,30)+'...' : t.note) : '-'}</td>
                 <td style="text-align:right;">${pnlHtml}</td>
                 <td style="text-align:right;">
                     <button class="btn-icon" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')" title="Details">ℹ️</button>
@@ -1164,7 +1177,7 @@
     function handleLogout() { auth.signOut().then(()=>location.reload()); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
-    function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); const finalLot = Math.max(lot, 0.01); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${finalLot.toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
+    function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerText = lot.toFixed(2) + " Lot"; } }
     function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
     async function admLoad() { try { const s = await db.collection('members').get(); document.getElementById('admList').innerHTML = s.docs.map(d => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:5px;"><span>${d.data().email}</span><div><button class="btn-icon" onclick="openMemberDetail('${d.id}', '${d.data().email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${d.id}')" style="font-size:1rem;">✕</button></div></div>`).join(''); } catch(e){} }
     async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
