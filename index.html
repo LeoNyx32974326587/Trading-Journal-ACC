@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Final Chat</title>
+    <title>TradeCloud Pro - Calendar Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -209,6 +209,22 @@
             padding: 5px 8px; cursor: pointer; color: var(--accent); transition: 0.2s;
         }
         .copy-btn:hover { background: rgba(187, 134, 252, 0.1); }
+        
+        /* POPUP FIXES */
+        #popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);
+            z-index: 999; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        #popup-overlay.open { display: flex; opacity: 1; }
+        .day-view-container { 
+            position: relative; width: 90%; max-width: 500px; max-height: 85vh;
+            background: var(--popup-bg); border-radius: 16px; border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto;
+            transform: translateY(20px); opacity: 0; transition: all 0.3s ease;
+        }
+        #popup-overlay.open .day-view-container { transform: translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
@@ -647,7 +663,7 @@
             if(open.length > 0) {
                 openTradesHtml = open.map(t => {
                     const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="dash-thumb" title="Setup" style="margin-right:0;"></a>` : '';
-                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div>`;
+                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div></div>`;
                 }).join('');
             }
 
@@ -711,11 +727,7 @@
     // --- CHAT LOGIC ---
     function loadChat() {
         db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
-            if(!snapshot.empty && !document.hidden && document.getElementById('view-Chat').classList.contains('active') === false) {
-               // Removed notification logic as requested
-            }
             window.onfocus = () => { document.title = "TradeCloud Pro"; };
-
             const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
@@ -749,7 +761,6 @@
                 sigHtml += `</div>`;
             }
 
-            // Encode whole trade object safe for html attribute
             const tradeDataString = encodeURIComponent(JSON.stringify(t));
             const imgUrlString = encodeURIComponent(imgUrl || '');
 
@@ -887,6 +898,10 @@
 
     // --- SIGNAL DETAIL POPUP LOGIC ---
     function openSignalDetail(tradeDataEncoded, imgUrlEncoded) {
+        // 1. Show Popup Layout First
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('signal-detail-modal').classList.add('open');
+
         const t = JSON.parse(decodeURIComponent(tradeDataEncoded));
         const imgUrl = decodeURIComponent(imgUrlEncoded);
         
@@ -900,7 +915,7 @@
         }
         
         const contentDiv = document.getElementById('sd-content');
-        contentDiv.innerHTML = ''; // clear previous
+        contentDiv.innerHTML = ''; 
         
         const fields = [
             { label: 'Asset', val: t.asset, id: 'sd-asset' },
@@ -923,15 +938,11 @@
                 </div>`;
             }
         });
-
-        document.getElementById('signal-detail-modal').classList.add('open');
-        document.getElementById('popup-overlay').classList.add('open');
     }
     
     function copyText(val, btnId) {
         navigator.clipboard.writeText(val).then(() => {
             const btn = document.getElementById(btnId);
-            const originalText = btn.innerText;
             btn.innerText = '✓';
             setTimeout(() => { btn.innerText = '📋'; }, 1500);
         });
@@ -966,28 +977,36 @@
         }
     }
     function openDayDetail(dateStr) {
-        document.getElementById('member-detail-view').classList.add('hidden'); 
+        // 1. Show Popup Overlay & Container FIRST
+        document.getElementById('popup-overlay').classList.add('open');
+        const container = document.getElementById('day-detail-view');
+        container.classList.remove('hidden');
+
         const d = new Date(dateStr);
         document.getElementById('dv-date-title').innerText = d.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
         const dayTrades = trades.filter(t => {
             if((t.journal || 'Main') !== activeJournal) return false;
             return t.status === 'Geschlossen' && new Date(t.date).toDateString() === d.toDateString();
         }).sort((a,b)=> new Date(a.date)-new Date(b.date));
+        
         let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
         const wins = dayTrades.filter(t=>t.pnl>0).length;
         const grossLoss = Math.abs(dayTrades.filter(t=>t.pnl<0).reduce((a,b)=>a+b.pnl,0));
         const pf = grossLoss===0 ? (wins>0?99:0) : (dayTrades.filter(t=>t.pnl>0).reduce((a,b)=>a+b.pnl,0)/grossLoss);
+        
         document.getElementById('dv-pnl').innerText = (sum<0?'-':'+') + '€' + Math.abs(sum).toFixed(2);
         document.getElementById('dv-pnl').className = `dv-stat-value sensitive ${sum>=0?'text-green':'text-red'}`;
         document.getElementById('dv-winrate').innerText = dayTrades.length ? ((wins/dayTrades.length)*100).toFixed(0)+'%' : '0%';
         document.getElementById('dv-pf').innerText = pf.toFixed(2);
         document.getElementById('dv-count').innerText = dayTrades.length;
-        const ctx = document.getElementById('dayChart').getContext('2d'); if(dayChart) dayChart.destroy();
+        
+        // 2. Render Chart NOW that container is visible
+        const ctx = document.getElementById('dayChart').getContext('2d'); 
+        if(dayChart) dayChart.destroy();
         let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
         dayChart = new Chart(ctx, { type:'line', data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff3d00', borderWidth: 2, fill: true, tension: 0.1, pointRadius: 0 }] }, options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} } });
+        
         document.getElementById('dv-list').innerHTML = dayTrades.map(t => `<div class="dv-trade-item"><div class="dv-trade-left"><div class="dv-trade-icon ${t.pnl>=0?'text-green':'text-red'}">${t.pnl>=0?'↗':'↘'}</div><div class="dv-trade-info"><span class="dv-trade-time">${t.date.split('T')[1].slice(0,5)}</span><span class="dv-trade-asset">${t.asset}</span></div></div><div style="display:flex; align-items:center;"><div class="dv-trade-pnl sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div></div></div>`).join('');
-        document.getElementById('day-detail-view').classList.remove('hidden');
-        document.getElementById('popup-overlay').classList.add('open');
     }
     function closePopup() { 
         document.getElementById('share-modal').classList.remove('open');
