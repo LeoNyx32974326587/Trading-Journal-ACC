@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Analytics</title>
+    <title>TradeCloud Pro - Hourly Stats</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -83,23 +83,28 @@
 
         /* --- STATS LAYOUT --- */
         .stats-grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media (max-width: 768px) { .stats-grid-view { grid-template-columns: 1fr; } }
         .chart-card { height: 300px; padding: 10px; position: relative; }
+        .full-width { grid-column: span 2; }
+        @media (max-width: 768px) { 
+            .stats-grid-view { grid-template-columns: 1fr; } 
+            .full-width { grid-column: span 1; }
+        }
 
         /* --- CALENDAR --- */
         .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        
         .cal-cell { 
-            background: var(--cell-bg); border-radius: 8px; aspect-ratio: 1/1; 
+            background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; 
             position: relative; border: 1px solid transparent; cursor: pointer; 
             transition: transform 0.1s;
         }
         .cal-cell:active { transform: scale(0.95); }
         .cal-cell.win { background: rgba(0, 200, 83, 0.15); border: 1px solid rgba(0, 200, 83, 0.3); }
         .cal-cell.loss { background: rgba(255, 61, 0, 0.15); border: 1px solid rgba(255, 61, 0, 0.3); }
-        .cal-date { position: absolute; top: 4px; right: 5px; font-size: 0.8rem; font-weight: 600; color: #888; }
-        .cal-pnl { position: absolute; bottom: 18px; width: 100%; text-align: center; font-size: 0.75rem; font-weight: bold; }
-        .cal-trades { position: absolute; bottom: 4px; width: 100%; text-align: center; font-size: 0.6rem; color: #999; }
+        .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: #888; }
+        .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
+        .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: #999; }
         .text-green { color: var(--success); }
         .text-red { color: var(--danger); }
 
@@ -155,13 +160,9 @@
         .dv-trade-item { background: var(--cell-bg); border-radius: 12px; padding: 12px 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .dv-trade-left { display: flex; align-items: center; gap: 12px; }
 
-        /* --- UTILS --- */
+        /* --- BUTTONS & UTILS --- */
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
         .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; }
-        .btn-small { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main); cursor: pointer; margin-left: 5px; }
-        .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-        .chart-btn.active { background: var(--accent); color: black; }
-        .icon-btn { background:none; border:none; color:#888; cursor:pointer; }
         
         .btn-icon, .btn-small, .chart-btn, .icon-btn {
             padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; 
@@ -289,6 +290,10 @@
                 <h4 style="margin:0 0 15px 0;">Wochentags Performance</h4>
                 <div style="height:240px; position:relative;"><canvas id="weekdayChart"></canvas></div>
             </div>
+            <div class="card chart-card full-width">
+                <h4 style="margin:0 0 15px 0;">Stündliche Performance</h4>
+                <div style="height:240px; position:relative;"><canvas id="hourChart"></canvas></div>
+            </div>
         </div>
     </section>
 
@@ -400,6 +405,7 @@
     let dayChart = null;
     let assetChartInstance = null;
     let weekdayChartInstance = null;
+    let hourChartInstance = null;
     let calDate = new Date();
     let privacyMode = false;
     let activeJournal = null; 
@@ -516,6 +522,7 @@
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
             const canvasId = `chart-${journal.id}`;
             
+            // MAX LOSS CHECK
             let warningHtml = '';
             if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
                 const limit = parseFloat(journal.maxDD);
@@ -575,50 +582,41 @@
             if(!assetMap[t.asset]) assetMap[t.asset] = 0;
             assetMap[t.asset] += t.pnl;
         });
-        const sortedAssets = Object.keys(assetMap).sort((a,b) => assetMap[b] - assetMap[a]); // Best first
+        const sortedAssets = Object.keys(assetMap).sort((a,b) => assetMap[b] - assetMap[a]); 
         
         // 2. Weekday Performance
-        const daysMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}; // 0=Sun, 1=Mon...
-        tradesToAnalyze.forEach(t => {
-            const d = new Date(t.date).getDay();
-            daysMap[d] += t.pnl;
-        });
+        const daysMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}; 
+        tradesToAnalyze.forEach(t => { daysMap[new Date(t.date).getDay()] += t.pnl; });
         const dayLabels = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+        // 3. Hourly Performance
+        const hourMap = new Array(24).fill(0);
+        tradesToAnalyze.forEach(t => { hourMap[new Date(t.date).getHours()] += t.pnl; });
+        const hourLabels = hourMap.map((_, i) => `${i}:00`);
         
-        // Render Asset Chart
+        // Render Charts
         const ctxA = document.getElementById('assetChart').getContext('2d');
         if(assetChartInstance) assetChartInstance.destroy();
         assetChartInstance = new Chart(ctxA, {
             type: 'bar',
-            data: {
-                labels: sortedAssets,
-                datasets: [{
-                    label: 'PnL',
-                    data: sortedAssets.map(a => assetMap[a]),
-                    backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'),
-                    borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff3d00'),
-                    borderWidth: 1
-                }]
-            },
+            data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] },
             options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} }
         });
 
-        // Render Weekday Chart
         const ctxW = document.getElementById('weekdayChart').getContext('2d');
         if(weekdayChartInstance) weekdayChartInstance.destroy();
         const weekData = [0,1,2,3,4,5,6].map(d => daysMap[d]);
         weekdayChartInstance = new Chart(ctxW, {
             type: 'bar',
-            data: {
-                labels: dayLabels,
-                datasets: [{
-                    label: 'PnL',
-                    data: weekData,
-                    backgroundColor: weekData.map(v => v >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'),
-                    borderColor: weekData.map(v => v >= 0 ? '#00c853' : '#ff3d00'),
-                    borderWidth: 1
-                }]
-            },
+            data: { labels: dayLabels, datasets: [{ label: 'PnL', data: weekData, backgroundColor: weekData.map(v => v >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: weekData.map(v => v >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] },
+            options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} }
+        });
+
+        const ctxH = document.getElementById('hourChart').getContext('2d');
+        if(hourChartInstance) hourChartInstance.destroy();
+        hourChartInstance = new Chart(ctxH, {
+            type: 'bar',
+            data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] },
             options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} }
         });
     }
@@ -640,16 +638,10 @@
             let sum = 0, count = dayTrades.length; dayTrades.forEach(t => sum += t.pnl);
             
             let cellClass = 'cal-cell';
-            if(count > 0) {
-                if(sum > 0) cellClass += ' win';
-                else if(sum < 0) cellClass += ' loss';
-            }
+            if(count > 0) { if(sum > 0) cellClass += ' win'; else if(sum < 0) cellClass += ' loss'; }
 
             let html = `<div class="cal-date">${d}</div>`;
-            if(count > 0) {
-                const col = sum >= 0 ? 'text-green' : 'text-red';
-                html += `<div class="cal-pnl sensitive ${col}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`;
-            }
+            if(count > 0) { html += `<div class="cal-pnl sensitive ${sum>=0?'text-green':'text-red'}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`; }
             grid.innerHTML += `<div class="${cellClass}" ${count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
         }
     }
@@ -674,7 +666,6 @@
         let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
         dayChart = new Chart(ctx, { type:'line', data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff3d00', borderWidth: 2, fill: true, tension: 0.1, pointRadius: 0 }] }, options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} } });
         document.getElementById('dv-list').innerHTML = dayTrades.map(t => `<div class="dv-trade-item"><div class="dv-trade-left"><div class="dv-trade-icon ${t.pnl>=0?'text-green':'text-red'}">${t.pnl>=0?'↗':'↘'}</div><div class="dv-trade-info"><span class="dv-trade-time">${t.date.split('T')[1].slice(0,5)}</span><span class="dv-trade-asset">${t.asset}</span></div></div><div style="display:flex; align-items:center;"><div class="dv-trade-pnl sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div></div></div>`).join('');
-        
         document.getElementById('day-detail-view').classList.remove('hidden');
         document.getElementById('popup-overlay').classList.add('open');
     }
