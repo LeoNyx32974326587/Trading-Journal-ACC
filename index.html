@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Accurate Calculator</title>
+    <title>TradeCloud Pro - Group Chat</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -16,11 +16,15 @@
             --success: #00c853; --danger: #ff3d00; --border: #2c2c2c; 
             --blur: 0px;
             --popup-bg: #1a1a1a; 
+            --chat-me: #2a2a2a; /* Dunkelgrau für eigene Nachrichten */
+            --chat-other: #111; /* Fast schwarz für andere */
         }
         body.light-mode {
             --bg-dark: #f0f2f5; --card-bg: #ffffff; --cell-bg: #e4e6eb; --text-main: #1c1e21;
             --accent: #6200ee; --border: #ddd;
             --popup-bg: #ffffff;
+            --chat-me: #e1f5fe;
+            --chat-other: #f1f1f1;
         }
 
         /* --- GLOBAL --- */
@@ -54,6 +58,40 @@
         .nav-selector-container { padding: 10px 25px; }
         .nav-selector-label { font-size: 0.75rem; color: #888; margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
         #navJournalSelect { width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; }
+
+        /* --- CHAT STYLES --- */
+        .chat-container {
+            display: flex; flex-direction: column; height: calc(100vh - 140px); /* Fill remaining space */
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+        }
+        .chat-messages {
+            flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .chat-input-area {
+            padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px;
+        }
+        .msg-wrapper { max-width: 80%; display: flex; flex-direction: column; }
+        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
+        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
+        
+        .msg-sender { font-size: 0.7rem; color: #888; margin-bottom: 4px; margin-left: 4px; }
+        .msg-bubble {
+            padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word;
+            position: relative; border: 1px solid var(--border);
+        }
+        .msg-wrapper.me .msg-bubble { background: var(--chat-me); color: var(--text-main); border-bottom-right-radius: 2px; border-color: var(--accent); }
+        .msg-wrapper.other .msg-bubble { background: var(--chat-other); color: var(--text-main); border-bottom-left-radius: 2px; }
+        
+        .msg-time { font-size: 0.65rem; color: #666; margin-top: 4px; text-align: right; display: block; }
+        
+        /* Shared Trade Card in Chat */
+        .chat-trade-card {
+            background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px; width: 220px; margin-top: 5px;
+        }
+        .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .ct-img { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-top: 5px; cursor: pointer; }
+        .ct-footer { margin-top: 8px; font-size: 0.8rem; display: flex; justify-content: space-between; }
 
         /* --- DASHBOARD LAYOUT --- */
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
@@ -103,12 +141,12 @@
         .hist-table th { text-align: left; padding: 10px; border-bottom: 1px solid #333; color: #888; font-weight: 600; }
         .hist-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
         
-        .hist-thumb { width: 40px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; margin-right: 5px; cursor: pointer; transition: transform 0.2s ease; }
-        .hist-thumb:hover { transform: scale(2.5); z-index: 100; position: relative; border-color: var(--accent); }
-        
-        .dash-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); margin-left: 8px; vertical-align: middle; transition: transform 0.2s; }
-        .dash-thumb:hover { transform: scale(3); z-index: 100; border-color: var(--accent); }
-
+        .hist-thumb, .dash-thumb {
+            width: 30px; height: 20px; object-fit: cover; border-radius: 3px; 
+            border: 1px solid var(--border); vertical-align: middle; margin: 0 5px;
+            transition: transform 0.2s; cursor: pointer;
+        }
+        .hist-thumb:hover, .dash-thumb:hover { transform: scale(3.5); z-index: 100; border-color: var(--accent); position: relative; }
         .note-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa; cursor: help; }
         .time-sub { display: block; font-size: 0.7rem; color: #666; margin-top: 2px; }
 
@@ -157,9 +195,9 @@
         }
         .chart-btn.active { background: var(--accent); color: black; }
         .btn-danger-hover:hover { border-color: var(--danger); color: var(--danger); }
+        .btn-share:hover { border-color: #00bcd4; color: #00bcd4; }
 
         .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        
         .stats-grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .chart-card { height: 300px; padding: 10px; position: relative; }
         .full-width { grid-column: span 2; }
@@ -217,9 +255,13 @@
     <button class="btn-icon" style="padding:8px; font-size:1.2rem;" onclick="togglePrivacy()">👁️</button>
 </header>
 
+<div id="menu-overlay" onclick="toggleMenu()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199;display:none;backdrop-filter:blur(2px);"></div>
+
 <nav class="nav-drawer" id="navDrawer">
+    <div style="text-align:right; padding:10px 20px;"><button class="btn-icon" onclick="toggleMenu()" style="border:none;background:none;font-size:1.5rem;color:#888;">✕</button></div>
     <button onclick="showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
     <button onclick="prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
+    <button onclick="showView('Chat')" id="btn-Chat" style="color:#00bcd4;">💬 Chat</button>
     <div class="nav-separator"></div>
     <div class="nav-selector-container">
         <label class="nav-selector-label">AKTUELLES JOURNAL ⌄</label>
@@ -245,6 +287,17 @@
             <button onclick="prepareCreateView()" class="btn-primary" style="width:auto; padding: 10px 20px; margin:0; font-size:0.8rem;">+ NEUER TRADE</button>
         </div>
         <div id="dashboard-journals-list"></div>
+    </section>
+    
+    <section id="view-Chat" class="view-section">
+        <div class="card chat-container" style="padding:0;">
+            <div class="jfc-header"><div class="jfc-title">Community Chat</div></div>
+            <div id="chat-messages" class="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Nachricht schreiben..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="btn-primary" style="width:auto; padding:0 20px;">➤</button>
+            </div>
+        </div>
     </section>
 
     <section id="view-Kalender" class="view-section">
@@ -332,18 +385,10 @@
                     <option value="100">Gold (100 oz)</option>
                     <option value="custom">Benutzerdefiniert</option>
                 </select>
-                <div style="flex:1;">
-                    <input type="number" id="cContract" value="100000" placeholder="Kontraktgröße">
-                </div>
+                <div style="flex:1;"><input type="number" id="cContract" value="100000" placeholder="Kontraktgröße"></div>
             </div>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="cBal" placeholder="Konto">
-                <input type="number" id="cRisk" placeholder="Risk %">
-            </div>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="cEnt" placeholder="Entry">
-                <input type="number" id="cSl" placeholder="SL">
-            </div>
+            <div style="display:flex; gap:10px;"><input type="number" id="cBal" placeholder="Konto"><input type="number" id="cRisk" placeholder="Risk %"></div>
+            <div style="display:flex; gap:10px;"><input type="number" id="cEnt" placeholder="Entry"><input type="number" id="cSl" placeholder="SL"></div>
             <button onclick="calcLots()" class="btn-primary">Berechnen</button>
             <div id="cRes" style="text-align:center; font-size:1.5rem; margin-top:15px; color:var(--success);">0.00 Lot</div>
         </div>
@@ -413,6 +458,7 @@
     let privacyMode = false;
     let activeJournal = null; 
     let editingJournalId = null;
+    let currentUserName = "User";
 
     // THEME INIT
     const isLight = localStorage.getItem('tradeTheme') === 'light';
@@ -423,6 +469,7 @@
         if(user) {
             const firstName = user.email.split('@')[0].split('.')[0];
             const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+            currentUserName = capitalizedName;
             document.getElementById('user-greeting-name').innerText = capitalizedName;
 
             const email = user.email.toLowerCase().trim();
@@ -435,6 +482,7 @@
             document.getElementById('main-header').classList.remove('hidden');
             
             await loadData();
+            loadChat(); // Initialize Chat Listener
         }
     });
 
@@ -492,6 +540,7 @@
         if(activeId === 'view-Historie') renderHistory();
         if(activeId === 'view-Statistik') renderStatistics();
         document.getElementById('navDrawer').classList.remove('open');
+        document.getElementById('menu-overlay').classList.remove('open');
     }
 
     // --- DASHBOARD ---
@@ -525,7 +574,6 @@
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
             const canvasId = `chart-${journal.id}`;
             
-            // MAX LOSS CHECK
             let warningHtml = '';
             if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
                 const limit = parseFloat(journal.maxDD);
@@ -534,58 +582,39 @@
                     const currentBalance = Math.max(startCap + totalPnL, 0); 
                     threshold = currentBalance * (limit / 100);
                 }
-                
-                if(todayPnL < -threshold) {
-                    warningHtml = `
-                    <div class="loss-warning">
-                        <span>⚠️</span>
-                        <span>TAGESVERLUST ÜBERSCHRITTEN</span>
-                    </div>`;
-                }
+                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
             }
 
             let openTradesHtml = '<p style="color:#666; font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
             if(open.length > 0) {
                 openTradesHtml = open.map(t => {
-                    const thumb = t.imgSetup ? 
-                        `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="dash-thumb" title="Setup" style="margin-right:0;"></a>` : '';
-
+                    const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="dash-thumb" title="Setup" style="margin-right:0;"></a>` : '';
                     return `
                     <div class="ot-list-item">
                         <div style="display:flex; align-items:center;">
                             <span style="font-weight:bold; color:var(--accent);">${t.asset}</span>
                             ${thumb}
                         </div>
-                        <button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button>
+                        <div style="display:flex;align-items:center;">
+                            <button class="btn-icon btn-share" onclick="shareTrade('${t.id}')" style="margin-right:5px;">🚀</button>
+                            <button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button>
+                        </div>
                     </div>`;
                 }).join('');
             }
 
             container.innerHTML += `
                 <div class="journal-full-card">
-                    <div class="jfc-header">
-                        <div class="jfc-title">${journal.name}</div>
-                    </div>
+                    <div class="jfc-header"><div class="jfc-title">${journal.name}</div></div>
                     ${warningHtml}
                     <div class="jfc-body-grid">
-                        <div class="jfc-chart-area">
-                            <canvas id="${canvasId}"></canvas>
-                        </div>
+                        <div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div>
                         <div class="jfc-sidebar">
                             <div class="jfc-stats-row">
-                                <div class="stat-box">
-                                    <span class="stat-label">PnL</span>
-                                    <span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL > 0 ? '+' : ''}${totalPnL.toFixed(2)}€</span>
-                                </div>
-                                <div class="stat-box">
-                                    <span class="stat-label">Winrate</span>
-                                    <span class="stat-value">${winrate}%</span>
-                                </div>
+                                <div class="stat-box"><span class="stat-label">PnL</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL > 0 ? '+' : ''}${totalPnL.toFixed(2)}€</span></div>
+                                <div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div>
                             </div>
-                            <div class="open-trades-box">
-                                <div class="ot-title">OFFENE TRADES</div>
-                                <div style="flex-grow:1;">${openTradesHtml}</div>
-                            </div>
+                            <div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div>
                         </div>
                     </div>
                 </div>`;
@@ -606,49 +635,110 @@
         if(!activeJournal) return;
         const tradesToAnalyze = trades.filter(t => (t.journal || 'Main') === activeJournal && t.status === 'Geschlossen');
         
-        // 1. Asset Performance
         const assetMap = {};
-        tradesToAnalyze.forEach(t => {
-            if(!assetMap[t.asset]) assetMap[t.asset] = 0;
-            assetMap[t.asset] += t.pnl;
-        });
+        tradesToAnalyze.forEach(t => { if(!assetMap[t.asset]) assetMap[t.asset] = 0; assetMap[t.asset] += t.pnl; });
         const sortedAssets = Object.keys(assetMap).sort((a,b) => assetMap[b] - assetMap[a]); 
         
-        // 2. Weekday Performance
         const daysMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}; 
         tradesToAnalyze.forEach(t => { daysMap[new Date(t.date).getDay()] += t.pnl; });
         const dayLabels = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
-        // 3. Hourly Performance
         const hourMap = new Array(24).fill(0);
         tradesToAnalyze.forEach(t => { hourMap[new Date(t.date).getHours()] += t.pnl; });
         const hourLabels = hourMap.map((_, i) => `${i}:00`);
         
-        // Render Charts
         const ctxA = document.getElementById('assetChart').getContext('2d');
         if(assetChartInstance) assetChartInstance.destroy();
-        assetChartInstance = new Chart(ctxA, {
-            type: 'bar',
-            data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] },
-            options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} }
-        });
+        assetChartInstance = new Chart(ctxA, { type: 'bar', data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
 
         const ctxW = document.getElementById('weekdayChart').getContext('2d');
         if(weekdayChartInstance) weekdayChartInstance.destroy();
-        const weekData = [0,1,2,3,4,5,6].map(d => daysMap[d]);
-        weekdayChartInstance = new Chart(ctxW, {
-            type: 'bar',
-            data: { labels: dayLabels, datasets: [{ label: 'PnL', data: weekData, backgroundColor: weekData.map(v => v >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: weekData.map(v => v >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] },
-            options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} }
-        });
+        weekdayChartInstance = new Chart(ctxW, { type: 'bar', data: { labels: dayLabels, datasets: [{ label: 'PnL', data: [0,1,2,3,4,5,6].map(d => daysMap[d]), backgroundColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
 
         const ctxH = document.getElementById('hourChart').getContext('2d');
         if(hourChartInstance) hourChartInstance.destroy();
-        hourChartInstance = new Chart(ctxH, {
-            type: 'bar',
-            data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] },
-            options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} }
+        hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 61, 0, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff3d00'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+    }
+
+    // --- CHAT LOGIC ---
+    function loadChat() {
+        // Listen for new messages (Limit to last 50 for performance)
+        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
+            const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse(); // Reverse to show oldest first at top
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll to bottom
         });
+    }
+
+    function renderMessage(msg) {
+        const isMe = msg.senderId === auth.currentUser.uid;
+        const time = formatChatTime(msg.timestamp);
+        let content = `<div class="msg-text">${msg.text || ''}</div>`;
+
+        // If it's a shared trade
+        if (msg.type === 'trade' && msg.tradeData) {
+            const t = msg.tradeData;
+            const color = t.pnl >= 0 ? 'var(--success)' : 'var(--danger)';
+            const thumb = t.imgSetup ? `<img src="${t.imgSetup}" class="ct-img" onclick="window.open('${t.imgSetup}')">` : '';
+            content = `
+                <div class="chat-trade-card">
+                    <div class="ct-header">
+                        <span>${t.asset}</span>
+                        <span style="color:${color}">${t.status === 'Aktiv' ? 'OPEN' : t.pnl.toFixed(2) + '€'}</span>
+                    </div>
+                    <div>${t.status === 'Aktiv' ? 'Running Trade 🚀' : 'Closed Result 🏁'}</div>
+                    ${thumb}
+                    <div class="ct-footer"><span>${t.date.split('T')[0]}</span></div>
+                </div>`;
+        }
+
+        return `
+            <div class="msg-wrapper ${isMe ? 'me' : 'other'}">
+                <span class="msg-sender">${isMe ? 'Du' : msg.senderName}</span>
+                <div class="msg-bubble">
+                    ${content}
+                    <span class="msg-time">${time}</span>
+                </div>
+            </div>`;
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        await db.collection('chat').add({
+            text: text,
+            senderName: currentUserName,
+            senderId: auth.currentUser.uid,
+            type: 'text',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = '';
+    }
+
+    async function shareTrade(tradeId) {
+        const trade = trades.find(t => t.id === tradeId);
+        if(!trade) return;
+        
+        const confirmShare = confirm(`Möchtest du deinen ${trade.asset} Trade im Chat teilen?`);
+        if(!confirmShare) return;
+
+        await db.collection('chat').add({
+            senderName: currentUserName,
+            senderId: auth.currentUser.uid,
+            type: 'trade',
+            tradeData: trade,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showView('Chat');
+    }
+
+    function formatChatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = timestamp.toDate();
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     // --- CALENDAR ---
@@ -667,18 +757,11 @@
             const dayTrades = filtered.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
             let sum = 0, count = dayTrades.length; dayTrades.forEach(t => sum += t.pnl);
             
-            // COLOR LOGIC
             let cellClass = 'cal-cell';
-            if(count > 0) {
-                if(sum > 0) cellClass += ' win';
-                else if(sum < 0) cellClass += ' loss';
-            }
+            if(count > 0) { if(sum > 0) cellClass += ' win'; else if(sum < 0) cellClass += ' loss'; }
 
             let html = `<div class="cal-date">${d}</div>`;
-            if(count > 0) {
-                const col = sum >= 0 ? 'text-green' : 'text-red';
-                html += `<div class="cal-pnl sensitive ${col}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`;
-            }
+            if(count > 0) { html += `<div class="cal-pnl sensitive ${sum>=0?'text-green':'text-red'}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`; }
             grid.innerHTML += `<div class="${cellClass}" ${count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
         }
     }
@@ -703,7 +786,6 @@
         let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
         dayChart = new Chart(ctx, { type:'line', data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff3d00', borderWidth: 2, fill: true, tension: 0.1, pointRadius: 0 }] }, options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} } });
         document.getElementById('dv-list').innerHTML = dayTrades.map(t => `<div class="dv-trade-item"><div class="dv-trade-left"><div class="dv-trade-icon ${t.pnl>=0?'text-green':'text-red'}">${t.pnl>=0?'↗':'↘'}</div><div class="dv-trade-info"><span class="dv-trade-time">${t.date.split('T')[1].slice(0,5)}</span><span class="dv-trade-asset">${t.asset}</span></div></div><div style="display:flex; align-items:center;"><div class="dv-trade-pnl sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div></div></div>`).join('');
-        
         document.getElementById('day-detail-view').classList.remove('hidden');
         document.getElementById('popup-overlay').classList.add('open');
     }
@@ -730,19 +812,10 @@
         document.getElementById('tradeBody').innerHTML = filtered.map(t => {
             const time = t.date.split('T')[1]; 
             const date = t.date.split('T')[0];
-            
             let mediaHtml = '';
             if(t.imgSetup) mediaHtml += `<a href="${t.imgSetup}" target="_blank"><img src="${t.imgSetup}" class="hist-thumb" title="Setup"></a>`;
             if(t.imgResult) mediaHtml += `<a href="${t.imgResult}" target="_blank"><img src="${t.imgResult}" class="hist-thumb" title="Result"></a>`;
-            
-            let pnlHtml = '';
-            if(t.status === 'Aktiv') {
-                pnlHtml = '<span style="color:#888; font-style:italic;">Offen</span>';
-            } else {
-                const color = t.pnl >= 0 ? 'var(--success)' : 'var(--danger)';
-                pnlHtml = `<span class="sensitive" style="color:${color}; font-weight:bold;">${t.pnl.toFixed(2)}</span>`;
-            }
-
+            let pnlHtml = t.status === 'Aktiv' ? '<span style="color:#888; font-style:italic;">Offen</span>' : `<span class="sensitive" style="color:${t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:bold;">${t.pnl.toFixed(2)}</span>`;
             return `
             <tr>
                 <td>${date}<span class="time-sub">${time}</span></td>
@@ -750,35 +823,13 @@
                 <td>${mediaHtml}</td>
                 <td class="note-cell" title="${t.note || ''}">${t.note || '-'}</td>
                 <td style="text-align:right;">${pnlHtml}</td>
-                <td style="text-align:right;"><button class="btn-icon" onclick="editTrade('${t.id}')">✏️</button><button class="btn-icon btn-danger-hover" style="margin-left:5px;" onclick="delTrade('${t.id}')">🗑️</button></td>
+                <td style="text-align:right;">
+                    <button class="btn-icon btn-share" onclick="shareTrade('${t.id}')">🚀</button>
+                    <button class="btn-icon" onclick="editTrade('${t.id}')">✏️</button>
+                    <button class="btn-icon btn-danger-hover" onclick="delTrade('${t.id}')">🗑️</button>
+                </td>
             </tr>`;
         }).join('');
-    }
-
-    // --- LOT CALCULATOR LOGIC (UPDATED) ---
-    function updateContractSize() {
-       const val = document.getElementById('cType').value;
-       if(val !== 'custom') document.getElementById('cContract').value = val;
-    }
-
-    function calcLots() {
-       const bal = parseFloat(document.getElementById('cBal').value);
-       const r = parseFloat(document.getElementById('cRisk').value);
-       const ent = parseFloat(document.getElementById('cEnt').value);
-       const sl = parseFloat(document.getElementById('cSl').value);
-       const contractSize = parseFloat(document.getElementById('cContract').value);
-
-       if(bal && r && ent && sl && contractSize) {
-           const riskAmt = bal * (r / 100);
-           const dist = Math.abs(ent - sl);
-           // Generic Formula: Risk / (Distance * ContractSize)
-           // For Forex: dist is decimal (e.g. 0.0020), size 100000 -> 20 pips * 10 = 200 risk units.
-           // For Indices: dist is points (e.g. 50), size 1 -> 50 * 1 = 50 risk units.
-           const lot = riskAmt / (dist * contractSize);
-           document.getElementById('cRes').innerText = lot.toFixed(2) + " Lot";
-       } else {
-           document.getElementById('cRes').innerText = "0.00 Lot";
-       }
     }
 
     // --- JOURNAL MANAGEMENT ---
@@ -787,7 +838,6 @@
         const cap = parseFloat(document.getElementById('newJCap').value) || 0;
         const maxDD = document.getElementById('newJMaxDD').value;
         const ddType = document.getElementById('newJDDType').value;
-        
         if(!name) return alert("Name fehlt!");
 
         if(editingJournalId) {
@@ -948,6 +998,13 @@
         if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
     }
     
+    function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerText = lot.toFixed(2) + " Lot"; } }
+    
+    function updateContractSize() {
+       const val = document.getElementById('cType').value;
+       if(val !== 'custom') document.getElementById('cContract').value = val;
+    }
+
     async function admLoad() { 
         try { 
             const s = await db.collection('members').get(); 
