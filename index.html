@@ -34,7 +34,7 @@
         #view-title { font-weight: 700; font-size: 1.2rem; }
         .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
 
-        /* --- NAV DRAWER (Neu strukturiert) --- */
+        /* --- NAV DRAWER --- */
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto; }
         .nav-drawer.open { left: 0; }
         
@@ -44,7 +44,6 @@
         
         .nav-separator { height: 1px; background: var(--border); margin: 10px 20px; opacity: 0.5; }
         
-        /* Journal Selector im Menu */
         .nav-selector-container { padding: 10px 25px; }
         .nav-selector-label { font-size: 0.75rem; color: #888; margin-bottom: 5px; display: block; }
         #navJournalSelect { width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; }
@@ -53,14 +52,11 @@
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
         
-        /* Dashboard Top Grid */
         .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px; }
         @media (max-width: 768px) { .dash-grid { grid-template-columns: 1fr; } }
         
-        /* Open Trades List Small */
         .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         
-        /* Journal Overview Cards */
         .journal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .journal-card { background: var(--cell-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); text-align: center; cursor: pointer; transition: 0.2s; }
         .journal-card:hover { border-color: var(--accent); }
@@ -68,7 +64,7 @@
         .j-pnl { font-size: 1.2rem; font-weight: 800; }
         .j-win { font-size: 0.8rem; color: #888; }
 
-        /* --- CALENDAR & OTHERS --- */
+        /* --- CALENDAR --- */
         .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/1.1; position: relative; border: 1px solid transparent; cursor: pointer; }
@@ -83,7 +79,6 @@
         .day-view-container.open { display: block; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .dv-header { padding: 20px; display: flex; gap: 15px; background: var(--bg-dark); position: sticky; top:0; z-index:10; border-bottom: 1px solid var(--border); }
-        
         .dv-trade-item { background: var(--cell-bg); border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
@@ -92,6 +87,9 @@
         .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
         .chart-btn.active { background: var(--accent); color: black; }
         .icon-btn { background:none; border:none; color:#888; cursor:pointer; }
+        
+        /* Member List Styling */
+        #admList div { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -103,8 +101,6 @@
     </div>
 </div>
 
-<div id="img-preview" style="position:fixed;display:none;width:300px;height:180px;background-size:cover;border:2px solid var(--accent);z-index:999;background-color:#000;pointer-events:none;"></div>
-
 <header id="main-header" class="hidden">
     <div style="display:flex; align-items:center;">
         <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
@@ -115,31 +111,19 @@
 
 <nav class="nav-drawer" id="navDrawer">
     <button onclick="showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
-    
     <button onclick="prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
-    
     <div class="nav-separator"></div>
-    
     <div class="nav-selector-container">
         <label class="nav-selector-label">JOURNAL AUSWÄHLEN ⌄</label>
-        <select id="navJournalSelect" onchange="changeJournalFilter(this.value)">
-            </select>
+        <select id="navJournalSelect" onchange="changeJournalFilter(this.value)"></select>
     </div>
-
     <button onclick="showView('Kalender')" id="btn-Kalender">📅 Kalender</button>
-    
     <button onclick="showView('Historie')" id="btn-Historie">📜 Journal</button>
-    
     <div class="nav-separator"></div>
-    
     <button onclick="showView('Lot Rechner')" id="btn-Lot Rechner">📊 Lot Rechner</button>
     <button onclick="showView('News')" id="btn-News">📰 News</button>
-    
     <div class="nav-separator"></div>
-    
     <button onclick="showView('Einstellungen')" id="btn-Einstellungen">⚙️ Einstellungen</button>
-    <button id="admin-link" class="hidden" onclick="showView('Mitglieder')">👥 Mitglieder</button>
-    
     <button onclick="handleLogout()" style="color: var(--danger); margin-top:20px;">🚪 Logout</button>
 </nav>
 
@@ -147,7 +131,6 @@
     
     <section id="view-Übersicht" class="view-section active">
         <h2 style="margin-top:0;">Global Performance</h2>
-        
         <div class="dash-grid">
             <div class="card" style="height:300px; display:flex; flex-direction:column;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
@@ -156,18 +139,13 @@
                 </div>
                 <div style="flex:1; position:relative;"><canvas id="ovChart"></canvas></div>
             </div>
-
             <div class="card" style="height:300px; overflow-y:auto;">
                 <h4 style="margin-top:0; margin-bottom:10px; color:var(--accent);">Offene Trades</h4>
-                <div id="dash-open-list">
-                    <p style="color:#555; font-size:0.9rem;">Keine offenen Trades.</p>
-                </div>
+                <div id="dash-open-list"><p style="color:#555; font-size:0.9rem;">Keine offenen Trades.</p></div>
             </div>
         </div>
-
         <h3>Deine Journals</h3>
-        <div id="journal-cards-container" class="journal-grid">
-            </div>
+        <div id="journal-cards-container" class="journal-grid"></div>
     </section>
 
     <section id="view-Kalender" class="view-section">
@@ -210,28 +188,22 @@
         <div class="card">
             <h3 style="margin-top:0;">Neuer Trade</h3>
             <input type="hidden" id="editId">
-            
             <label>Journal Name</label>
             <input type="text" id="inpJournal" list="journalList" placeholder="z.B. Main, Challenge, Test">
             <datalist id="journalList"></datalist>
-
             <label>Status</label>
             <select id="status" onchange="toggleFormFields()">
                 <option value="Aktiv">Laufend (Offen)</option>
                 <option value="Geschlossen">Geschlossen</option>
             </select>
-
             <label>Asset</label><input type="text" id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
             <label>Datum</label><input type="datetime-local" id="datetime">
-            
             <label>Setup (Bild Link)</label><input type="url" id="imgSetup">
             <label>Notiz</label><textarea id="note" rows="2"></textarea>
-            
             <div id="closedFields" class="hidden">
                 <label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01">
                 <label>Result (Bild Link)</label><input type="url" id="imgResult">
             </div>
-
             <button onclick="saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
             <button onclick="showView('Übersicht')" style="width:100%; padding:15px; background:none; border:1px solid #333; color:#888; border-radius:8px; margin-top:10px; cursor:pointer;">Abbrechen</button>
         </div>
@@ -262,7 +234,7 @@
     
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
-            <h3>Einstellungen</h3>
+            <h3>Darstellung</h3>
             <button onclick="setTheme('dark')" class="chart-btn" style="width:48%">Dark</button>
             <button onclick="setTheme('light')" class="chart-btn" style="width:48%">Light</button>
             <br><br>
@@ -270,10 +242,16 @@
             <label>Max Tagesverlust</label><input type="number" id="settingMaxLoss">
             <button onclick="saveSettings()" class="btn-primary">Speichern</button>
         </div>
-    </section>
 
-    <section id="view-Mitglieder" class="view-section">
-        <div class="card"><h3>Mitglieder</h3><input id="admEmail"><button onclick="admAdd()" class="btn-primary">Add</button><div id="admList"></div></div>
+        <div id="admin-settings-box" class="card hidden">
+            <h3 style="color:var(--accent);">👥 Mitglieder & Berechtigungen</h3>
+            <p style="font-size:0.8rem; color:#888;">Nur für Administratoren sichtbar.</p>
+            <div style="display:flex; gap:10px;">
+                <input id="admEmail" placeholder="E-Mail Adresse" style="margin-bottom:0;">
+                <button onclick="admAdd()" class="btn-primary" style="width:80px; padding:0;">Add</button>
+            </div>
+            <div id="admList" style="margin-top:15px;"></div>
+        </div>
     </section>
 </div>
 
@@ -284,24 +262,22 @@
 
     let trades = [], ovChart = null, dayChart = null, calDate = new Date();
     let privacyMode = false;
-    let currentJournalFilter = 'All'; // 'All' oder Journal Name
+    let currentJournalFilter = 'All';
 
     if(localStorage.getItem('tradeTheme') === 'light') document.body.classList.add('light-mode');
 
-    // AUTH
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
-            // Simple Auth Check (erweitern wie im alten Code)
+            // Check Admin Status
             if(email === "leon.luca.lauterbach@gmail.com") {
-                document.getElementById('admin-link').classList.remove('hidden');
+                document.getElementById('admin-settings-box').classList.remove('hidden');
                 admLoad();
             }
             document.getElementById('auth-overlay').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             
-            // Settings laden
             if(localStorage.getItem('startCap')) document.getElementById('settingStartCap').value = localStorage.getItem('startCap');
             if(localStorage.getItem('maxLoss')) document.getElementById('settingMaxLoss').value = localStorage.getItem('maxLoss');
 
@@ -313,28 +289,19 @@
         if(!auth.currentUser) return;
         const snap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
         trades = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        
-        // Journals extrahieren und Dropdown füllen
         updateJournalSelect();
-        
-        // Initial Views rendern
         renderDashboard();
     }
 
-    // --- NAVIGATION LOGIC ---
     function showView(v) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active');
-        
         document.getElementById('view-title').innerText = v.toUpperCase();
         document.getElementById('navDrawer').classList.remove('open');
-        
-        // Active State in Sidebar
         document.querySelectorAll('.nav-drawer button').forEach(b => b.classList.remove('nav-active'));
         const btn = document.getElementById('btn-' + v);
         if(btn) btn.classList.add('nav-active');
 
-        // Render Logic basierend auf View
         if(v === 'Kalender') renderCalendar();
         if(v === 'Historie') renderHistory();
         if(v === 'Übersicht') renderDashboard();
@@ -348,59 +315,41 @@
 
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); }
 
-    // --- JOURNAL FILTER LOGIC ---
     function updateJournalSelect() {
-        // Sammle alle einzigartigen Journal Namen
-        const journals = new Set(['Main']); // Default
+        const journals = new Set(['Main']);
         trades.forEach(t => { if(t.journal) journals.add(t.journal); });
-        
         const sel = document.getElementById('navJournalSelect');
         const dl = document.getElementById('journalList');
         sel.innerHTML = '<option value="All">Alle Journals</option>';
         dl.innerHTML = '';
-
         journals.forEach(j => {
-            // Dropdown in Sidebar
             sel.innerHTML += `<option value="${j}">${j}</option>`;
-            // Datalist für New Trade
             dl.innerHTML += `<option value="${j}">`;
         });
-        
-        // Setze Auswahl zurück wenn nötig
         sel.value = currentJournalFilter;
     }
 
     function changeJournalFilter(val) {
         currentJournalFilter = val;
-        // Wenn wir gerade im Kalender oder History sind, refreshen
         const activeSection = document.querySelector('.view-section.active').id;
         if(activeSection === 'view-Kalender') renderCalendar();
         if(activeSection === 'view-Historie') renderHistory();
-        
-        // Hinweis im Kalender Header
-        document.getElementById('cal-filter-hint').innerText = val === 'All' ? 'Alle Journals' : `Journal: ${val}`;
+        const hint = document.getElementById('cal-filter-hint');
+        if(hint) hint.innerText = val === 'All' ? 'Alle Journals' : `Journal: ${val}`;
     }
 
-    // --- DASHBOARD LOGIC (GLOBAL) ---
     function renderDashboard() {
-        // 1. Graph (Global)
         const closed = trades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
         let sum = 0;
         const data = closed.map(t => { sum += t.pnl; return sum; });
         document.getElementById('dashTotalPnl').innerText = sum.toFixed(2) + " €";
-        
         const ctx = document.getElementById('ovChart').getContext('2d');
         if(ovChart) ovChart.destroy();
         ovChart = new Chart(ctx, {
             type: 'line',
-            data: { 
-                labels: closed.map(t => ''), 
-                datasets: [{ data: data, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0, tension: 0.3 }] 
-            },
+            data: { labels: closed.map(t => ''), datasets: [{ data: data, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
         });
-
-        // 2. Open Trades List (Rechts neben Graph)
         const open = trades.filter(t => t.status === 'Aktiv');
         const list = document.getElementById('dash-open-list');
         if(open.length === 0) list.innerHTML = '<p style="color:#666; font-style:italic;">Keine offenen Trades.</p>';
@@ -415,32 +364,25 @@
                 </div>
             `).join('');
         }
-
-        // 3. Journal Cards (Unten)
-        // Gruppiere Trades nach Journal
         const journalStats = {};
         trades.forEach(t => {
             const jName = t.journal || 'Main';
             if(!journalStats[jName]) journalStats[jName] = { pnl: 0, wins: 0, count: 0 };
-            
             if(t.status === 'Geschlossen') {
                 journalStats[jName].pnl += t.pnl;
                 journalStats[jName].count++;
                 if(t.pnl > 0) journalStats[jName].wins++;
             }
         });
-
         const cardContainer = document.getElementById('journal-cards-container');
         cardContainer.innerHTML = '';
         Object.keys(journalStats).forEach(jName => {
             const s = journalStats[jName];
             const wr = s.count > 0 ? (s.wins / s.count * 100).toFixed(0) : 0;
-            const pnlClass = s.pnl >= 0 ? 'text-green' : 'text-red';
-            
             cardContainer.innerHTML += `
                 <div class="journal-card" onclick="selectJournalFromCard('${jName}')">
                     <div class="j-name">${jName}</div>
-                    <div class="j-pnl sensitive ${pnlClass}">${s.pnl.toFixed(2)} €</div>
+                    <div class="j-pnl sensitive ${s.pnl>=0?'text-green':'text-red'}">${s.pnl.toFixed(2)} €</div>
                     <div class="j-win">Winrate: ${wr}%</div>
                 </div>
             `;
@@ -448,152 +390,81 @@
     }
 
     function selectJournalFromCard(jName) {
-        // Setze Dropdown
         document.getElementById('navJournalSelect').value = jName;
         changeJournalFilter(jName);
-        // Gehe zum Kalender
         showView('Kalender');
     }
 
-    // --- CALENDAR LOGIC (FILTERED) ---
     function renderCalendar() {
         const y = calDate.getFullYear(), m = calDate.getMonth();
         document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-        
         const grid = document.getElementById('cal-days-grid');
         grid.innerHTML = "";
-        
-        // Filter Trades based on currentJournalFilter
-        const filteredTrades = trades.filter(t => {
-            if(currentJournalFilter !== 'All' && (t.journal || 'Main') !== currentJournalFilter) return false;
-            return true;
-        });
-
-        const firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+        const filteredTrades = trades.filter(t => currentJournalFilter === 'All' || (t.journal || 'Main') === currentJournalFilter);
+        const firstDay = new Date(y, m, 1).getDay();
         const lastDay = new Date(y, m + 1, 0).getDate();
-        
         for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell" style="opacity:0; cursor:default;"></div>`;
-        
         for(let d=1; d<=lastDay; d++) {
             const dateStr = new Date(y, m, d).toDateString();
-            // Nur geschlossene für PnL im Kalender
             const dayTrades = filteredTrades.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
-            
             let sum = 0, count = dayTrades.length;
             dayTrades.forEach(t => sum += t.pnl);
-            
             let html = `<div class="cal-date">${d}</div>`;
             if(count > 0) {
-                const col = sum >= 0 ? 'text-green' : 'text-red';
-                html += `<div class="cal-pnl sensitive ${col}">${sum.toFixed(0)}</div>`;
+                html += `<div class="cal-pnl sensitive ${sum>=0?'text-green':'text-red'}">${sum.toFixed(0)}</div>`;
                 html += `<div class="cal-trades">${count} Trades</div>`;
             }
-            
-            // Onclick auch für Tage ohne Trades möglich machen, falls man nachtragen will? 
-            // Hier nur für Tage mit Trades oder immer öffnen? Im Bild 2 sieht es nach Trades aus.
-            const clickAttr = count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : '';
-            
-            grid.innerHTML += `<div class="cal-cell" ${clickAttr}>${html}</div>`;
+            grid.innerHTML += `<div class="cal-cell" ${count>0?`onclick="openDayDetail('${y}-${m+1}-${d}')"`:''}>${html}</div>`;
         }
     }
     
     function changeCalMonth(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
 
-    // --- DAY DETAIL POPUP ---
     function openDayDetail(dateStr) {
         const d = new Date(dateStr);
         document.getElementById('dv-date-title').innerText = d.toLocaleDateString();
-        
-        // Filter again
-        const dayTrades = trades.filter(t => {
-            if(currentJournalFilter !== 'All' && (t.journal || 'Main') !== currentJournalFilter) return false;
-            return t.status === 'Geschlossen' && new Date(t.date).toDateString() === d.toDateString();
-        }).sort((a,b)=> new Date(a.date)-new Date(b.date));
-
-        // Stats calc
+        const dayTrades = trades.filter(t => (currentJournalFilter === 'All' || (t.journal || 'Main') === currentJournalFilter) && t.status === 'Geschlossen' && new Date(t.date).toDateString() === d.toDateString());
         let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
         document.getElementById('dv-pnl').innerText = sum.toFixed(2) + ' €';
         document.getElementById('dv-winrate').innerText = dayTrades.length ? (dayTrades.filter(t=>t.pnl>0).length/dayTrades.length*100).toFixed(0)+'%' : '-';
-
-        // Chart Draw
         const ctx = document.getElementById('dayChart').getContext('2d');
         if(dayChart) dayChart.destroy();
         let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
         dayChart = new Chart(ctx, { type:'line', data:{labels:dayTrades.map(t=>''), datasets:[{data, borderColor:'#fff', tension:0.1}]}, options:{plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}}} });
-
-        // List
-        const list = document.getElementById('dv-list');
-        list.innerHTML = dayTrades.map(t => `
-            <div class="dv-trade-item">
-                <div><b style="color:var(--accent)">${t.asset}</b> <small>${t.date.split('T')[1]}</small></div>
-                <div class="sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div>
-            </div>
-        `).join('');
-
+        document.getElementById('dv-list').innerHTML = dayTrades.map(t => `<div class="dv-trade-item"><div><b style="color:var(--accent)">${t.asset}</b> <small>${t.date.split('T')[1]}</small></div><div class="sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div></div>`).join('');
         document.getElementById('day-detail-view').classList.add('open');
     }
     function closeDayDetail() { document.getElementById('day-detail-view').classList.remove('open'); }
 
-    // --- HISTORY LIST (FILTERED) ---
     function renderHistory() {
-        const filtered = trades.filter(t => {
-            if(currentJournalFilter !== 'All' && (t.journal || 'Main') !== currentJournalFilter) return false;
-            return true;
-        }).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        
+        const filtered = trades.filter(t => currentJournalFilter === 'All' || (t.journal || 'Main') === currentJournalFilter).sort((a,b)=>new Date(b.date)-new Date(a.date));
         document.getElementById('tradeBody').innerHTML = filtered.map(t => `
             <tr>
                 <td style="padding:10px;">${t.date.split('T')[0]}<br><small style="color:#666">${t.journal||'Main'}</small></td>
                 <td><b>${t.asset}</b></td>
-                <td class="sensitive" style="text-align:right; color:${t.status==='Aktiv'?'#fff':(t.pnl>=0?'var(--success)':'var(--danger)')}">
-                    ${t.status==='Aktiv'?'RUN':t.pnl.toFixed(2)}
-                </td>
-                <td style="text-align:right;">
-                    <button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button>
-                    <button class="icon-btn icon-trash" onclick="delTrade('${t.id}')">🗑️</button>
-                </td>
+                <td class="sensitive" style="text-align:right; color:${t.status==='Aktiv'?'#fff':(t.pnl>=0?'var(--success)':'var(--danger)')}">${t.status==='Aktiv'?'RUN':t.pnl.toFixed(2)}</td>
+                <td style="text-align:right;"><button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button><button class="icon-btn" onclick="delTrade('${t.id}')">🗑️</button></td>
             </tr>
         `).join('');
     }
 
-    // --- TRADE ACTIONS ---
     function prepareCreateView() {
         document.getElementById('editId').value = "";
         document.getElementById('datetime').value = new Date().toISOString().slice(0,16);
         document.getElementById('assetInput').value = "";
         document.getElementById('pnl').value = "";
         document.getElementById('note').value = "";
-        // Setze aktuelles Journal als Default
         document.getElementById('inpJournal').value = currentJournalFilter === 'All' ? 'Main' : currentJournalFilter;
-        
         toggleFormFields();
         showView('Trade-erstellen');
     }
 
     async function saveTrade() {
-        const id = document.getElementById('editId').value;
-        const asset = document.getElementById('assetInput').value.toUpperCase();
-        const journal = document.getElementById('inpJournal').value.trim() || 'Main'; // Journal speichern
-        
+        const id = document.getElementById('editId').value, asset = document.getElementById('assetInput').value.toUpperCase(), journal = document.getElementById('inpJournal').value.trim() || 'Main';
         if(!asset) return alert("Asset fehlt!");
-
-        const data = {
-            userId: auth.currentUser.uid,
-            date: document.getElementById('datetime').value,
-            asset: asset,
-            journal: journal, // WICHTIG
-            status: document.getElementById('status').value,
-            pnl: parseFloat(document.getElementById('pnl').value) || 0,
-            imgSetup: document.getElementById('imgSetup').value,
-            imgResult: document.getElementById('imgResult').value,
-            note: document.getElementById('note').value
-        };
-
-        if(id) await db.collection('trades').doc(id).update(data);
-        else await db.collection('trades').add(data);
-        
-        updateJournalSelect(); // Falls neues Journal erstellt wurde
-        loadTrades(); // Reload alles
+        const data = { userId: auth.currentUser.uid, date: document.getElementById('datetime').value, asset, journal, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value };
+        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data);
+        loadTrades();
         showView('Übersicht');
     }
 
@@ -608,34 +479,16 @@
         document.getElementById('imgSetup').value = t.imgSetup || '';
         document.getElementById('imgResult').value = t.imgResult || '';
         document.getElementById('note').value = t.note || '';
-        
         toggleFormFields();
         showView('Trade-erstellen');
     }
 
-    async function delTrade(id) {
-        if(confirm("Löschen?")) {
-            await db.collection('trades').doc(id).delete();
-            loadTrades();
-        }
-    }
-
-    function toggleFormFields() {
-        const s = document.getElementById('status').value;
-        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv');
-    }
-
-    // --- UTILS ---
-    function togglePrivacy() {
-        privacyMode = !privacyMode;
-        document.documentElement.style.setProperty('--blur', privacyMode ? '5px' : '0px');
-    }
+    async function delTrade(id) { if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); loadTrades(); } }
+    function toggleFormFields() { const s = document.getElementById('status').value; document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); }
+    function togglePrivacy() { privacyMode = !privacyMode; document.documentElement.style.setProperty('--blur', privacyMode ? '5px' : '0px'); }
     function handleLogout() { auth.signOut().then(()=>location.reload()); }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function setTheme(m) { 
-        if(m==='light') document.body.classList.add('light-mode'); else document.body.classList.remove('light-mode');
-        localStorage.setItem('tradeTheme', m);
-    }
+    function setTheme(m) { if(m==='light') document.body.classList.add('light-mode'); else document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', m); }
     function saveSettings() {
         localStorage.setItem('startCap', document.getElementById('settingStartCap').value);
         localStorage.setItem('maxLoss', document.getElementById('settingMaxLoss').value);
@@ -645,20 +498,30 @@
         const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value);
         if(bal && r && ent && sl) {
             const riskAmt = bal * (r/100);
-            const dist = Math.abs(ent-sl);
-            // Simple Forex calc (Standard Lot 100k)
-            const lot = riskAmt / (dist * 100000); 
+            const lot = riskAmt / (Math.abs(ent-sl) * 100000); 
             document.getElementById('cRes').innerText = lot.toFixed(2) + " Lot";
         }
     }
     
-    // Admin Stub
+    // --- ADMIN FUNCTIONS (MEMBER MANAGEMENT) ---
     async function admLoad() {
         const s = await db.collection('members').get();
-        document.getElementById('admList').innerHTML = s.docs.map(d => `<div>${d.data().email} <span onclick="admDel('${d.id}')" style="cursor:pointer;color:red;">X</span></div>`).join('');
+        document.getElementById('admList').innerHTML = s.docs.map(d => `
+            <div>
+                <span>${d.data().email}</span>
+                <span onclick="admDel('${d.id}')" style="cursor:pointer;color:var(--danger);font-weight:bold;">Entfernen</span>
+            </div>
+        `).join('');
     }
-    async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase(); if(e) await db.collection('members').add({email:e}); admLoad(); }
-    async function admDel(id) { await db.collection('members').doc(id).delete(); admLoad(); }
+    async function admAdd() { 
+        const e=document.getElementById('admEmail').value.toLowerCase().trim(); 
+        if(e) {
+            await db.collection('members').add({email:e, role:'member'}); 
+            document.getElementById('admEmail').value = "";
+            admLoad(); 
+        }
+    }
+    async function admDel(id) { if(confirm("Mitglied wirklich entfernen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
 
 </script>
 </body>
