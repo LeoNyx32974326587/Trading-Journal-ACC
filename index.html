@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Independent Journals</title>
+    <title>TradeCloud Pro - Full Edit</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -45,16 +45,14 @@
         .nav-active { border-left: 3px solid var(--accent); background: rgba(187, 134, 252, 0.1) !important; }
         .nav-separator { height: 1px; background: var(--border); margin: 10px 20px; opacity: 0.5; }
 
-        /* SIDEBAR SELECTOR */
         .nav-selector-container { padding: 10px 25px; }
         .nav-selector-label { font-size: 0.75rem; color: #888; margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
         #navJournalSelect { width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; }
 
-        /* --- DASHBOARD LAYOUT (STACKED CARDS) --- */
+        /* --- DASHBOARD --- */
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
         
-        /* Independent Journal Card Style */
         .journal-full-card {
             background: var(--card-bg); border: 1px solid var(--border);
             border-radius: 12px; margin-bottom: 30px; overflow: hidden;
@@ -120,7 +118,7 @@
         /* --- UTILS --- */
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
         .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; }
-        .btn-small { padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; }
+        .btn-small { padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; margin-left: 5px; }
         .chart-btn { background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
         .chart-btn.active { background: var(--accent); color: black; }
         .icon-btn { background:none; border:none; color:#888; cursor:pointer; }
@@ -169,12 +167,10 @@
     <button onclick="showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
     <button onclick="prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
     <div class="nav-separator"></div>
-    
     <div class="nav-selector-container">
         <label class="nav-selector-label">AKTUELLES JOURNAL ⌄</label>
         <select id="navJournalSelect" onchange="changeActiveJournal(this.value)"></select>
     </div>
-    
     <div class="nav-separator"></div>
     <button onclick="showView('Kalender')" id="btn-Kalender">📅 Kalender</button>
     <button onclick="showView('Historie')" id="btn-Historie">📜 Journal</button>
@@ -189,6 +185,7 @@
 <div id="app-content" class="container hidden">
     
     <section id="view-Übersicht" class="view-section active">
+        <h2 style="margin-top:0; margin-bottom:20px;">Hallo <span id="user-greeting-name" style="color:var(--accent);">Trader</span> 👋</h2>
         <div id="dashboard-journals-list"></div>
     </section>
 
@@ -218,7 +215,6 @@
             <input type="hidden" id="editId">
             <label>Journal</label>
             <select id="inpJournalSelect"></select>
-            
             <label>Status</label><select id="status" onchange="toggleFormFields()"><option value="Aktiv">Laufend (Offen)</option><option value="Geschlossen">Geschlossen</option></select>
             <label>Asset</label><input type="text" id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
             <label>Datum</label><input type="datetime-local" id="datetime">
@@ -263,10 +259,13 @@
             
             <h3 style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">📚 Journal Verwaltung</h3>
             <div style="background:var(--cell-bg); padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px;">
-                <h4 style="margin-top:0;">Neues Journal</h4>
+                <h4 style="margin-top:0;" id="journal-form-title">Neues Journal</h4>
                 <input id="newJName" placeholder="Name (z.B. Forex Challenge)">
                 <input id="newJCap" type="number" placeholder="Startkapital (€)">
-                <button onclick="createJournal()" class="btn-primary" style="padding:10px;">Erstellen</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-save-journal" onclick="saveJournalInput()" class="btn-primary" style="padding:10px; flex:1;">Erstellen</button>
+                    <button id="btn-cancel-journal" onclick="cancelEdit()" class="btn-small hidden" style="flex:1; border-color:var(--border);">Abbrechen</button>
+                </div>
             </div>
             
             <h4 style="margin-bottom:10px;">Existierende Journals</h4>
@@ -299,12 +298,17 @@
     let dayChart = null;
     let calDate = new Date();
     let privacyMode = false;
-    let activeJournal = null; // Currently selected journal for Calendar/History
+    let activeJournal = null; 
+    let editingJournalId = null; // Track which journal is being edited
 
     if(localStorage.getItem('tradeTheme') === 'light') document.body.classList.add('light-mode');
 
     auth.onAuthStateChanged(async (user) => {
         if(user) {
+            let name = user.displayName;
+            if(!name) { const part = user.email.split('@')[0]; name = part.charAt(0).toUpperCase() + part.slice(1); }
+            document.getElementById('user-greeting-name').innerText = name;
+
             const email = user.email.toLowerCase().trim();
             if(email === "leon.luca.lauterbach@gmail.com") {
                 const admPanel = document.getElementById('admin-panel');
@@ -321,45 +325,35 @@
     async function loadData() {
         if(!auth.currentUser) return;
         
-        // 1. Load Journals
         const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
         journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
         
-        // If no journals exist, create a default one
         if(journals.length === 0) {
-            await db.collection('journals').add({userId: auth.currentUser.uid, name: 'Main', startCap: 0});
+            await db.collection('journals').add({userId: auth.currentUser.uid, name: 'Main', startCap: 0, hidden: false});
             const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
             journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
         }
 
-        // Set default active journal if none
         if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
 
-        // 2. Load Trades
         const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
         trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
 
-        // 3. MIGRATION: Assign orphaned trades to first journal
+        // Migration logic
         if(journals.length > 0) {
             const targetJ = journals[0].name;
             const batch = db.batch();
             let migrationCount = 0;
-            
             trades.forEach(t => {
                 const isValid = journals.some(j => j.name === (t.journal || ''));
                 if(!isValid) {
-                    // Trade has no journal or invalid journal -> Move to first
                     const ref = db.collection('trades').doc(t.id);
                     batch.update(ref, { journal: targetJ });
-                    t.journal = targetJ; // Update local data
+                    t.journal = targetJ;
                     migrationCount++;
                 }
             });
-
-            if(migrationCount > 0) {
-                console.log(`Migrating ${migrationCount} trades to ${targetJ}`);
-                await batch.commit();
-            }
+            if(migrationCount > 0) await batch.commit();
         }
 
         populateSelectors();
@@ -367,12 +361,10 @@
     }
 
     function populateSelectors() {
-        // Sidebar Filter (NO 'ALL' Option)
         const navSel = document.getElementById('navJournalSelect');
         navSel.innerHTML = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
         if(activeJournal) navSel.value = activeJournal;
 
-        // Selector for Creating Trade
         const createSel = document.getElementById('inpJournalSelect');
         createSel.innerHTML = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
         if(activeJournal) createSel.value = activeJournal;
@@ -386,15 +378,15 @@
         document.getElementById('navDrawer').classList.remove('open');
     }
 
-    // --- DASHBOARD LOGIC (ALWAYS SHOWS ALL STACKED) ---
+    // --- DASHBOARD ---
     function renderDashboard() {
         const container = document.getElementById('dashboard-journals-list');
         container.innerHTML = '';
-        
         Object.values(chartInstances).forEach(c => c.destroy());
         chartInstances = {};
 
         journals.forEach(journal => {
+            if(journal.hidden) return;
             const jTrades = trades.filter(t => (t.journal || 'Main') === journal.name);
             const closed = jTrades.filter(t => t.status === 'Geschlossen').sort((a,b) => new Date(a.date) - new Date(b.date));
             const open = jTrades.filter(t => t.status === 'Aktiv');
@@ -403,30 +395,18 @@
             let currentEquity = startCap;
             let totalPnL = 0;
             let wins = 0;
-            
             const equityCurve = [startCap];
-            closed.forEach(t => {
-                totalPnL += t.pnl;
-                currentEquity += t.pnl;
-                equityCurve.push(currentEquity);
-                if(t.pnl > 0) wins++;
-            });
-            
+            closed.forEach(t => { totalPnL += t.pnl; currentEquity += t.pnl; equityCurve.push(currentEquity); if(t.pnl > 0) wins++; });
             const winrate = closed.length > 0 ? ((wins / closed.length) * 100).toFixed(0) : 0;
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
-
             const canvasId = `chart-${journal.id}`;
+            
             let openTradesHtml = '<p style="color:#666; font-style:italic; font-size:0.8rem;">Keine offenen Trades.</p>';
             if(open.length > 0) {
-                openTradesHtml = open.map(t => `
-                    <div class="ot-list-item">
-                        <span style="font-weight:bold; color:var(--accent);">${t.asset}</span>
-                        <button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button>
-                    </div>
-                `).join('');
+                openTradesHtml = open.map(t => `<div class="ot-list-item"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div>`).join('');
             }
 
-            const html = `
+            container.innerHTML += `
                 <div class="journal-full-card">
                     <div class="jfc-header">
                         <div class="jfc-title">${journal.name}</div>
@@ -437,63 +417,35 @@
                             <div class="jfc-stat"><small>Winrate</small><span>${winrate}%</span></div>
                         </div>
                     </div>
-                    <div class="jfc-content">
-                        <div class="jfc-grid">
-                            <div style="height:250px;"><canvas id="${canvasId}"></canvas></div>
-                            <div>
-                                <h4 style="margin-top:0; font-size:0.9rem; color:#888;">OPEN TRADES</h4>
-                                ${openTradesHtml}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.innerHTML += html;
+                    <div class="jfc-content"><div class="jfc-grid"><div style="height:250px;"><canvas id="${canvasId}"></canvas></div><div><h4 style="margin-top:0; font-size:0.9rem; color:#888;">OPEN TRADES</h4>${openTradesHtml}</div></div></div>
+                </div>`;
 
             setTimeout(() => {
                 const ctx = document.getElementById(canvasId).getContext('2d');
                 chartInstances[canvasId] = new Chart(ctx, {
                     type: 'line',
-                    data: {
-                        labels: equityCurve.map(x => ''),
-                        datasets: [{
-                            data: equityCurve,
-                            borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true,
-                            backgroundColor: 'rgba(187, 134, 252, 0.05)'
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { x: { display: false }, y: { grid: { color: '#222' } } }
-                    }
+                    data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(187, 134, 252, 0.05)' }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
                 });
             }, 50);
         });
     }
 
-    // --- CALENDAR (DEPENDS ON ACTIVE JOURNAL) ---
+    // --- CALENDAR ---
     function changeCalMonth(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
-    
     function renderCalendar() {
         if(!activeJournal) return;
         document.getElementById('cal-filter-hint').innerText = `Journal: ${activeJournal}`;
-
         const y = calDate.getFullYear(), m = calDate.getMonth();
         document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
         const grid = document.getElementById('cal-days-grid'); grid.innerHTML = "";
-        
         const filtered = trades.filter(t => (t.journal || 'Main') === activeJournal);
-
-        const firstDay = new Date(y, m, 1).getDay();
-        const lastDay = new Date(y, m + 1, 0).getDate();
-        
+        const firstDay = new Date(y, m, 1).getDay(), lastDay = new Date(y, m + 1, 0).getDate();
         for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell" style="opacity:0; cursor:default;"></div>`;
         for(let d=1; d<=lastDay; d++) {
             const dateStr = new Date(y, m, d).toDateString();
             const dayTrades = filtered.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
             let sum = 0, count = dayTrades.length; dayTrades.forEach(t => sum += t.pnl);
-            
             let html = `<div class="cal-date">${d}</div>`;
             if(count > 0) {
                 const col = sum >= 0 ? 'text-green' : 'text-red';
@@ -502,75 +454,95 @@
             grid.innerHTML += `<div class="cal-cell" ${count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
         }
     }
-    
     function openDayDetail(dateStr) {
         const d = new Date(dateStr);
         document.getElementById('dv-date-title').innerText = d.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-        
         const dayTrades = trades.filter(t => {
             if((t.journal || 'Main') !== activeJournal) return false;
             return t.status === 'Geschlossen' && new Date(t.date).toDateString() === d.toDateString();
         }).sort((a,b)=> new Date(a.date)-new Date(b.date));
-
         let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
         const wins = dayTrades.filter(t=>t.pnl>0).length;
         const grossLoss = Math.abs(dayTrades.filter(t=>t.pnl<0).reduce((a,b)=>a+b.pnl,0));
         const pf = grossLoss===0 ? (wins>0?99:0) : (dayTrades.filter(t=>t.pnl>0).reduce((a,b)=>a+b.pnl,0)/grossLoss);
-
         document.getElementById('dv-pnl').innerText = (sum<0?'-':'+') + '€' + Math.abs(sum).toFixed(2);
         document.getElementById('dv-pnl').className = `dv-stat-value sensitive ${sum>=0?'text-green':'text-red'}`;
         document.getElementById('dv-winrate').innerText = dayTrades.length ? ((wins/dayTrades.length)*100).toFixed(0)+'%' : '0%';
         document.getElementById('dv-pf').innerText = pf.toFixed(2);
         document.getElementById('dv-count').innerText = dayTrades.length;
-
-        const ctx = document.getElementById('dayChart').getContext('2d');
-        if(dayChart) dayChart.destroy();
+        const ctx = document.getElementById('dayChart').getContext('2d'); if(dayChart) dayChart.destroy();
         let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
-        dayChart = new Chart(ctx, {
-            type:'line',
-            data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff3d00', borderWidth: 2, fill: true, tension: 0.1, pointRadius: 0 }] },
-            options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
-        });
-
-        document.getElementById('dv-list').innerHTML = dayTrades.map(t => `
-            <div class="dv-trade-item">
-                <div class="dv-trade-left">
-                    <div class="dv-trade-icon ${t.pnl>=0?'text-green':'text-red'}">${t.pnl>=0?'↗':'↘'}</div>
-                    <div class="dv-trade-info"><span class="dv-trade-time">${t.date.split('T')[1].slice(0,5)}</span><span class="dv-trade-asset">${t.asset}</span></div>
-                </div>
-                <div style="display:flex; align-items:center;"><div class="dv-trade-pnl sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div></div>
-            </div>`).join('');
+        dayChart = new Chart(ctx, { type:'line', data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff3d00', borderWidth: 2, fill: true, tension: 0.1, pointRadius: 0 }] }, options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} } });
+        document.getElementById('dv-list').innerHTML = dayTrades.map(t => `<div class="dv-trade-item"><div class="dv-trade-left"><div class="dv-trade-icon ${t.pnl>=0?'text-green':'text-red'}">${t.pnl>=0?'↗':'↘'}</div><div class="dv-trade-info"><span class="dv-trade-time">${t.date.split('T')[1].slice(0,5)}</span><span class="dv-trade-asset">${t.asset}</span></div></div><div style="display:flex; align-items:center;"><div class="dv-trade-pnl sensitive ${t.pnl>=0?'text-green':'text-red'}">${t.pnl.toFixed(2)}</div></div></div>`).join('');
         document.getElementById('popup-overlay').classList.add('open');
     }
     function closeDayDetail() { document.getElementById('popup-overlay').classList.remove('open'); }
 
-    // --- HISTORIE (DEPENDS ON ACTIVE JOURNAL) ---
+    // --- HISTORIE ---
     function renderHistory() {
         if(!activeJournal) return;
         document.getElementById('hist-title').innerText = `Trade Historie (${activeJournal})`;
         const filtered = trades.filter(t => (t.journal||'Main') === activeJournal).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        
-        document.getElementById('tradeBody').innerHTML = filtered.map(t => `
-            <tr>
-                <td style="padding:10px;">${t.date.split('T')[0]}<br><small style="color:#666">${t.journal||'Main'}</small></td>
-                <td><b>${t.asset}</b></td>
-                <td class="sensitive" style="text-align:right; color:${t.status==='Aktiv'?'#fff':(t.pnl>=0?'var(--success)':'var(--danger)')}">${t.status==='Aktiv'?'RUN':t.pnl.toFixed(2)}</td>
-                <td style="text-align:right;"><button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button><button class="icon-btn" onclick="delTrade('${t.id}')">🗑️</button></td>
-            </tr>
-        `).join('');
+        document.getElementById('tradeBody').innerHTML = filtered.map(t => `<tr><td style="padding:10px;">${t.date.split('T')[0]}<br><small style="color:#666">${t.journal||'Main'}</small></td><td><b>${t.asset}</b></td><td class="sensitive" style="text-align:right; color:${t.status==='Aktiv'?'#fff':(t.pnl>=0?'var(--success)':'var(--danger)')}">${t.status==='Aktiv'?'RUN':t.pnl.toFixed(2)}</td><td style="text-align:right;"><button class="icon-btn" onclick="editTrade('${t.id}')">✏️</button><button class="icon-btn" onclick="delTrade('${t.id}')">🗑️</button></td></tr>`).join('');
     }
 
-    // --- JOURNAL MANAGEMENT ---
-    async function createJournal() {
+    // --- JOURNAL MANAGEMENT (EDIT & CREATE) ---
+    async function saveJournalInput() {
         const name = document.getElementById('newJName').value.trim();
         const cap = parseFloat(document.getElementById('newJCap').value) || 0;
-        if(!name) return alert("Bitte Name eingeben");
-        await db.collection('journals').add({ userId: auth.currentUser.uid, name: name, startCap: cap });
-        document.getElementById('newJName').value = ''; document.getElementById('newJCap').value = '';
-        await loadData(); renderSettingsList(); alert("Journal erstellt!");
+        if(!name) return alert("Name fehlt!");
+
+        if(editingJournalId) {
+            // EDIT MODE
+            const oldJ = journals.find(j => j.id === editingJournalId);
+            const oldName = oldJ.name;
+            
+            await db.collection('journals').doc(editingJournalId).update({ name: name, startCap: cap });
+
+            if(name !== oldName) {
+                const batch = db.batch();
+                const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', oldName).get();
+                tQuery.docs.forEach(doc => batch.update(doc.ref, { journal: name }));
+                await batch.commit();
+                if(activeJournal === oldName) activeJournal = name;
+            }
+            
+            cancelEdit(); // Reset form
+        } else {
+            // CREATE MODE
+            await db.collection('journals').add({ userId: auth.currentUser.uid, name: name, startCap: cap, hidden: false });
+            document.getElementById('newJName').value = ''; document.getElementById('newJCap').value = '';
+        }
+        await loadData(); renderSettingsList();
     }
+
+    function prepareEditJournal(id) {
+        const j = journals.find(x => x.id === id);
+        if(!j) return;
+        document.getElementById('journal-form-title').innerText = "Journal Bearbeiten";
+        document.getElementById('newJName').value = j.name;
+        document.getElementById('newJCap').value = j.startCap;
+        document.getElementById('btn-save-journal').innerText = "Speichern";
+        document.getElementById('btn-cancel-journal').classList.remove('hidden');
+        editingJournalId = id;
+    }
+
+    function cancelEdit() {
+        document.getElementById('journal-form-title').innerText = "Neues Journal";
+        document.getElementById('newJName').value = '';
+        document.getElementById('newJCap').value = '';
+        document.getElementById('btn-save-journal').innerText = "Erstellen";
+        document.getElementById('btn-cancel-journal').classList.add('hidden');
+        editingJournalId = null;
+    }
+
+    async function toggleJournalVisibility(id, currentHidden) {
+        await db.collection('journals').doc(id).update({ hidden: !currentHidden });
+        await loadData(); renderSettingsList();
+    }
+    
     async function deleteJournal(id, name) {
-        if(!confirm(`Warnung: Journal '${name}' und ALLE zugehörigen Trades werden gelöscht. Fortfahren?`)) return;
+        if(!confirm(`Warnung: Journal '${name}' und ALLE Trades löschen?`)) return;
         await db.collection('journals').doc(id).delete();
         const batch = db.batch();
         const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', name).get();
@@ -579,23 +551,22 @@
         if(activeJournal === name) activeJournal = null;
         await loadData(); renderSettingsList();
     }
-    async function renameJournal(id, oldName) {
-        const newName = prompt("Neuer Name:", oldName);
-        if(!newName || newName === oldName) return;
-        await db.collection('journals').doc(id).update({ name: newName });
-        const batch = db.batch();
-        const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', oldName).get();
-        tQuery.docs.forEach(doc => batch.update(doc.ref, { journal: newName }));
-        await batch.commit();
-        if(activeJournal === oldName) activeJournal = newName;
-        await loadData(); renderSettingsList();
-    }
+
     function renderSettingsList() {
-        document.getElementById('settings-journal-list').innerHTML = journals.map(j => `
-            <div class="settings-list-item">
+        document.getElementById('settings-journal-list').innerHTML = journals.map(j => {
+            const isHidden = j.hidden === true;
+            const opacity = isHidden ? '0.5' : '1';
+            const eye = isHidden ? '🙈' : '👁️';
+            return `
+            <div class="settings-list-item" style="opacity:${opacity}">
                 <div><strong>${j.name}</strong><br><small style="color:#888">Start: ${j.startCap}€</small></div>
-                <div><button class="btn-small" onclick="renameJournal('${j.id}', '${j.name}')">✎</button><button class="btn-small" style="color:var(--danger); border-color:var(--danger);" onclick="deleteJournal('${j.id}', '${j.name}')">🗑</button></div>
-            </div>`).join('');
+                <div>
+                    <button class="btn-small" onclick="toggleJournalVisibility('${j.id}', ${isHidden})">${eye}</button>
+                    <button class="btn-small" onclick="prepareEditJournal('${j.id}')">✎</button>
+                    <button class="btn-small" style="color:var(--danger); border-color:var(--danger);" onclick="deleteJournal('${j.id}', '${j.name}')">🗑</button>
+                </div>
+            </div>`;
+        }).join('');
     }
 
     // --- SHARED VIEW LOGIC ---
