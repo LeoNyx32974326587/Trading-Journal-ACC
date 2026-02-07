@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Signal Copy</title>
+    <title>TradeCloud Pro - Final Chat</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -92,7 +92,7 @@
         }
         .chat-trade-card:active { transform: scale(0.98); border-color: var(--accent); }
         .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; /* Let parent handle click */ }
+        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
         .ct-footer { margin-top: 8px; font-size: 0.75rem; color:#888; display: flex; justify-content: space-between; }
         
         .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.85rem; margin-top: 8px; pointer-events: none; }
@@ -196,7 +196,8 @@
         .signal-input-grid input { margin-bottom: 0; padding: 8px; font-size: 0.9rem; }
 
         /* Signal Detail Styles */
-        .sd-image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px; }
+        .sd-image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: transform 0.2s; }
+        .sd-image:hover { opacity: 0.9; }
         .sd-row { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 12px; background: var(--cell-bg); border-radius: 8px; border: 1px solid var(--border);
@@ -537,11 +538,6 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             
-            // NOTIFICATION PERMISSION
-            if("Notification" in window) {
-                Notification.requestPermission();
-            }
-            
             await loadData();
             loadChat(); 
         }
@@ -651,7 +647,7 @@
             if(open.length > 0) {
                 openTradesHtml = open.map(t => {
                     const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="dash-thumb" title="Setup" style="margin-right:0;"></a>` : '';
-                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div></div>`;
+                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div>`;
                 }).join('');
             }
 
@@ -716,15 +712,7 @@
     function loadChat() {
         db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
             if(!snapshot.empty && !document.hidden && document.getElementById('view-Chat').classList.contains('active') === false) {
-               const changes = snapshot.docChanges();
-               changes.forEach(change => {
-                   if (change.type === "added" && !change.doc.metadata.hasPendingWrites) {
-                       new Notification("Neue Chat Nachricht", { body: "Jemand hat in TradeCloud Pro geschrieben!" });
-                       const audio = new Audio('https://freesound.org/data/previews/234/234524_4019029-lq.mp3');
-                       audio.play().catch(e=>{});
-                       document.title = "(1) TradeCloud Pro";
-                   }
-               });
+               // Removed notification logic as requested
             }
             window.onfocus = () => { document.title = "TradeCloud Pro"; };
 
@@ -906,6 +894,7 @@
         if(imgUrl && imgUrl !== 'undefined') {
             imgEl.src = imgUrl;
             imgEl.classList.remove('hidden');
+            imgEl.onclick = () => window.open(imgUrl, '_blank');
         } else {
             imgEl.classList.add('hidden');
         }
