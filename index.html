@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Custom Dates</title>
+    <title>TradeCloud Pro - Lot Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -107,7 +107,7 @@
         #day-detail-view .trade-row, #day-detail-view .trade-row-header { border-bottom-color: #2c2c2e; }
         #day-detail-view .tr-date, #day-detail-view .tr-sym, #day-detail-view .dv-stat-val, #day-detail-view .popup-title, #day-detail-view #dv-date-title { color: #ffffff; }
 
-        /* --- POPUP CONTENT --- */
+        /* Other Popup Content */
         .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .dv-stat-item { display: flex; flex-direction: column; }
@@ -652,11 +652,9 @@
             let tradesInPeriod = [];
             
             if (startDate) {
-                // Trades before period
                 const tradesBefore = closedAll.filter(t => new Date(t.date) < startDate);
                 baseBalance += tradesBefore.reduce((acc, t) => acc + t.pnl, 0);
                 
-                // Trades in period
                 tradesInPeriod = closedAll.filter(t => {
                     const d = new Date(t.date);
                     if(endDate) return d >= startDate && d <= endDate;
@@ -699,7 +697,6 @@
                 }).join('');
             }
 
-            // FILTER BUTTONS
             const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
             const filterHtml = filters.map(f => {
                 const activeClass = (timeframe === f) ? 'active' : '';
@@ -711,6 +708,7 @@
                     <div class="jfc-header">
                         <div class="jfc-title">${journal.name}</div>
                     </div>
+                    
                     <div class="card-filters">
                         ${filterHtml}
                     </div>
@@ -777,13 +775,13 @@
         
         const ctxA = document.getElementById('assetChart').getContext('2d');
         if(assetChartInstance) assetChartInstance.destroy();
-        assetChartInstance = new Chart(ctxA, { type: 'bar', data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#30d158' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+        assetChartInstance = new Chart(ctxA, { type: 'bar', data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
         const ctxW = document.getElementById('weekdayChart').getContext('2d');
         if(weekdayChartInstance) weekdayChartInstance.destroy();
-        weekdayChartInstance = new Chart(ctxW, { type: 'bar', data: { labels: dayLabels, datasets: [{ label: 'PnL', data: [0,1,2,3,4,5,6].map(d => daysMap[d]), backgroundColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? '#30d158' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+        weekdayChartInstance = new Chart(ctxW, { type: 'bar', data: { labels: dayLabels, datasets: [{ label: 'PnL', data: [0,1,2,3,4,5,6].map(d => daysMap[d]), backgroundColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
         const ctxH = document.getElementById('hourChart').getContext('2d');
         if(hourChartInstance) hourChartInstance.destroy();
-        hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#30d158' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+        hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
     }
 
     // --- CHAT LOGIC ---
