@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Admin Modal</title>
+    <title>TradeCloud Pro - Signals</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -77,7 +77,7 @@
         .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .msg-wrapper { max-width: 80%; display: flex; flex-direction: column; position: relative; }
+        .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
         .msg-sender { font-size: 0.7rem; color: #888; margin-bottom: 4px; margin-left: 4px; }
@@ -86,10 +86,18 @@
         .msg-wrapper.other .msg-bubble { background: var(--chat-other); color: var(--text-main); border-bottom-left-radius: 2px; }
         .msg-time { font-size: 0.65rem; color: #666; margin-top: 4px; text-align: right; display: block; }
         
-        .chat-trade-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 10px; width: 220px; margin-top: 5px; }
+        /* Chat Card & Signal Styles */
+        .chat-trade-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 12px; width: 240px; margin-top: 5px; }
         .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .ct-img { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-top: 5px; cursor: pointer; }
-        .ct-footer { margin-top: 8px; font-size: 0.8rem; display: flex; justify-content: space-between; }
+        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; cursor: pointer; }
+        .ct-footer { margin-top: 8px; font-size: 0.75rem; color:#888; display: flex; justify-content: space-between; }
+        
+        .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.85rem; margin-top: 8px; }
+        .signal-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sig-label { color: #888; font-size: 0.75rem; }
+        .sig-val { font-weight: bold; }
+        .text-tp { color: var(--success); }
+        .text-sl { color: var(--danger); }
 
         .chat-del-btn {
             position: absolute; top: 0; 
@@ -168,7 +176,7 @@
         #share-modal, #delete-modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: var(--popup-bg); border: 1px solid var(--border); border-radius: 12px;
-            padding: 20px; width: 300px; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            padding: 20px; width: 320px; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             display: none; flex-direction: column; gap: 15px;
         }
         #share-modal.open, #delete-modal.open { display: flex; }
@@ -180,6 +188,9 @@
         .share-opt:hover { background: rgba(255,255,255,0.05); }
         .share-opt.selected { border-color: var(--accent); background: rgba(187, 134, 252, 0.1); }
         .share-opt.disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .signal-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .signal-input-grid input { margin-bottom: 0; padding: 8px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -224,8 +235,18 @@
 <div id="share-modal">
     <h3 style="margin:0; text-align:center;">Trade Teilen</h3>
     <p style="font-size:0.8rem; color:#888; text-align:center; margin:0;">Wähle, was du teilen möchtest</p>
+    
     <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
     <div id="opt-result" class="share-opt" onclick="selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
+    
+    <div id="signal-inputs" class="signal-input-grid hidden">
+        <input type="number" id="sig-entry" placeholder="Entry">
+        <input type="number" id="sig-sl" placeholder="SL (Stop Loss)">
+        <input type="number" id="sig-tp1" placeholder="TP 1">
+        <input type="number" id="sig-tp2" placeholder="TP 2">
+        <input type="number" id="sig-tp3" placeholder="TP 3" style="grid-column:span 2;">
+    </div>
+
     <button onclick="confirmShare()" class="btn-primary" style="margin-top:10px;">Senden</button>
     <button onclick="closeShareModal()" class="btn-small" style="background:none; border:none;">Abbrechen</button>
 </div>
@@ -666,7 +687,7 @@
 
     // --- CHAT LOGIC ---
     function loadChat() {
-        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
+        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
             if(!snapshot.empty && !document.hidden && document.getElementById('view-Chat').classList.contains('active') === false) {
                const changes = snapshot.docChanges();
                changes.forEach(change => {
@@ -699,20 +720,32 @@
 
         if (msg.type === 'trade' && msg.tradeData) {
             const t = msg.tradeData;
-            // Get correct image
             const imgUrl = msg.sharedImage || t.imgSetup;
             const statusLabel = t.status === 'Aktiv' ? 'OPEN' : 'CLOSED';
             const color = t.status === 'Aktiv' ? '#00bcd4' : '#888';
             const thumb = imgUrl ? `<img src="${imgUrl}" class="ct-img" onclick="window.open('${imgUrl}')">` : '';
             
+            // Build signal details
+            let sigHtml = '';
+            if(t.entry || t.sl || t.tp1) {
+                sigHtml = `<div class="signal-grid">`;
+                if(t.entry) sigHtml += `<div class="signal-row"><span class="sig-label">Entry</span><span class="sig-val">${t.entry}</span></div>`;
+                if(t.sl) sigHtml += `<div class="signal-row"><span class="sig-label">SL</span><span class="sig-val text-sl">${t.sl}</span></div>`;
+                if(t.tp1) sigHtml += `<div class="signal-row"><span class="sig-label">TP 1</span><span class="sig-val text-tp">${t.tp1}</span></div>`;
+                if(t.tp2) sigHtml += `<div class="signal-row"><span class="sig-label">TP 2</span><span class="sig-val text-tp">${t.tp2}</span></div>`;
+                if(t.tp3) sigHtml += `<div class="signal-row"><span class="sig-label">TP 3</span><span class="sig-val text-tp">${t.tp3}</span></div>`;
+                sigHtml += `</div>`;
+            }
+
             content = `
                 <div class="chat-trade-card">
                     <div class="ct-header">
                         <span>${t.asset}</span>
                         <span style="color:${color}">${statusLabel}</span>
                     </div>
-                    <div>${t.status === 'Aktiv' ? 'Running Trade 🚀' : 'Trade Result 🏁'}</div>
+                    <div>${t.status === 'Aktiv' ? 'Signal 📡' : 'Result 🏁'}</div>
                     ${thumb}
+                    ${sigHtml}
                     <div class="ct-footer"><span>${t.date.split('T')[0]}</span></div>
                 </div>`;
         }
@@ -773,6 +806,20 @@
         if(!trade.imgSetup) document.getElementById('opt-setup').classList.add('disabled');
         if(!trade.imgResult) document.getElementById('opt-result').classList.add('disabled');
         
+        // Show/Hide Signal Inputs based on Status
+        const sigDiv = document.getElementById('signal-inputs');
+        if(trade.status === 'Aktiv') {
+            sigDiv.classList.remove('hidden');
+            // Clear inputs
+            document.getElementById('sig-entry').value = '';
+            document.getElementById('sig-sl').value = '';
+            document.getElementById('sig-tp1').value = '';
+            document.getElementById('sig-tp2').value = '';
+            document.getElementById('sig-tp3').value = '';
+        } else {
+            sigDiv.classList.add('hidden');
+        }
+
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('share-modal').classList.add('open');
     }
@@ -801,6 +848,15 @@
         delete tradeCopy.pnl; 
         delete tradeCopy.userId; 
         
+        // Add Signal Data if Active
+        if(trade.status === 'Aktiv') {
+            tradeCopy.entry = document.getElementById('sig-entry').value;
+            tradeCopy.sl = document.getElementById('sig-sl').value;
+            tradeCopy.tp1 = document.getElementById('sig-tp1').value;
+            tradeCopy.tp2 = document.getElementById('sig-tp2').value;
+            tradeCopy.tp3 = document.getElementById('sig-tp3').value;
+        }
+
         const sharedImage = shareType === 'setup' ? trade.imgSetup : trade.imgResult;
 
         await db.collection('chat').add({
