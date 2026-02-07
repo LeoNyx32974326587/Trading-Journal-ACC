@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Notifications</title>
+    <title>TradeCloud Pro - Admin Modal</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -164,14 +164,15 @@
 
         .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
         
-        /* SHARE MODAL */
-        #share-modal {
+        /* SHARE & DELETE MODAL */
+        #share-modal, #delete-modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: var(--popup-bg); border: 1px solid var(--border); border-radius: 12px;
-            padding: 20px; width: 300px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            padding: 20px; width: 300px; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             display: none; flex-direction: column; gap: 15px;
         }
-        #share-modal.open { display: flex; }
+        #share-modal.open, #delete-modal.open { display: flex; }
+        
         .share-opt {
             padding: 15px; border: 1px solid var(--border); border-radius: 8px;
             cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s;
@@ -223,17 +224,19 @@
 <div id="share-modal">
     <h3 style="margin:0; text-align:center;">Trade Teilen</h3>
     <p style="font-size:0.8rem; color:#888; text-align:center; margin:0;">Wähle, was du teilen möchtest</p>
-    
-    <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')">
-        <span>📷</span> <span>Setup Chart</span>
-    </div>
-    
-    <div id="opt-result" class="share-opt" onclick="selectShareOption('result')">
-        <span>🏁</span> <span>Ergebnis Chart</span>
-    </div>
-
+    <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
+    <div id="opt-result" class="share-opt" onclick="selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
     <button onclick="confirmShare()" class="btn-primary" style="margin-top:10px;">Senden</button>
     <button onclick="closeShareModal()" class="btn-small" style="background:none; border:none;">Abbrechen</button>
+</div>
+
+<div id="delete-modal" style="text-align:center;">
+    <h3 style="margin:0 0 10px 0;">Nachricht löschen?</h3>
+    <p style="font-size:0.9rem; color:#888; margin-bottom:20px;">Dies kann nicht rückgängig gemacht werden.</p>
+    <div style="display:flex; gap:10px;">
+        <button onclick="confirmDeleteMessage()" class="btn-primary" style="background:var(--danger); color:white; flex:1;">Löschen</button>
+        <button onclick="closeDeleteModal()" class="btn-small" style="flex:1;">Abbrechen</button>
+    </div>
 </div>
 
 <div id="auth-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:center; z-index:1000;">
@@ -460,6 +463,7 @@
     // SHARE GLOBALS
     let shareTradeId = null;
     let shareType = null;
+    let msgToDeleteId = null;
 
     // THEME INIT
     const isLight = localStorage.getItem('tradeTheme') === 'light';
@@ -664,18 +668,16 @@
     function loadChat() {
         db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
             if(!snapshot.empty && !document.hidden && document.getElementById('view-Chat').classList.contains('active') === false) {
-               // Only notify if not looking at chat
                const changes = snapshot.docChanges();
                changes.forEach(change => {
                    if (change.type === "added" && !change.doc.metadata.hasPendingWrites) {
                        new Notification("Neue Chat Nachricht", { body: "Jemand hat in TradeCloud Pro geschrieben!" });
-                       const audio = new Audio('https://freesound.org/data/previews/234/234524_4019029-lq.mp3'); // Simple beep
+                       const audio = new Audio('https://freesound.org/data/previews/234/234524_4019029-lq.mp3');
                        audio.play().catch(e=>{});
                        document.title = "(1) TradeCloud Pro";
                    }
                });
             }
-            // Reset title on focus
             window.onfocus = () => { document.title = "TradeCloud Pro"; };
 
             const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
@@ -697,7 +699,7 @@
 
         if (msg.type === 'trade' && msg.tradeData) {
             const t = msg.tradeData;
-            // Get correct image based on selection
+            // Get correct image
             const imgUrl = msg.sharedImage || t.imgSetup;
             const statusLabel = t.status === 'Aktiv' ? 'OPEN' : 'CLOSED';
             const color = t.status === 'Aktiv' ? '#00bcd4' : '#888';
@@ -741,10 +743,23 @@
         input.value = '';
     }
     
-    async function deleteChatMessage(id) {
-        if(confirm("Nachricht wirklich löschen?")) {
-            await db.collection('chat').doc(id).delete();
+    function deleteChatMessage(id) {
+        msgToDeleteId = id;
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('delete-modal').classList.add('open');
+    }
+    
+    async function confirmDeleteMessage() {
+        if(msgToDeleteId) {
+            await db.collection('chat').doc(msgToDeleteId).delete();
+            closeDeleteModal();
         }
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.remove('open');
+        document.getElementById('popup-overlay').classList.remove('open');
+        msgToDeleteId = null;
     }
 
     // --- SHARE LOGIC ---
@@ -754,14 +769,10 @@
         shareTradeId = id;
         shareType = null;
         
-        // Reset selections
         document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected', 'disabled'));
-        
-        // Check availability
         if(!trade.imgSetup) document.getElementById('opt-setup').classList.add('disabled');
         if(!trade.imgResult) document.getElementById('opt-result').classList.add('disabled');
         
-        // Open Modal
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('share-modal').classList.add('open');
     }
@@ -786,7 +797,6 @@
         if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
         const trade = trades.find(t => t.id === shareTradeId);
         
-        // Create sanitized copy without PnL
         const tradeCopy = { ...trade };
         delete tradeCopy.pnl; 
         delete tradeCopy.userId; 
@@ -860,6 +870,7 @@
     }
     function closePopup() { 
         document.getElementById('share-modal').classList.remove('open');
+        document.getElementById('delete-modal').classList.remove('open');
         document.getElementById('popup-overlay').classList.remove('open');
         document.getElementById('day-detail-view').classList.add('hidden');
         document.getElementById('member-detail-view').classList.add('hidden');
