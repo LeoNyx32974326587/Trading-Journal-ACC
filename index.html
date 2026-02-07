@@ -3,20 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Calendar Special</title>
+    <title>TradeCloud Pro - Fixed Colors</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- THEMES & COLORS --- */
+        /* --- THEMES & COLORS (FIXED) --- */
         :root { 
-            --bg-dark: #050505; --card-bg: #121212; --cell-bg: #1e1e1e;
-            --text-main: #e0e0e0; --text-sub: #888;
+            --bg-dark: #050505; /* Back to comfortable dark grey */
+            --card-bg: #121212; 
+            --cell-bg: #1e1e1e;
+            --text-main: #e0e0e0; 
+            --text-sub: #888;
             --accent: #bb86fc; 
-            --success: #00c853; --danger: #ff3d00; --border: #2c2c2c; 
+            --success: #00c853; 
+            --danger: #ff3d00; 
+            --border: #2c2c2c; 
             --blur: 0px;
-            --popup-bg: #1a1a1a; 
+            --popup-bg: #181818; /* Popup slightly lighter than card */
+            
             --chat-me: #2a2a2a; 
             --chat-other: #111;
         }
@@ -42,6 +48,14 @@
         #view-title { font-weight: 700; font-size: 1.2rem; }
         .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
 
+        /* --- TOGGLE SWITCH --- */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
         /* --- NAV DRAWER --- */
         #menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; display: none; backdrop-filter: blur(2px); }
         #menu-overlay.open { display: block; }
@@ -64,59 +78,52 @@
         .nav-selector-label { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
         #navJournalSelect { width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; }
         .nav-close-btn { text-align: right !important; padding: 10px 20px !important; font-size: 1.5rem !important; color: #888 !important; display: flex; justify-content: flex-end; }
+        .nav-close-btn:hover { color: var(--danger) !important; background: none !important; }
 
         /* --- POPUP OVERLAY --- */
         #popup-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
             z-index: 999; display: none; justify-content: center; align-items: center;
             opacity: 0; transition: opacity 0.3s ease;
         }
         #popup-overlay.open { display: flex; opacity: 1; }
 
-        /* --- STANDARD POPUP STYLE (Share, Delete, Signal) --- */
-        .standard-modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: var(--popup-bg); border: 1px solid var(--border); border-radius: 12px;
-            padding: 20px; width: 320px; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: none; flex-direction: column; gap: 15px; max-height: 85vh; overflow-y: auto;
-        }
-        .standard-modal.open { display: flex; }
-
-        /* --- SPECIAL CALENDAR POPUP STYLE (Screenshot Look) --- */
-        #day-detail-view {
+        /* --- MODAL BASE --- */
+        .modal-base {
             width: 100%; max-width: 500px;
-            background: #000000; /* Deep black fixed */
-            color: #ffffff; /* White text fixed */
-            border-radius: 20px;
-            border: 1px solid #333;
-            box-shadow: 0 10px 40px rgba(0,0,0,1);
+            background: var(--popup-bg); /* Use Theme Color */
+            color: var(--text-main);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             padding: 20px; box-sizing: border-box;
             max-height: 90vh; overflow-y: auto;
             position: relative;
         }
-        
-        /* Day View Internals */
+
+        /* --- POPUP SPECIFIC CONTENT --- */
         .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .dv-stat-item { display: flex; flex-direction: column; }
-        .dv-stat-label { color: #8e8e93; font-size: 0.85rem; margin-bottom: 4px; }
-        .dv-stat-val { font-size: 1.1rem; font-weight: 700; color: #ffffff; }
+        .dv-stat-label { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 4px; }
+        .dv-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
         
-        .closed-trades-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; margin-top: 10px; color: #ffffff; }
+        .closed-trades-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; margin-top: 10px; color: var(--text-main); }
         
-        .trades-list-card { background: #151517; border-radius: 12px; overflow: hidden; }
-        .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid #2c2c2e; color: #8e8e93; font-size: 0.8rem; }
-        .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #2c2c2e; cursor: pointer; }
+        /* Trade List in Popup */
+        .trades-list-card { background: var(--cell-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-size: 0.8rem; }
+        .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; }
         .trade-row:last-child { border-bottom: none; }
         
         .tr-icon { width: 20px; font-size: 0.8rem; }
         .tr-date-col { display: flex; flex-direction: column; width: 100px; }
-        .tr-date { font-size: 0.85rem; font-weight: 500; color: #ffffff; }
-        .tr-time { font-size: 0.75rem; color: #8e8e93; }
-        .tr-sym { flex-grow: 1; font-weight: 600; font-size: 0.9rem; color: #ffffff; }
+        .tr-date { font-size: 0.85rem; font-weight: 500; color: var(--text-main); }
+        .tr-time { font-size: 0.75rem; color: var(--text-sub); }
+        .tr-sym { flex-grow: 1; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
         .tr-pnl { font-weight: 700; font-size: 0.9rem; text-align: right; min-width: 70px; }
-        .tr-arrow { color: #8e8e93; margin-left: 10px; font-size: 0.9rem; }
+        .tr-arrow { color: var(--text-sub); margin-left: 10px; font-size: 0.9rem; }
         
         /* --- CHAT STYLES --- */
         .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -131,13 +138,13 @@
         .msg-wrapper.other .msg-bubble { background: var(--chat-other); color: var(--text-main); border-bottom-left-radius: 2px; }
         .msg-time { font-size: 0.65rem; color: var(--text-sub); margin-top: 4px; text-align: right; display: block; }
         
-        .chat-trade-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 12px; width: 240px; margin-top: 5px; cursor: pointer; }
+        .chat-trade-card { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; width: 240px; margin-top: 5px; cursor: pointer; }
         .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
         .ct-footer { margin-top: 8px; font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; }
         
         .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.85rem; margin-top: 8px; pointer-events: none; }
-        .signal-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .signal-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid var(--border); }
         .sig-label { color: var(--text-sub); font-size: 0.75rem; }
         .sig-val { font-weight: bold; }
 
@@ -161,11 +168,38 @@
         .stat-value { font-size: 1.1rem; font-weight: 800; }
         .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; display: flex; flex-direction: column; min-height: 120px; }
         .ot-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
-        .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .loss-warning { background: rgba(255, 61, 0, 0.15); border-left: 4px solid var(--danger); color: var(--danger); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; margin: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
-        /* --- UTILS & COMPONENTS --- */
+        /* --- STATS LAYOUT --- */
+        .stats-grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .chart-card { height: 300px; padding: 10px; position: relative; }
+        .full-width { grid-column: span 2; }
+        @media (max-width: 768px) { .stats-grid-view { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+
+        /* --- CALENDAR --- */
+        .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; position: relative; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
+        .cal-cell:active { transform: scale(0.95); }
+        .cal-cell.win { background: rgba(0, 200, 83, 0.15); border: 1px solid rgba(0, 200, 83, 0.3); }
+        .cal-cell.loss { background: rgba(255, 61, 0, 0.15); border: 1px solid rgba(255, 61, 0, 0.3); }
+        .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-sub); }
+        .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
+        .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: var(--text-sub); }
+
+        /* --- TABLE STYLES --- */
+        .hist-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .hist-table th { text-align: left; padding: 10px; border-bottom: 1px solid #333; color: var(--text-sub); font-weight: 600; }
+        .hist-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        
+        .hist-thumb, .dash-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); vertical-align: middle; margin: 0 5px; transition: transform 0.2s; cursor: pointer; }
+        .hist-thumb:hover, .dash-thumb:hover { transform: scale(3.5); z-index: 100; border-color: var(--accent); position: relative; }
+        .note-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-sub); cursor: help; }
+        .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
+
+        /* --- BUTTONS & UTILS --- */
         .text-green { color: var(--success) !important; }
         .text-red { color: var(--danger) !important; }
         .text-tp { color: var(--success); }
@@ -178,31 +212,14 @@
         .chart-btn.active { background: var(--accent); color: black; }
         .btn-danger-hover:hover { border-color: var(--danger); color: var(--danger); }
         .btn-share:hover { border-color: #00bcd4; color: #00bcd4; }
+
         .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .stats-grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .chart-card { height: 300px; padding: 10px; position: relative; }
-        .full-width { grid-column: span 2; }
-        @media (max-width: 768px) { .stats-grid-view { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
-
-        .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; position: relative; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
-        .cal-cell:active { transform: scale(0.95); }
-        .cal-cell.win { background: rgba(0, 200, 83, 0.15); border: 1px solid rgba(0, 200, 83, 0.3); }
-        .cal-cell.loss { background: rgba(255, 61, 0, 0.15); border: 1px solid rgba(255, 61, 0, 0.3); }
-        .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-sub); }
-        .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
-        .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: var(--text-sub); }
-
-        .hist-thumb, .dash-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); vertical-align: middle; margin: 0 5px; transition: transform 0.2s; cursor: pointer; }
-        .hist-thumb:hover, .dash-thumb:hover { transform: scale(3.5); z-index: 100; border-color: var(--accent); position: relative; }
-        .note-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-sub); cursor: help; }
-        .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
-
+        
         .share-opt { padding: 15px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
         .share-opt:hover { background: rgba(255,255,255,0.05); }
         .share-opt.selected { border-color: var(--accent); background: rgba(187, 134, 252, 0.1); }
         .share-opt.disabled { opacity: 0.4; cursor: not-allowed; }
+
         .signal-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
         
         .sd-image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: transform 0.2s; border: 1px solid var(--border); }
@@ -212,19 +229,22 @@
         .sd-val { font-family: monospace; font-size: 1rem; color: var(--text-main); }
         .copy-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; cursor: pointer; color: var(--accent); transition: 0.2s; }
         .copy-btn:hover { background: rgba(187, 134, 252, 0.1); }
+        
+        .popup-close { background:none; border:none; color:var(--text-sub); font-size:1.2rem; cursor:pointer; }
+        .popup-title { margin:0; font-size:1.2rem; font-weight:bold; }
     </style>
 </head>
 <body>
 
 <div id="popup-overlay" onclick="if(event.target === this) closePopup()">
     
-    <div id="day-detail-view" class="hidden">
+    <div id="day-detail-view" class="modal-base hidden">
         <div class="dv-header">
-            <button onclick="closePopup()" style="background:none; border:none; color:#0a84ff; font-size:1rem; cursor:pointer; font-weight:600;">❮ Back</button>
-            <div id="dv-date-title" style="font-weight:700; font-size:1.1rem; color:#ffffff;">Date</div>
+            <button onclick="closePopup()" style="background:none; border:none; color:var(--accent); font-size:1rem; cursor:pointer; font-weight:600;">❮ Back</button>
+            <div id="dv-date-title" style="font-weight:700; font-size:1.1rem;">Date</div>
             <div style="width: 40px;"></div>
         </div>
-        <div style="padding-bottom:20px; border-bottom:1px solid #2c2c2e; margin-bottom:20px;">
+        <div style="padding-bottom:20px; border-bottom:1px solid var(--border); margin-bottom:20px;">
             <div style="height:180px;"><canvas id="dayChart"></canvas></div>
         </div>
         <div class="dv-stats-grid">
@@ -242,11 +262,16 @@
         </div>
     </div>
 
-    <div id="share-modal" class="standard-modal hidden">
-        <h3 style="margin:0; text-align:center;">Trade Teilen</h3>
+    <div id="share-modal" class="modal-base hidden">
+        <div class="dv-header">
+            <span class="popup-title">Trade Teilen</span>
+            <button class="popup-close" onclick="closeShareModal()">✕</button>
+        </div>
         <p style="font-size:0.8rem; color:var(--text-sub); text-align:center; margin:0;">Wähle, was du teilen möchtest</p>
-        <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
-        <div id="opt-result" class="share-opt" onclick="selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+            <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
+            <div id="opt-result" class="share-opt" onclick="selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
+        </div>
         <div id="signal-inputs" class="signal-input-grid hidden">
             <input type="number" id="sig-entry" placeholder="Entry">
             <input type="number" id="sig-sl" placeholder="SL (Stop Loss)">
@@ -255,36 +280,38 @@
             <input type="number" id="sig-tp3" placeholder="TP 3" style="grid-column:span 2;">
         </div>
         <button onclick="confirmShare()" class="btn-primary" style="margin-top:10px;">Senden</button>
-        <button onclick="closeShareModal()" class="btn-small" style="background:none; border:none;">Abbrechen</button>
     </div>
 
-    <div id="signal-detail-modal" class="standard-modal hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="margin:0;">Signal Details</h3>
-            <button onclick="closePopup()" style="background:none; border:none; color:var(--text-sub); font-size:1.2rem; cursor:pointer;">✕</button>
+    <div id="signal-detail-modal" class="modal-base hidden">
+        <div class="dv-header">
+            <span class="popup-title">Signal Details</span>
+            <button class="popup-close" onclick="closePopup()">✕</button>
         </div>
         <img id="sd-img" src="" class="sd-image hidden">
         <div id="sd-content" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 
-    <div id="delete-modal" class="standard-modal hidden" style="text-align:center;">
+    <div id="delete-modal" class="modal-base hidden" style="text-align:center;">
         <h3 style="margin:0 0 10px 0;">Nachricht löschen?</h3>
         <p style="font-size:0.9rem; color:var(--text-sub); margin-bottom:20px;">Dies kann nicht rückgängig gemacht werden.</p>
         <div style="display:flex; gap:10px;">
-            <button onclick="confirmDeleteMessage()" class="btn-primary" style="background:var(--danger); color:white; flex:1;">Löschen</button>
+            <button onclick="confirmDeleteMessage()" class="btn-primary" style="background:var(--danger); flex:1;">Löschen</button>
             <button onclick="closeDeleteModal()" class="btn-small" style="flex:1;">Abbrechen</button>
         </div>
     </div>
-    
-    <div id="member-detail-view" class="standard-modal hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 id="mem-title" style="margin:0;">Member</h3>
-            <button onclick="closePopup()" style="background:none; border:none; font-size:1.2rem; color:var(--text-sub);">✕</button>
+
+    <div id="member-detail-view" class="modal-base hidden">
+        <div class="dv-header">
+            <span class="popup-title" id="mem-title">Mitglied</span>
+            <button class="popup-close" onclick="closePopup()">✕</button>
         </div>
-        <div class="dv-stats-grid" style="margin-top:15px;">
-            <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive">0.00 €</div></div>
-            <div class="stat-box"><span class="stat-label">Status</span><div class="stat-value text-green">Aktiv</div></div>
+        <div class="dv-stats-grid">
+            <div class="dv-stat-item"><span class="dv-stat-label">Total PnL</span><div class="dv-stat-val sensitive">0.00 €</div></div>
+            <div class="dv-stat-item"><span class="dv-stat-label">Win rate</span><div class="dv-stat-val">0%</div></div>
+            <div class="dv-stat-item"><span class="dv-stat-label">Trades</span><div class="dv-stat-val">0</div></div>
+            <div class="dv-stat-item"><span class="dv-stat-label">Status</span><div class="dv-stat-val text-green">Aktiv</div></div>
         </div>
+        <div style="padding: 20px; text-align: center; color: var(--text-sub); font-size: 0.9rem;"><p>Detaillierte Handelsdaten sind für dieses Mitglied aktuell nicht verknüpft.</p></div>
     </div>
 
 </div>
@@ -695,7 +722,7 @@
             const t = msg.tradeData;
             const imgUrl = msg.sharedImage || t.imgSetup;
             const statusLabel = t.status === 'Aktiv' ? 'OPEN' : 'CLOSED';
-            const color = t.status === 'Aktiv' ? '#00bcd4' : '#888';
+            const color = t.status === 'Aktiv' ? '#0a84ff' : '#8e8e93';
             const thumb = imgUrl ? `<img src="${imgUrl}" class="ct-img">` : '';
             
             let sigHtml = '';
@@ -730,15 +757,15 @@
     function deleteChatMessage(id) {
         msgToDeleteId = id;
         document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('delete-modal').classList.remove('hidden');
-        document.getElementById('delete-modal').classList.add('open');
+        document.getElementById('delete-modal').classList.remove('hidden'); // Use hidden utility
+        document.getElementById('delete-modal').classList.add('open'); // Custom open
     }
     
     async function confirmDeleteMessage() {
         if(msgToDeleteId) { await db.collection('chat').doc(msgToDeleteId).delete(); closePopup(); }
     }
     
-    function closeDeleteModal() { closePopup(); } // Unified closing
+    function closeDeleteModal() { closePopup(); }
 
     // --- SHARE LOGIC ---
     function shareTrade(id) {
@@ -757,7 +784,7 @@
         } else { sigDiv.classList.add('hidden'); }
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('share-modal').classList.remove('hidden'); 
-        document.getElementById('share-modal').classList.add('open');
+        document.getElementById('share-modal').classList.add('open'); 
     }
     
     function closeShareModal() { closePopup(); }
@@ -917,7 +944,7 @@
         let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
         dayChart = new Chart(ctx, { 
             type:'line', 
-            data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#30d158' : '#ff453a', borderWidth: 2, fill: true, backgroundColor: sum >= 0 ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255, 69, 58, 0.1)', tension: 0.1, pointRadius: 0 }] }, 
+            data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff3d00', borderWidth: 2, fill: true, backgroundColor: sum >= 0 ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 61, 0, 0.1)', tension: 0.1, pointRadius: 0 }] }, 
             options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#333'}}} } 
         });
     }
@@ -925,7 +952,7 @@
     // Close logic for all modals
     function closePopup() { 
         document.getElementById('popup-overlay').classList.remove('open');
-        document.querySelectorAll('.standard-modal, #day-detail-view').forEach(el => {
+        document.querySelectorAll('.standard-modal, .modal-base').forEach(el => {
             el.classList.add('hidden');
             el.classList.remove('open');
         }); 
@@ -935,8 +962,9 @@
     function openMemberDetail(id, email) {
         document.getElementById('mem-title').innerText = email;
         document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('member-detail-view').classList.remove('hidden');
-        document.getElementById('member-detail-view').classList.add('open');
+        const modal = document.getElementById('member-detail-view');
+        modal.classList.remove('hidden');
+        modal.classList.add('open');
     }
 
     // --- UTILS remain unchanged ---
