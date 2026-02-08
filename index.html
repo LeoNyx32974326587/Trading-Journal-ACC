@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud</title>
+    <title>TradeCloud Pro - Admin Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -98,13 +98,10 @@
             border-radius: 12px; 
             cursor: pointer; 
             animation: fadeIn 0.5s; 
-            display: flex; align-items: center; justify-content: space-between; /* Changed for X button */
+            display: flex; align-items: center; justify-content: space-between; 
             font-weight: bold; 
         }
-        
-        .chat-close-btn {
-            background: none; border: none; color: rgba(255,255,255,0.7); font-size: 1.2rem; cursor: pointer; padding: 5px; margin-left: 10px;
-        }
+        .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 1.2rem; cursor: pointer; padding: 5px; margin-left: 10px; }
         .chat-close-btn:hover { color: white; }
 
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
@@ -841,7 +838,7 @@
         // 2. Remove Red Dot
         document.getElementById('btn-Chat').innerHTML = '💬 Chat';
 
-        // 3. Mark as read in storage so it doesn't reappear on reload (KEY FIX)
+        // 3. Mark as read in storage so it doesn't reappear on reload
         if(lastMessageCount > 0) {
              localStorage.setItem('chatCount', lastMessageCount);
         }
@@ -1245,8 +1242,7 @@
             document.getElementById('chat-notification').classList.add('hidden');
             document.getElementById('btn-Chat').innerHTML = '💬 Chat';
             hasNewChatMessage = false;
-            // UPDATE: Force save current count when opening view
-            if(lastMessageCount > 0) localStorage.setItem('chatCount', lastMessageCount);
+            localStorage.setItem('chatCount', lastMessageCount);
         }
 
         if(v === 'Übersicht') renderDashboard(); 
