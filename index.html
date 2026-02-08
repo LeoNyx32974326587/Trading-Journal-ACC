@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud</title>
+    <title>TradeCloud Pro - Chart Integration</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
     <style>
         /* --- THEMES & COLORS --- */
         :root { 
@@ -430,7 +432,7 @@
     <button onclick="showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
     <button onclick="prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
     <button onclick="showView('Chat')" id="btn-Chat">💬 Chat</button>
-    <div class="nav-separator"></div>
+    <button onclick="showView('TradingView')" id="btn-TradingView">📈 Chart</button> <div class="nav-separator"></div>
     <div class="nav-selector-container">
         <label class="nav-selector-label">AKTUELLES JOURNAL ⌄</label>
         <select id="navJournalSelect" onchange="changeActiveJournal(this.value)"></select>
@@ -468,6 +470,12 @@
                 <input type="text" id="chat-input" placeholder="Nachricht schreiben..." onkeypress="if(event.key==='Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()" class="btn-primary" style="width:auto; padding:0 20px;">➤</button>
             </div>
+        </div>
+    </section>
+
+    <section id="view-TradingView" class="view-section">
+        <div class="card" style="padding:0; height: calc(100vh - 100px); overflow:hidden;">
+             <div id="tradingview_chart" style="height:100%; width:100%"></div>
         </div>
     </section>
 
@@ -717,6 +725,7 @@
         if(activeId === 'view-Historie') renderHistory();
         if(activeId === 'view-Statistik') renderStatistics();
         if(activeId === 'view-Übersicht') renderDashboard();
+        if(activeId === 'view-TradingView') renderTradingViewWidget(); // Update chart
         document.getElementById('navDrawer').classList.remove('open');
         document.getElementById('menu-overlay').classList.remove('open');
     }
@@ -1027,6 +1036,31 @@
             alert("Feedback gesendet!"); closeTradeDetail();
         }
     }
+    
+    function renderTradingViewWidget() {
+        const container = document.getElementById('tradingview_chart');
+        if(!container) return;
+        container.innerHTML = ''; // Clear previous
+        
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.async = true;
+        script.onload = () => {
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": "FX:EURUSD",
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": document.body.classList.contains('light-mode') ? "light" : "dark",
+                "style": "1",
+                "locale": "de_DE",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_chart"
+            });
+        };
+        container.appendChild(script);
+    }
 
     function changeCalMonth(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
     function renderCalendar() {
@@ -1111,7 +1145,7 @@
         if(currentDetailTradeId) {
             const t = trades.find(x => x.id === currentDetailTradeId);
             // Check if it was "unread" (meaning notification was active) or if user is owner
-            if(t && t.adminFeedback && t.userId === auth.currentUser.uid) {
+            if(t && t.adminFeedback && !isAdmin && t.userId === auth.currentUser.uid) {
                  await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: "", feedbackRead: true });
                  await loadData(); // Reload UI to clear notification
             }
