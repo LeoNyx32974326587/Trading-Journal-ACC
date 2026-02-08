@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Iframe Chart</title>
+    <title>TradeCloud Pro - Login Fixed</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -1232,6 +1232,16 @@
         }).join('');
     }
 
+    // --- OTHER CORE FUNCTIONS (UNCHANGED) ---
+    async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
+    async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
+    async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
+    async function saveJournalInput() { const name = document.getElementById('newJName').value.trim(); const cap = parseFloat(document.getElementById('newJCap').value)||0; const maxDD = document.getElementById('newJMaxDD').value; const ddType = document.getElementById('newJDDType').value; if(!name) return alert("Name fehlt!"); if(editingJournalId) { const oldJ = journals.find(j=>j.id===editingJournalId); await db.collection('journals').doc(editingJournalId).update({name, startCap:cap, maxDD, ddType}); if(name!==oldJ.name) { const batch=db.batch(); (await db.collection('trades').where('userId','==',auth.currentUser.uid).where('journal','==',oldJ.name).get()).docs.forEach(doc=>batch.update(doc.ref,{journal:name})); await batch.commit(); if(activeJournal===oldJ.name) activeJournal=name; } cancelEdit(); } else { await db.collection('journals').add({userId:auth.currentUser.uid, name, startCap:cap, maxDD, ddType, hidden:false}); document.getElementById('newJName').value=''; document.getElementById('newJCap').value=''; } await loadData(); renderSettingsList(); }
+    function prepareEditJournal(id) { const j = journals.find(x => x.id === id); if(!j) return; document.getElementById('journal-form-title').innerText = "Journal Bearbeiten"; document.getElementById('newJName').value = j.name; document.getElementById('newJCap').value = j.startCap || ''; document.getElementById('newJMaxDD').value = j.maxDD || ''; document.getElementById('newJDDType').value = j.ddType || 'eur'; document.getElementById('btn-save-journal').innerText = "Speichern"; document.getElementById('btn-cancel-journal').classList.remove('hidden'); editingJournalId = id; }
+    function cancelEdit() { document.getElementById('journal-form-title').innerText = "Neues Journal"; document.getElementById('newJName').value = ''; document.getElementById('newJCap').value = ''; document.getElementById('newJMaxDD').value = ''; document.getElementById('btn-save-journal').innerText = "Erstellen"; document.getElementById('btn-cancel-journal').classList.add('hidden'); editingJournalId = null; }
+    async function toggleJournalVisibility(id, currentHidden) { await db.collection('journals').doc(id).update({ hidden: !currentHidden }); await loadData(); renderSettingsList(); }
+    async function deleteJournal(id, name) { if(!confirm(`Warnung: Journal '${name}' und ALLE Trades löschen?`)) return; await db.collection('journals').doc(id).delete(); const batch = db.batch(); const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', name).get(); tQuery.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); if(activeJournal === name) activeJournal = null; await loadData(); renderSettingsList(); }
+    function renderSettingsList() { document.getElementById('settings-journal-list').innerHTML = journals.map(j => { const isHidden = j.hidden === true; const opacity = isHidden ? '0.5' : '1'; const eye = isHidden ? '🙈' : '👁️'; return `<div class="settings-list-item" style="opacity:${opacity}"><div><strong>${j.name}</strong> <small style="color:var(--text-sub)">${j.startCap ? j.startCap+'€' : ''}</small></div><div><button class="btn-small" onclick="toggleJournalVisibility('${j.id}', ${isHidden})">${eye}</button><button class="btn-small" onclick="prepareEditJournal('${j.id}')">✎</button><button class="btn-small btn-danger-hover" onclick="deleteJournal('${j.id}', '${j.name}')">🗑</button></div></div>`; }).join(''); }
     function showView(v) { 
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); 
         document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active'); 
@@ -1258,12 +1268,11 @@
         if(v === 'News') { const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s); } 
         
         // --- THIS WAS MISSING ---
-        if(v === 'TradingView') setTimeout(renderTradingViewWidget, 50);
+        if(v === 'TradingView') {
+            const theme = document.body.classList.contains('light-mode') ? "light" : "dark";
+            document.getElementById('tv-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_76d87&symbol=FX%3AEURUSD&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=${theme}&style=1&timezone=Etc%2FUTC`;
+        }
     }
-    
-    // --- (Rest of functions: toggleMenu, prepareCreateView, saveTrade, editTrade, delTrade, toggleFormFields, togglePrivacy, handleLogout, loginGoogle, toggleTheme, calcLots, updateContractSize) ---
-    // (I am omitting them here for brevity because they are unchanged, but they MUST be in your final file. 
-    //  If you copy-paste, ensure you include ALL functions from previous versions or just replace the `showView` function in your existing file.)
     
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); }
     function prepareCreateView() { document.getElementById('editId').value = ""; const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); document.getElementById('datetime').value = now.toISOString().slice(0,16); document.getElementById('assetInput').value = ""; document.getElementById('pnl').value = ""; document.getElementById('note').value = ""; document.getElementById('inpEntry').value = ""; document.getElementById('inpSL').value = ""; document.getElementById('inpTP1').value = ""; document.getElementById('inpTP2').value = ""; document.getElementById('inpTP3').value = ""; if(activeJournal) document.getElementById('inpJournalSelect').value = activeJournal; toggleFormFields(); document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open'); document.getElementById('popup-overlay').classList.add('open'); document.getElementById('form-title').innerText="Neuer Trade";}
