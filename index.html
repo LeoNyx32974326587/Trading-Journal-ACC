@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Final Workflow</title>
+    <title>TradeCloud Pro - Systems Online</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -75,7 +75,7 @@
         #user-greeting-name { font-size: 1.2em; color: var(--accent); }
         .greet-container h2 { margin: 0; font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
 
-        /* NOTIFICATIONS */
+        /* NOTIFICATIONS AREA */
         #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
 
         .feedback-notification { 
@@ -130,6 +130,7 @@
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
+        /* Special Black Calendar & Detail */
         #day-detail-view, #trade-detail-view, #admin-member-modal, #trade-form-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
         
         #day-detail-view .trades-list-card { background: #151517; border-color: #2c2c2e; }
@@ -617,7 +618,6 @@
     let msgToDeleteId = null;
     let configuringJournalId = null;
     
-    // Admin View Variables
     let inspectedUserTrades = [];
     let inspectedUserJournals = [];
     let adminChartInstance = null;
@@ -625,6 +625,7 @@
 
     // Chat Vars
     let isChatActive = false;
+    let lastMessageCount = 0;
     let isFirstLoad = true;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
@@ -759,14 +760,13 @@
             const equityCurve = [baseBalance];
             tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
 
-            let todayPnL = 0; closedAll.forEach(t => { if(new Date(t.date).toDateString() === todayStr) todayPnL += t.pnl; });
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
             const canvasId = `chart-${journal.id}`;
             let warningHtml = '';
             if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
                 const limit = parseFloat(journal.maxDD); let threshold = limit;
                 if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
-                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
+                if(totalPnL < -threshold && timeframe === 'HEUTE') warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
             }
 
             let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
@@ -820,6 +820,11 @@
                 `;
             });
         }
+    }
+
+    async function markFeedbackRead(tradeId) {
+        await db.collection('trades').doc(tradeId).update({ feedbackRead: true });
+        closeTradeDetail(); await loadData(); 
     }
 
     function setJournalFilter(journalId, timeframe) {
@@ -1069,6 +1074,8 @@
             el.classList.add('hidden');
             el.classList.remove('open');
         }); 
+        // Only run logic if coming from a specific context
+        if(currentDetailTradeId) closeTradeDetail();
     }
     
     async function closeTradeDetail() {
@@ -1081,10 +1088,12 @@
         // AUTO-DELETE FEEDBACK ON CLOSE (If Owner)
         if(currentDetailTradeId) {
             const t = trades.find(x => x.id === currentDetailTradeId);
+            // Check if it was "unread" (meaning notification was active) or if user is owner
             if(t && t.adminFeedback && !isAdmin && t.userId === auth.currentUser.uid) {
                  await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: "", feedbackRead: true });
-                 await loadData(); // Reload UI
+                 await loadData(); // Reload UI to clear notification
             }
+            currentDetailTradeId = null;
         }
     }
     
@@ -1187,6 +1196,7 @@
         }).join('');
     }
 
+    // --- OTHER CORE FUNCTIONS (UNCHANGED) ---
     async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
     async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
@@ -1207,10 +1217,9 @@
         
         isChatActive = (v === 'Chat');
         if (isChatActive) {
-            document.getElementById('chat-notification').classList.add('hidden'); // Hide on view
+            document.getElementById('chat-notification').classList.add('hidden');
             document.getElementById('btn-Chat').innerHTML = '💬 Chat';
             hasNewChatMessage = false;
-            // Update local storage so it doesn't reappear on reload
             localStorage.setItem('chatCount', lastMessageCount);
         }
 
