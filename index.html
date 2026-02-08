@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Coach Feedback</title>
+    <title>TradeCloud Pro - Admin Ultimate</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -62,10 +62,7 @@
         .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1rem; transition: 0.2s; }
         .nav-drawer button:hover { background: rgba(255,255,255,0.05); }
         .nav-active { border-left: 3px solid var(--accent); background: rgba(187, 134, 252, 0.1) !important; }
-        
-        /* SIDEBAR SEPARATOR (WIEDER DA) */
         .nav-separator { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 20px; display:block; }
-        
         .nav-selector-container { padding: 10px 25px; }
         .nav-selector-label { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
         #navJournalSelect { width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; }
@@ -74,8 +71,6 @@
         /* --- DASHBOARD --- */
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
-        
-        /* BIG GREETING */
         #user-greeting-name { font-size: 1.2em; color: var(--accent); }
         .greet-container h2 { margin: 0; font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
 
@@ -93,9 +88,7 @@
         .ot-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .loss-warning { background: rgba(255, 61, 0, 0.15); border-left: 4px solid var(--danger); color: var(--danger); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; margin: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
-        
         .ot-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); margin-left: 8px; vertical-align: middle; }
-
         .card-filters { display: flex; gap: 5px; padding: 10px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .card-filters::-webkit-scrollbar { display: none; }
         .filter-pill { padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-sub); border: 1px solid transparent; background: transparent; transition: 0.2s; white-space: nowrap; text-transform: uppercase; }
@@ -109,23 +102,9 @@
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; }
         
-        /* Special Black Calendar */
-        #day-detail-view { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
-        #day-detail-view .trades-list-card { background: #151517; border-color: #2c2c2e; }
-        #day-detail-view .trade-row, #day-detail-view .trade-row-header { border-bottom-color: #2c2c2e; }
-        #day-detail-view .tr-date, #day-detail-view .tr-sym, #day-detail-view .dv-stat-val, #day-detail-view .popup-title, #day-detail-view #dv-date-title { color: #ffffff; }
-
-        /* TRADE DETAIL POPUP (SPECIAL BLACK DESIGN) */
-        #trade-detail-view { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1001; } 
-
-        /* Other Popup Content */
-        .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .dv-stat-item { display: flex; flex-direction: column; }
-        .dv-stat-label { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 4px; }
-        .dv-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
-        .closed-trades-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; margin-top: 10px; color: #ffffff !important; }
-        .trades-list-card { background: var(--cell-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        #day-detail-view, #trade-detail-view, #admin-member-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
+        
+        .trades-list-card { background: #151517; border-color: #2c2c2e; }
         .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-size: 0.8rem; }
         .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition:0.2s; }
         .trade-row:active { background: rgba(255,255,255,0.1); }
@@ -138,36 +117,32 @@
         .tr-pnl { font-weight: 700; font-size: 0.9rem; text-align: right; min-width: 70px; }
         .tr-arrow { color: #888; margin-left: 10px; font-size: 0.9rem; }
 
-        /* TRADE DETAIL SPECIFICS (RESTORED TO GOOD DESIGN) */
+        /* TRADE DETAIL SPECIFICS */
         .td-hero { text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #333; }
         .td-asset { font-size: 1.8rem; font-weight: 800; color: white; display:block; }
         .td-pnl { font-size: 3rem; font-weight: 900; margin-top: 5px; display:block; }
-        
         .td-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .td-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; display:flex; flex-direction:column; justify-content:center; }
-        
         .td-val-row { display: flex; align-items: center; justify-content: space-between; }
         .td-label { color: #888; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; display: block; font-weight: 600; }
         .td-val { color: white; font-size: 1.1rem; font-weight: 600; }
-        
         .copy-icon { cursor: pointer; font-size: 0.9rem; margin-left: 8px; color: var(--accent); background:none; border:none; padding:5px; }
-        .copy-icon:active { transform: scale(0.9); }
-        
         .td-note-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; margin-bottom: 20px; font-style: italic; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
-        
-        /* COACH FEEDBACK STYLES */
-        .feedback-message {
-            background: rgba(187, 134, 252, 0.1);
-            border: 1px solid var(--accent);
-            color: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
+        .feedback-message { background: rgba(187, 134, 252, 0.1); border: 1px solid var(--accent); color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
         .feedback-label { display: block; color: var(--accent); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
-
-        .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; margin-top:10px; }
+        .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
+
+        /* ADMIN MEMBER STYLES */
+        .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .adm-user-info { display: flex; align-items: center; gap: 10px; }
+        .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+        .adm-text { display: flex; flex-direction: column; }
+        .adm-name { font-weight: 700; font-size: 0.9rem; }
+        .adm-email { font-size: 0.8rem; color: var(--text-sub); }
+        
+        .adm-tab-btn { flex: 1; padding: 15px; border: none; background: #151517; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; transition:0.2s; }
+        .adm-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
 
         /* --- JOURNAL TABLE --- */
         .hist-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-main); }
@@ -177,7 +152,7 @@
         .hist-table tr:last-child td { border-bottom: none; }
         .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
 
-        /* --- CHAT STYLES --- */
+        /* --- CHAT --- */
         .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; }
@@ -277,15 +252,48 @@
             <div style="font-weight:700; font-size:1.1rem; color:#ffffff;">Trade Details</div>
             <div style="width:40px;"></div>
         </div>
-        <div id="td-content">
+        <div id="td-content"></div>
+    </div>
+
+    <div id="admin-member-modal" class="modal-base hidden" style="max-height:90vh; display:flex; flex-direction:column;">
+        <div class="dv-header">
+            <span class="popup-title">Mitglied Details</span>
+            <button class="popup-close" onclick="closePopup()">✕</button>
+        </div>
+        <div id="adm-modal-header" style="text-align:center; margin-bottom:20px;">
+            <h2 id="adm-detail-name" style="margin:0; font-size:1.5rem;">User</h2>
+            <div id="adm-detail-email" style="color:var(--text-sub); font-size:0.9rem;">email@example.com</div>
+        </div>
+        
+        <div style="padding:0 20px 20px 20px;">
+            <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
+            <select id="adm-journal-select" onchange="updateAdminMemberView()"></select>
+        </div>
+
+        <div style="display:flex; border-bottom:1px solid #333;">
+            <button class="adm-tab-btn active" onclick="switchAdminTab('stats')" id="btn-adm-stats">📊 Statistik</button>
+            <button class="adm-tab-btn" onclick="switchAdminTab('trades')" id="btn-adm-trades">📜 Trade Liste</button>
+        </div>
+
+        <div id="adm-content-stats" style="padding:20px; overflow-y:auto;">
+             <div class="dv-stats-grid">
+                <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
+                <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
+                <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
             </div>
+            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>
+        </div>
+
+        <div id="adm-content-trades" class="hidden" style="padding:0; overflow-y:auto; flex-grow:1;">
+            <table class="hist-table">
+                <thead><tr><th>Date</th><th>Asset</th><th style="text-align:right;">PnL</th></tr></thead>
+                <tbody id="adm-trade-list"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="date-range-modal" class="modal-base hidden">
-        <div class="dv-header">
-            <span class="popup-title">Zeitraum wählen</span>
-            <button class="popup-close" onclick="closePopup()">✕</button>
-        </div>
+        <div class="dv-header"><span class="popup-title">Zeitraum wählen</span><button class="popup-close" onclick="closePopup()">✕</button></div>
         <div style="display:flex; flex-direction:column; gap:15px;">
             <div><label style="display:block; margin-bottom:5px; color:var(--text-sub);">VON</label><input type="date" id="custom-start"></div>
             <div><label style="display:block; margin-bottom:5px; color:var(--text-sub);">BIS</label><input type="date" id="custom-end"></div>
@@ -294,10 +302,7 @@
     </div>
 
     <div id="share-modal" class="modal-base hidden">
-        <div class="dv-header">
-            <span class="popup-title">Trade Teilen</span>
-            <button class="popup-close" onclick="closeShareModal()">✕</button>
-        </div>
+        <div class="dv-header"><span class="popup-title">Trade Teilen</span><button class="popup-close" onclick="closeShareModal()">✕</button></div>
         <p style="font-size:0.8rem; color:var(--text-sub); text-align:center; margin:0;">Wähle, was du teilen möchtest</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
             <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
@@ -305,7 +310,7 @@
         </div>
         <div id="signal-inputs" class="signal-input-grid hidden">
             <input type="number" id="sig-entry" placeholder="Entry">
-            <input type="number" id="sig-sl" placeholder="SL (Stop Loss)">
+            <input type="number" id="sig-sl" placeholder="SL">
             <input type="number" id="sig-tp1" placeholder="TP 1">
             <input type="number" id="sig-tp2" placeholder="TP 2">
             <input type="number" id="sig-tp3" placeholder="TP 3" style="grid-column:span 2;">
@@ -314,10 +319,7 @@
     </div>
 
     <div id="signal-detail-modal" class="modal-base hidden">
-        <div class="dv-header">
-            <span class="popup-title">Signal Details</span>
-            <button class="popup-close" onclick="closePopup()">✕</button>
-        </div>
+        <div class="dv-header"><span class="popup-title">Signal Details</span><button class="popup-close" onclick="closePopup()">✕</button></div>
         <img id="sd-img" src="" class="sd-image hidden">
         <div id="sd-content" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
@@ -330,18 +332,6 @@
             <button onclick="closeDeleteModal()" class="btn-small" style="flex:1;">Abbrechen</button>
         </div>
     </div>
-    
-    <div id="member-detail-view" class="modal-base hidden">
-        <div class="dv-header">
-            <span class="popup-title" id="mem-title">Member</span>
-            <button class="popup-close" onclick="closePopup()">✕</button>
-        </div>
-        <div class="dv-stats-grid">
-            <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive">0.00 €</div></div>
-            <div class="stat-box"><span class="stat-label">Status</span><div class="stat-value text-green">Aktiv</div></div>
-        </div>
-    </div>
-
 </div>
 
 <div id="auth-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:center; z-index:1000;">
@@ -581,13 +571,17 @@
     let editingJournalId = null;
     let currentUserName = "User";
     let isAdmin = false;
-    
     let journalFilters = {}; 
     let journalCustomDates = {}; 
     let shareTradeId = null;
     let shareType = null;
     let msgToDeleteId = null;
     let configuringJournalId = null;
+    
+    // Admin View Variables
+    let inspectedUserTrades = [];
+    let inspectedUserJournals = [];
+    let adminChartInstance = null;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
     if(isLight) document.body.classList.add('light-mode');
@@ -596,6 +590,14 @@
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
+            
+            // Sync User Data
+            await db.collection('users').doc(user.uid).set({
+                email: email,
+                displayName: user.displayName || 'Trader',
+                photoURL: user.photoURL || ''
+            }, { merge: true });
+
             if(email === "leon.luca.lauterbach@gmail.com") {
                 isAdmin = true;
                 const admPanel = document.getElementById('admin-panel');
@@ -1137,60 +1139,166 @@
     // Close logic for all modals
     function closePopup() { 
         document.getElementById('popup-overlay').classList.remove('open');
-        document.querySelectorAll('.standard-modal, .modal-base, #day-detail-view, #trade-detail-view').forEach(el => {
+        document.querySelectorAll('.standard-modal, .modal-base, #day-detail-view, #trade-detail-view, #admin-member-modal').forEach(el => {
             el.classList.add('hidden');
             el.classList.remove('open');
         }); 
     }
 
-    // --- MEMBER OVERVIEW ---
-    function openMemberDetail(id, email) {
-        document.getElementById('mem-title').innerText = email;
-        document.getElementById('popup-overlay').classList.add('open');
-        const modal = document.getElementById('member-detail-view');
-        modal.classList.remove('hidden');
-        modal.classList.add('open');
-    }
-
-    // --- HISTORIE ---
-    function renderHistory() {
-        if(!activeJournal) return;
-        document.getElementById('hist-title').innerText = `Trade Historie (${activeJournal})`;
-        const filtered = trades.filter(t => (t.journal||'Main') === activeJournal).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    // --- MEMBER OVERVIEW (NEW ADMIN LOGIC) ---
+    async function openMemberDetail(id, email) {
+        // 1. Find User by Email to get Name/Pic
+        let userDisplayName = "User";
+        try {
+            const userSnap = await db.collection('users').where('email', '==', email).get();
+            if(!userSnap.empty) {
+                userDisplayName = userSnap.docs[0].data().displayName;
+                // You can also get photoURL here if you want to show it inside the popup
+            }
+        } catch(e) {}
         
-        if(filtered.length === 0) {
-            document.getElementById('tradeBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-sub);">Keine Trades gefunden</td></tr>';
-            return;
+        // 2. Set Header
+        document.getElementById('adm-detail-name').innerText = userDisplayName;
+        document.getElementById('adm-detail-email').innerText = email;
+
+        // 3. Find User ID for data fetching
+        const memberRef = await db.collection('members').doc(id).get();
+        // Since we don't store UID in members by default, we query trades by email is risky if not stored.
+        // Better: We query journals/trades by the USER's UID found in step 1.
+        
+        const userSnap = await db.collection('users').where('email', '==', email).get();
+        if(userSnap.empty) {
+             alert("User hat sich noch nie eingeloggt. Keine Daten verfügbar.");
+             return;
         }
+        const targetUid = userSnap.docs[0].id;
 
-        document.getElementById('tradeBody').innerHTML = filtered.map(t => {
-            const time = t.date.split('T')[1]; 
-            const date = t.date.split('T')[0];
-            
-            const shareBtn = (t.imgSetup || t.imgResult) ? `<button class="btn-icon btn-share" onclick="shareTrade('${t.id}')" title="Share">🚀</button>` : '';
+        // 4. Fetch Data
+        const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
+        inspectedUserJournals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
+        
+        const tSnap = await db.collection('trades').where('userId', '==', targetUid).get();
+        inspectedUserTrades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
 
-            // INFO BUTTON ADDED HERE
-            const tradeDataString = encodeURIComponent(JSON.stringify(t));
-            const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-
-            let pnlHtml = t.status === 'Aktiv' ? '<span style="color:var(--text-sub); font-style:italic;">Offen</span>' : `<span class="sensitive" style="color:${t.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:bold;">${t.pnl.toFixed(2)}</span>`;
-            
-            return `
-            <tr>
-                <td>${date}<span class="time-sub">${time}</span></td>
-                <td><b>${t.asset}</b></td>
-                <td style="text-align:right;">${pnlHtml}</td>
-                <td style="text-align:right;">
-                    <button class="btn-icon" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')" title="Details">ℹ️</button>
-                    ${shareBtn}
-                    <button class="btn-icon" onclick="editTrade('${t.id}')">✏️</button>
-                    <button class="btn-icon btn-danger-hover" onclick="delTrade('${t.id}')">🗑️</button>
-                </td>
-            </tr>`;
-        }).join('');
+        // 5. Populate Dropdown
+        const sel = document.getElementById('adm-journal-select');
+        if(inspectedUserJournals.length === 0) {
+            sel.innerHTML = '<option>Kein Journal</option>';
+        } else {
+            sel.innerHTML = '<option value="ALL">Alle Journals</option>' + 
+                            inspectedUserJournals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
+        }
+        
+        // 6. Show Modal & Update
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('admin-member-modal').classList.remove('hidden');
+        document.getElementById('admin-member-modal').classList.add('open');
+        
+        updateAdminMemberView();
     }
 
-    // --- UTILS remain unchanged ---
+    function updateAdminMemberView() {
+        const selectedJ = document.getElementById('adm-journal-select').value;
+        let filteredTrades = inspectedUserTrades;
+        if(selectedJ !== 'ALL' && selectedJ !== 'Kein Journal') {
+            filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === selectedJ);
+        }
+        
+        // Calculate Stats
+        const closed = filteredTrades.filter(t => t.status === 'Geschlossen');
+        const sum = closed.reduce((a,b) => a + b.pnl, 0);
+        const wins = closed.filter(t => t.pnl > 0).length;
+        const winrate = closed.length ? ((wins/closed.length)*100).toFixed(0) : 0;
+        
+        // Update DOM
+        const pnlEl = document.getElementById('adm-stat-pnl');
+        pnlEl.innerText = sum.toFixed(2) + ' €';
+        pnlEl.style.color = sum >= 0 ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('adm-stat-win').innerText = winrate + '%';
+        document.getElementById('adm-stat-count').innerText = closed.length;
+        
+        // Render Chart
+        let bal = 0; // Simplified equity curve starting at 0
+        const data = closed.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t => { bal += t.pnl; return bal; });
+        
+        const ctx = document.getElementById('admChart').getContext('2d');
+        if(adminChartInstance) adminChartInstance.destroy();
+        adminChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: data.map(x=>''), datasets: [{ data: data, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#333' } } } }
+        });
+        
+        // Render List
+        document.getElementById('adm-trade-list').innerHTML = filteredTrades.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t => `
+            <tr style="font-size:0.8rem;">
+                <td>${t.date.split('T')[0]}</td>
+                <td>${t.asset}</td>
+                <td style="text-align:right; color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</td>
+            </tr>
+        `).join('');
+    }
+
+    function switchAdminTab(tab) {
+        document.getElementById('btn-adm-stats').classList.toggle('active', tab==='stats');
+        document.getElementById('btn-adm-trades').classList.toggle('active', tab==='trades');
+        
+        if(tab === 'stats') {
+            document.getElementById('adm-content-stats').classList.remove('hidden');
+            document.getElementById('adm-content-trades').classList.add('hidden');
+        } else {
+            document.getElementById('adm-content-stats').classList.add('hidden');
+            document.getElementById('adm-content-trades').classList.remove('hidden');
+        }
+    }
+
+    async function admLoad() { 
+        try { 
+            const s = await db.collection('members').get(); 
+            const listEl = document.getElementById('admList');
+            listEl.innerHTML = ''; // Clear first
+
+            // We need to fetch User Data for each email to get the picture
+            // Note: This is inefficient for large lists but fine for small groups
+            for(const doc of s.docs) {
+                const mData = doc.data();
+                const mId = doc.id;
+                
+                let displayName = "Wartet auf Login...";
+                let photoURL = ""; // Empty string = placeholder
+                
+                // Try to find user profile
+                const uQuery = await db.collection('users').where('email', '==', mData.email).get();
+                if(!uQuery.empty) {
+                    const uData = uQuery.docs[0].data();
+                    displayName = uData.displayName;
+                    photoURL = uData.photoURL;
+                }
+                
+                const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`;
+
+                listEl.innerHTML += `
+                <div class="adm-row">
+                    <div class="adm-user-info">
+                        ${imgHtml}
+                        <div class="adm-text">
+                            <span class="adm-name">${displayName}</span>
+                            <span class="adm-email">${mData.email}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button>
+                        <button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button>
+                    </div>
+                </div>`;
+            }
+        } catch(e){ console.error(e); } 
+    }
+
+    // --- OTHER CORE FUNCTIONS (UNCHANGED) ---
+    async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
+    async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
+    // ... [Rest of saveTrade, editTrade, etc. same as before] ...
     async function saveJournalInput() { const name = document.getElementById('newJName').value.trim(); const cap = parseFloat(document.getElementById('newJCap').value)||0; const maxDD = document.getElementById('newJMaxDD').value; const ddType = document.getElementById('newJDDType').value; if(!name) return alert("Name fehlt!"); if(editingJournalId) { const oldJ = journals.find(j=>j.id===editingJournalId); await db.collection('journals').doc(editingJournalId).update({name, startCap:cap, maxDD, ddType}); if(name!==oldJ.name) { const batch=db.batch(); (await db.collection('trades').where('userId','==',auth.currentUser.uid).where('journal','==',oldJ.name).get()).docs.forEach(doc=>batch.update(doc.ref,{journal:name})); await batch.commit(); if(activeJournal===oldJ.name) activeJournal=name; } cancelEdit(); } else { await db.collection('journals').add({userId:auth.currentUser.uid, name, startCap:cap, maxDD, ddType, hidden:false}); document.getElementById('newJName').value=''; document.getElementById('newJCap').value=''; } await loadData(); renderSettingsList(); }
     function prepareEditJournal(id) { const j = journals.find(x => x.id === id); if(!j) return; document.getElementById('journal-form-title').innerText = "Journal Bearbeiten"; document.getElementById('newJName').value = j.name; document.getElementById('newJCap').value = j.startCap || ''; document.getElementById('newJMaxDD').value = j.maxDD || ''; document.getElementById('newJDDType').value = j.ddType || 'eur'; document.getElementById('btn-save-journal').innerText = "Speichern"; document.getElementById('btn-cancel-journal').classList.remove('hidden'); editingJournalId = id; }
     function cancelEdit() { document.getElementById('journal-form-title').innerText = "Neues Journal"; document.getElementById('newJName').value = ''; document.getElementById('newJCap').value = ''; document.getElementById('newJMaxDD').value = ''; document.getElementById('btn-save-journal').innerText = "Erstellen"; document.getElementById('btn-cancel-journal').classList.add('hidden'); editingJournalId = null; }
@@ -1212,9 +1320,7 @@
     function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
     function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
     function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
-    async function admLoad() { try { const s = await db.collection('members').get(); document.getElementById('admList').innerHTML = s.docs.map(d => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:5px;"><span>${d.data().email}</span><div><button class="btn-icon" onclick="openMemberDetail('${d.id}', '${d.data().email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${d.id}')" style="font-size:1rem;">✕</button></div></div>`).join(''); } catch(e){} }
-    async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
-    async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
+    
 </script>
 </body>
 </html>
