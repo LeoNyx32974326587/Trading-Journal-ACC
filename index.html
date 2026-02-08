@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Perfect Sync</title>
+    <title>TradeCloud Pro - Final Notification Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -793,7 +793,7 @@
         // If there are more messages than we last saw, AND we are not currently in the chat view
         if (lastMessageCount > storedChatCount && !isChatActive) {
             area.innerHTML += `
-            <div class="chat-notification" onclick="showView('Chat')">
+            <div id="chat-notify-box" class="chat-notification" onclick="openChatFromNotify()">
                  💬 Neue Nachricht im Community Chat!
             </div>`;
         }
@@ -820,10 +820,13 @@
             });
         }
     }
-
-    async function markFeedbackRead(tradeId) {
-        await db.collection('trades').doc(tradeId).update({ feedbackRead: true });
-        closeTradeDetail(); await loadData(); 
+    
+    function openChatFromNotify() {
+        // Immediately hide visually to give feedback
+        const box = document.getElementById('chat-notify-box');
+        if(box) box.remove();
+        // Go to view
+        showView('Chat');
     }
 
     function setJournalFilter(journalId, timeframe) {
@@ -861,13 +864,14 @@
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
             chatBox.scrollTop = chatBox.scrollHeight;
             
-            // KEY FIX: If active, ALWAYS sync local storage, so we don't get alerts when leaving
-            if (isChatActive) {
-                localStorage.setItem('chatCount', messages.length);
-            }
-
             // Notification Logic via LocalStorage
             lastMessageCount = messages.length;
+            
+            // KEY FIX: Only update storage if chat is active AND we have messages
+            if (isChatActive && lastMessageCount > 0) {
+                localStorage.setItem('chatCount', lastMessageCount);
+            }
+
             if (!isFirstLoad && !isChatActive) {
                 const storedCount = parseInt(localStorage.getItem('chatCount') || '0');
                 if (lastMessageCount > storedCount) {
@@ -1200,7 +1204,6 @@
         }).join('');
     }
 
-    // --- OTHER CORE FUNCTIONS (UNCHANGED) ---
     async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
     async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
