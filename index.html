@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Systems Online</title>
+    <title>TradeCloud Pro - Perfect Sync</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -130,7 +130,6 @@
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
-        /* Special Black Calendar & Detail */
         #day-detail-view, #trade-detail-view, #admin-member-modal, #trade-form-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
         
         #day-detail-view .trades-list-card { background: #151517; border-color: #2c2c2e; }
@@ -766,7 +765,7 @@
             if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
                 const limit = parseFloat(journal.maxDD); let threshold = limit;
                 if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
-                if(totalPnL < -threshold && timeframe === 'HEUTE') warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
+                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
             }
 
             let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
@@ -862,6 +861,11 @@
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
             chatBox.scrollTop = chatBox.scrollHeight;
             
+            // KEY FIX: If active, ALWAYS sync local storage, so we don't get alerts when leaving
+            if (isChatActive) {
+                localStorage.setItem('chatCount', messages.length);
+            }
+
             // Notification Logic via LocalStorage
             lastMessageCount = messages.length;
             if (!isFirstLoad && !isChatActive) {
