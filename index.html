@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Admin Fix</title>
+    <title>TradeCloud Pro - Final Logic Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -1111,7 +1111,7 @@
         if(currentDetailTradeId) {
             const t = trades.find(x => x.id === currentDetailTradeId);
             // Check if it was "unread" (meaning notification was active) or if user is owner
-            if(t && t.adminFeedback && !isAdmin && t.userId === auth.currentUser.uid) {
+            if(t && t.adminFeedback && t.userId === auth.currentUser.uid) {
                  await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: "", feedbackRead: true });
                  await loadData(); // Reload UI to clear notification
             }
