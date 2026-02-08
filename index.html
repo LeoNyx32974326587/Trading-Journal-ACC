@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Edit Popup & Chat Fix</title>
+    <title>TradeCloud Pro - Workflow Final</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -75,12 +75,18 @@
         #user-greeting-name { font-size: 1.2em; color: var(--accent); }
         .greet-container h2 { margin: 0; font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
 
-        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.15), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
-        .fn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        /* NOTIFICATIONS AREA */
+        #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+
+        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.15), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
+        .fn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .fn-title { color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .fn-content { font-size: 0.95rem; margin-bottom: 10px; line-height: 1.4; }
+        .fn-content { font-size: 0.95rem; margin-bottom: 10px; line-height: 1.4; color: #eee; }
         .fn-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
+        .chat-notification { background: rgba(10, 132, 255, 0.15); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+
+        /* Journal Card */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
@@ -195,11 +201,6 @@
         .chat-del-btn:hover { opacity: 1; background: #fff; }
         .msg-wrapper.me .chat-del-btn { left: -25px; }
         .msg-wrapper.other .chat-del-btn { right: -25px; }
-
-        /* NOTIFICATIONS */
-        .chat-notification {
-            background: rgba(10, 132, 255, 0.15); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; gap: 10px; font-weight: bold;
-        }
 
         /* --- UTILS --- */
         .text-green { color: var(--success) !important; }
@@ -437,10 +438,7 @@
             <button onclick="prepareCreateView()" class="btn-primary" style="width:auto; padding: 10px 20px; margin:0; font-size:0.8rem;">+ NEUER TRADE</button>
         </div>
         
-        <div id="feedback-notifications"></div>
-        <div id="chat-notification" class="chat-notification hidden" onclick="showView('Chat')">
-             💬 Neue Nachricht im Community Chat!
-        </div>
+        <div id="dashboard-notification-area"></div>
 
         <div id="dashboard-journals-list"></div>
     </section>
@@ -613,6 +611,7 @@
 
     // Chat Vars
     let isChatActive = false;
+    let hasNewChatMessage = false; // Flag for notification
     let lastMessageCount = 0;
     let isFirstLoad = true;
 
@@ -623,11 +622,27 @@
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
-            await db.collection('users').doc(user.uid).set({ email: email, displayName: user.displayName || 'Trader', photoURL: user.photoURL || '' }, { merge: true });
-            if(email === "leon.luca.lauterbach@gmail.com") { isAdmin = true; const admPanel = document.getElementById('admin-panel'); if(admPanel) { admPanel.classList.remove('hidden'); admLoad(); } finishLogin(user); } 
-            else {
+            await db.collection('users').doc(user.uid).set({
+                email: email,
+                displayName: user.displayName || 'Trader',
+                photoURL: user.photoURL || ''
+            }, { merge: true });
+
+            if(email === "leon.luca.lauterbach@gmail.com") {
+                isAdmin = true;
+                const admPanel = document.getElementById('admin-panel');
+                if(admPanel) { admPanel.classList.remove('hidden'); admLoad(); }
+                finishLogin(user);
+            } else {
                 const memberSnap = await db.collection('members').where('email', '==', email).get();
-                if(!memberSnap.empty) { isAdmin = false; finishLogin(user); } else { alert("Zugriff verweigert!"); auth.signOut(); location.reload(); }
+                if(!memberSnap.empty) {
+                    isAdmin = false;
+                    finishLogin(user);
+                } else {
+                    alert("Zugriff verweigert! Diese E-Mail ist nicht registriert.");
+                    auth.signOut();
+                    location.reload();
+                }
             }
         }
     });
@@ -637,23 +652,33 @@
         const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
         currentUserName = capitalizedName;
         document.getElementById('user-greeting-name').innerText = capitalizedName;
+        
         document.getElementById('auth-overlay').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
         document.getElementById('main-header').classList.remove('hidden');
-        await loadData(); loadChat();
+        
+        await loadData();
+        loadChat();
     }
 
     async function loadData() {
         if(!auth.currentUser) return;
         const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
         journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
-        if(journals.length === 0) { await db.collection('journals').add({userId: auth.currentUser.uid, name: 'Main', startCap: 0, hidden: false}); const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get(); journals = newSnap.docs.map(d => ({id: d.id, ...d.data()})); }
+        if(journals.length === 0) {
+            await db.collection('journals').add({userId: auth.currentUser.uid, name: 'Main', startCap: 0, hidden: false});
+            const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
+            journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
+        }
         if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
         const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
         trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
         populateSelectors();
         renderDashboard(); 
+        
+        // Always try to render history/stats if active
         if(document.getElementById('view-Historie').classList.contains('active')) renderHistory();
+        if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
     }
 
     function populateSelectors() {
@@ -667,8 +692,10 @@
 
     function changeActiveJournal(val) {
         activeJournal = val;
+        // Also update the create selector
         const createSel = document.getElementById('inpJournalSelect');
         if(createSel) createSel.value = activeJournal;
+        
         const activeId = document.querySelector('.view-section.active').id;
         if(activeId === 'view-Kalender') renderCalendar();
         if(activeId === 'view-Historie') renderHistory();
@@ -678,19 +705,21 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
+    // --- DASHBOARD RENDERER (Includes Notifications) ---
     function renderDashboard() {
-        renderFeedbackNotifications();
         const container = document.getElementById('dashboard-journals-list');
         container.innerHTML = '';
         Object.values(chartInstances).forEach(c => c.destroy());
         chartInstances = {};
-        const todayStr = new Date().toDateString();
+        
+        renderNotificationsArea(); // Separate function for clean code
 
         journals.forEach(journal => {
             if(journal.hidden) return;
             const timeframe = journalFilters[journal.id] || 'GESAMT';
             const now = new Date();
             let startDate = null; let endDate = null;
+            
             if(timeframe === 'HEUTE') { startDate = new Date(); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setHours(23,59,59,999); }
             else if(timeframe === 'GESTERN') { startDate = new Date(); startDate.setDate(startDate.getDate()-1); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setDate(endDate.getDate()-1); endDate.setHours(23,59,59,999); }
             else if(timeframe === 'WOCHE') { startDate = new Date(now.getTime() - 7*24*60*60*1000); }
@@ -718,16 +747,9 @@
             const equityCurve = [baseBalance];
             tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
 
-            let todayPnL = 0; closedAll.forEach(t => { if(new Date(t.date).toDateString() === todayStr) todayPnL += t.pnl; });
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
             const canvasId = `chart-${journal.id}`;
-            let warningHtml = '';
-            if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
-                const limit = parseFloat(journal.maxDD); let threshold = limit;
-                if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
-                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
-            }
-
+            
             let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
             if(open.length > 0) {
                 openTradesHtml = open.map(t => {
@@ -739,9 +761,50 @@
             const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
             const filterHtml = filters.map(f => { const activeClass = (timeframe === f) ? 'active' : ''; return `<button class="filter-pill ${activeClass}" onclick="setJournalFilter('${journal.id}', '${f}')">${f}</button>`; }).join('');
 
-            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
+            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div><div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
             setTimeout(() => { const ctx = document.getElementById(canvasId).getContext('2d'); chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); }, 50);
         });
+    }
+
+    function renderNotificationsArea() {
+        const area = document.getElementById('dashboard-notification-area');
+        area.innerHTML = '';
+
+        // 1. Chat Notification
+        if (hasNewChatMessage) {
+            area.innerHTML += `
+            <div class="chat-notification" onclick="showView('Chat')">
+                 💬 Neue Nachricht im Community Chat!
+            </div>`;
+        }
+
+        // 2. Feedback Notifications
+        const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
+        if(unreadFeedbackTrades.length > 0) {
+            unreadFeedbackTrades.forEach(t => {
+                const tradeDataString = encodeURIComponent(JSON.stringify(t));
+                const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
+                area.innerHTML += `
+                    <div class="feedback-notification">
+                        <div class="fn-header">
+                            <div class="fn-title"><span>💬</span> Coach Feedback zu ${t.asset}</div>
+                        </div>
+                        <div class="fn-content">
+                            "${t.adminFeedback.substring(0, 80)}${t.adminFeedback.length > 80 ? '...' : ''}"
+                        </div>
+                        <div class="fn-actions">
+                            <button class="btn-icon" style="border-radius:4px;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button>
+                            <button class="btn-icon" style="border-radius:4px; color:var(--success); border-color:var(--success);" onclick="markFeedbackRead('${t.id}')">✓ Gelesen</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    async function markFeedbackRead(tradeId) {
+        await db.collection('trades').doc(tradeId).update({ feedbackRead: true });
+        closeTradeDetail(); await loadData(); 
     }
 
     function setJournalFilter(journalId, timeframe) {
@@ -774,17 +837,17 @@
 
     function loadChat() {
         db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+            if (snapshot.docChanges().some(change => change.type === 'added')) {
+                 if (!isFirstLoad && !isChatActive) {
+                    hasNewChatMessage = true;
+                    if(document.getElementById('view-Übersicht').classList.contains('active')) renderDashboard();
+                    document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
+                 }
+            }
             const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
             chatBox.scrollTop = chatBox.scrollHeight;
-            
-            if (!isFirstLoad && !isChatActive && messages.length > lastMessageCount) {
-                const notif = document.getElementById('chat-notification');
-                if(notif) notif.classList.remove('hidden');
-                document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
-            }
-            lastMessageCount = messages.length;
             isFirstLoad = false;
         });
     }
@@ -827,7 +890,6 @@
     function closeDeleteModal() { closePopup(); }
 
     function shareTrade(id) {
-        // FIXED SHARE FUNCTION: Passing ID correctly
         shareTradeId = id; shareType = null;
         const trade = trades.find(t => t.id === id);
         if(!trade) return;
@@ -874,24 +936,6 @@
         await db.collection('chat').add({ senderName: currentUserName, senderId: auth.currentUser.uid, type: 'trade', tradeData: tradeCopy, sharedImage: sharedImage, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         closePopup();
         showView('Chat');
-    }
-
-    function renderFeedbackNotifications() {
-        const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
-        const container = document.getElementById('feedback-notifications');
-        container.innerHTML = '';
-        if(unreadFeedbackTrades.length > 0) {
-            unreadFeedbackTrades.forEach(t => {
-                const tradeDataString = encodeURIComponent(JSON.stringify(t));
-                const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-                container.innerHTML += `<div class="feedback-notification"><div class="fn-header"><div class="fn-title"><span>💬</span> Coach Feedback zu ${t.asset}</div></div><div class="fn-content">"${t.adminFeedback.substring(0, 80)}${t.adminFeedback.length > 80 ? '...' : ''}"</div><div class="fn-actions"><button class="btn-icon" style="border-radius:4px;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button><button class="btn-icon" style="border-radius:4px; color:var(--success); border-color:var(--success);" onclick="markFeedbackRead('${t.id}')">✓ Gelesen</button></div></div>`;
-            });
-        }
-    }
-
-    async function markFeedbackRead(tradeId) {
-        await db.collection('trades').doc(tradeId).update({ feedbackRead: true });
-        closeTradeDetail(); await loadData(); 
     }
 
     function openSignalDetail(tradeDataEncoded, imgUrlEncoded) {
@@ -1001,11 +1045,20 @@
         }); 
     }
     
-    function closeTradeDetail() {
+    async function closeTradeDetail() {
         document.getElementById('trade-detail-view').classList.remove('open');
         document.getElementById('trade-detail-view').classList.add('hidden');
         if(document.getElementById('day-detail-view').classList.contains('hidden') && !document.getElementById('admin-member-modal').classList.contains('open')) {
              document.getElementById('popup-overlay').classList.remove('open');
+        }
+        
+        if(currentDetailTradeId) {
+            const t = trades.find(x => x.id === currentDetailTradeId);
+            if(t && t.feedbackRead && t.userId === auth.currentUser.uid) {
+                // If I am the user and I marked it read, clear it from DB
+                 await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: "" });
+                 await loadData();
+            }
         }
     }
     
@@ -1091,7 +1144,6 @@
         else { document.getElementById('adm-content-stats').classList.add('hidden'); document.getElementById('adm-content-trades').classList.remove('hidden'); }
     }
 
-    // --- HISTORY RENDER FIX ---
     function renderHistory() {
         if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
         document.getElementById('hist-title').innerText = `Trade Historie (${activeJournal || 'Alle'})`;
@@ -1109,7 +1161,6 @@
         }).join('');
     }
 
-    // --- OTHER CORE FUNCTIONS ---
     async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
     async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
@@ -1132,6 +1183,7 @@
         if (isChatActive) {
             document.getElementById('chat-notification').classList.add('hidden');
             document.getElementById('btn-Chat').innerHTML = '💬 Chat';
+            hasNewChatMessage = false;
         }
 
         if(v === 'Übersicht') renderDashboard(); 
