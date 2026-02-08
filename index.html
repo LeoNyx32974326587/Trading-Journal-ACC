@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Chat Notify</title>
+    <title>TradeCloud Pro - Stable Release</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -81,22 +81,6 @@
         .fn-title { color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .fn-content { font-size: 0.95rem; margin-bottom: 10px; line-height: 1.4; }
         .fn-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-        /* CHAT NOTIFICATION STYLE */
-        .chat-notification {
-            background: rgba(10, 132, 255, 0.15); 
-            border: 1px solid #0a84ff;
-            color: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            animation: fadeIn 0.5s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-        }
 
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -214,6 +198,11 @@
         .msg-wrapper.me .chat-del-btn { left: -25px; }
         .msg-wrapper.other .chat-del-btn { right: -25px; }
 
+        /* NOTIFICATIONS */
+        .chat-notification {
+            background: rgba(10, 132, 255, 0.15); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; gap: 10px; font-weight: bold;
+        }
+
         /* --- UTILS --- */
         .text-green { color: var(--success) !important; }
         .text-red { color: var(--danger) !important; }
@@ -307,17 +296,14 @@
             <h2 id="adm-detail-name" style="margin:0; font-size:1.5rem;">User</h2>
             <div id="adm-detail-email" style="color:var(--text-sub); font-size:0.9rem;">email@example.com</div>
         </div>
-        
         <div style="padding:0 20px 20px 20px;">
             <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
             <select id="adm-journal-select" onchange="updateAdminMemberView()"></select>
         </div>
-
         <div style="display:flex; border-bottom:1px solid #333;">
             <button class="adm-tab-btn active" onclick="switchAdminTab('stats')" id="btn-adm-stats">📊 Statistik</button>
             <button class="adm-tab-btn" onclick="switchAdminTab('trades')" id="btn-adm-trades">📜 Trade Liste</button>
         </div>
-
         <div id="adm-content-stats" style="padding:20px; overflow-y:auto;">
              <div class="dv-stats-grid">
                 <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
@@ -326,7 +312,6 @@
             </div>
             <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>
         </div>
-
         <div id="adm-content-trades" class="hidden" style="padding:0; overflow-y:auto; flex-grow:1;">
             <table class="hist-table">
                 <thead><tr><th>Date</th><th>Asset</th><th style="text-align:right;">PnL</th><th></th></tr></thead>
@@ -720,7 +705,6 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
-    // --- DASHBOARD ---
     function renderDashboard() {
         renderFeedbackNotifications();
         const container = document.getElementById('dashboard-journals-list');
@@ -783,7 +767,7 @@
             const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
             const filterHtml = filters.map(f => { const activeClass = (timeframe === f) ? 'active' : ''; return `<button class="filter-pill ${activeClass}" onclick="setJournalFilter('${journal.id}', '${f}')">${f}</button>`; }).join('');
 
-            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL > 0 ? '+' : ''}${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
+            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
             setTimeout(() => { const ctx = document.getElementById(canvasId).getContext('2d'); chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); }, 50);
         });
     }
@@ -798,7 +782,126 @@
         if(start && end && configuringJournalId) { journalFilters[configuringJournalId] = 'ZEITRAUM'; journalCustomDates[configuringJournalId] = { start, end }; renderDashboard(); closePopup(); }
     }
 
-    // --- FEEDBACK NOTIFICATIONS ---
+    function renderStatistics() {
+        if(!activeJournal) return;
+        const tradesToAnalyze = trades.filter(t => (t.journal || 'Main') === activeJournal && t.status === 'Geschlossen');
+        const assetMap = {}; tradesToAnalyze.forEach(t => { if(!assetMap[t.asset]) assetMap[t.asset] = 0; assetMap[t.asset] += t.pnl; });
+        const sortedAssets = Object.keys(assetMap).sort((a,b) => assetMap[b] - assetMap[a]); 
+        const daysMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}; tradesToAnalyze.forEach(t => { daysMap[new Date(t.date).getDay()] += t.pnl; });
+        const dayLabels = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        const hourMap = new Array(24).fill(0); tradesToAnalyze.forEach(t => { hourMap[new Date(t.date).getHours()] += t.pnl; });
+        const hourLabels = hourMap.map((_, i) => `${i}:00`);
+        
+        const ctxA = document.getElementById('assetChart').getContext('2d'); if(assetChartInstance) assetChartInstance.destroy();
+        assetChartInstance = new Chart(ctxA, { type: 'bar', data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+        const ctxW = document.getElementById('weekdayChart').getContext('2d'); if(weekdayChartInstance) weekdayChartInstance.destroy();
+        weekdayChartInstance = new Chart(ctxW, { type: 'bar', data: { labels: dayLabels, datasets: [{ label: 'PnL', data: [0,1,2,3,4,5,6].map(d => daysMap[d]), backgroundColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+        const ctxH = document.getElementById('hourChart').getContext('2d'); if(hourChartInstance) hourChartInstance.destroy();
+        hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
+    }
+
+    function loadChat() {
+        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+            const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            if (!isFirstLoad && !isChatActive && messages.length > lastMessageCount) {
+                const notif = document.getElementById('chat-notification');
+                if(notif) notif.classList.remove('hidden');
+                document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
+            }
+            lastMessageCount = messages.length;
+            isFirstLoad = false;
+        });
+    }
+
+    function renderMessage(msg) {
+        const isMe = msg.senderId === auth.currentUser.uid;
+        const time = formatChatTime(msg.timestamp);
+        let content = `<div class="msg-text">${msg.text || ''}</div>`;
+        let delBtn = isAdmin ? `<button class="chat-del-btn" onclick="deleteChatMessage('${msg.id}')">✕</button>` : '';
+        if (msg.type === 'trade' && msg.tradeData) {
+            const t = msg.tradeData;
+            const imgUrl = msg.sharedImage || t.imgSetup;
+            const statusLabel = t.status === 'Aktiv' ? 'OPEN' : 'CLOSED';
+            const color = t.status === 'Aktiv' ? '#0a84ff' : '#8e8e93';
+            const thumb = imgUrl ? `<img src="${imgUrl}" class="ct-img">` : '';
+            let sigHtml = '';
+            if(t.entry || t.sl || t.tp1) {
+                sigHtml = `<div class="signal-grid">`;
+                if(t.entry) sigHtml += `<div class="signal-row"><span class="sig-label">Entry</span><span class="sig-val">${t.entry}</span></div>`;
+                if(t.sl) sigHtml += `<div class="signal-row"><span class="sig-label">SL</span><span class="sig-val text-sl">${t.sl}</span></div>`;
+                sigHtml += `</div>`;
+            }
+            const tradeDataString = encodeURIComponent(JSON.stringify(t));
+            const imgUrlString = encodeURIComponent(imgUrl || '');
+            content = `<div class="chat-trade-card" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')"><div class="ct-header"><span>${t.asset}</span><span style="color:${color}">${statusLabel}</span></div><div style="font-size:0.85rem; color:var(--text-sub);">${t.status === 'Aktiv' ? 'Signal 📡' : 'Result 🏁'}</div>${thumb}${sigHtml}<div class="ct-footer"><span>${t.date.split('T')[0]}</span> <span>Klicken zum Kopieren</span></div></div>`;
+        }
+        return `<div class="msg-wrapper ${isMe ? 'me' : 'other'}"><span class="msg-sender">${isMe ? 'Du' : msg.senderName}</span><div class="msg-bubble">${content}<span class="msg-time">${time}</span>${delBtn}</div></div>`;
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        await db.collection('chat').add({ text: text, senderName: currentUserName, senderId: auth.currentUser.uid, type: 'text', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        input.value = '';
+    }
+    
+    function deleteChatMessage(id) { msgToDeleteId = id; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); }
+    async function confirmDeleteMessage() { if(msgToDeleteId) { await db.collection('chat').doc(msgToDeleteId).delete(); closePopup(); } }
+    function closeDeleteModal() { closePopup(); }
+
+    function shareTrade(id) {
+        const trade = trades.find(t => t.id === id);
+        if(!trade) return;
+        shareTradeId = id; shareType = null;
+        document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected', 'disabled'));
+        if(!trade.imgSetup) document.getElementById('opt-setup').classList.add('disabled');
+        if(!trade.imgResult) document.getElementById('opt-result').classList.add('disabled');
+        const sigDiv = document.getElementById('signal-inputs');
+        if(trade.status === 'Aktiv') {
+            sigDiv.classList.remove('hidden');
+            document.getElementById('sig-entry').value = trade.entry || '';
+            document.getElementById('sig-sl').value = trade.sl || '';
+            document.getElementById('sig-tp1').value = trade.tp1 || '';
+            document.getElementById('sig-tp2').value = trade.tp2 || '';
+            document.getElementById('sig-tp3').value = trade.tp3 || '';
+        } else { sigDiv.classList.add('hidden'); }
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('share-modal').classList.remove('hidden'); document.getElementById('share-modal').classList.add('open'); 
+    }
+    
+    function closeShareModal() { closePopup(); }
+    
+    function selectShareOption(type) {
+        const trade = trades.find(t => t.id === shareTradeId);
+        if(type === 'setup' && !trade.imgSetup) return;
+        if(type === 'result' && !trade.imgResult) return;
+        shareType = type;
+        document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected'));
+        document.getElementById('opt-' + type).classList.add('selected');
+    }
+    
+    async function confirmShare() {
+        if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
+        const trade = trades.find(t => t.id === shareTradeId);
+        const tradeCopy = { ...trade }; delete tradeCopy.pnl; delete tradeCopy.userId; 
+        if(trade.status === 'Aktiv') {
+            tradeCopy.entry = document.getElementById('sig-entry').value;
+            tradeCopy.sl = document.getElementById('sig-sl').value;
+            tradeCopy.tp1 = document.getElementById('sig-tp1').value;
+            tradeCopy.tp2 = document.getElementById('sig-tp2').value;
+            tradeCopy.tp3 = document.getElementById('sig-tp3').value;
+        }
+        const sharedImage = shareType === 'setup' ? trade.imgSetup : trade.imgResult;
+        await db.collection('chat').add({ senderName: currentUserName, senderId: auth.currentUser.uid, type: 'trade', tradeData: tradeCopy, sharedImage: sharedImage, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        closePopup();
+        showView('Chat');
+    }
+
     function renderFeedbackNotifications() {
         const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
         const container = document.getElementById('feedback-notifications');
@@ -817,7 +920,6 @@
         closeTradeDetail(); await loadData(); 
     }
 
-    // --- SIGNAL DETAIL POPUP LOGIC ---
     function openSignalDetail(tradeDataEncoded, imgUrlEncoded) {
         const t = JSON.parse(decodeURIComponent(tradeDataEncoded));
         const imgUrl = decodeURIComponent(imgUrlEncoded);
@@ -1015,6 +1117,7 @@
         else { document.getElementById('adm-content-stats').classList.add('hidden'); document.getElementById('adm-content-trades').classList.remove('hidden'); }
     }
 
+    // --- HISTORY RENDER FIX ---
     function renderHistory() {
         if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
         document.getElementById('hist-title').innerText = `Trade Historie (${activeJournal || 'Alle'})`;
@@ -1032,7 +1135,7 @@
         }).join('');
     }
 
-    // --- OTHER CORE FUNCTIONS ---
+    // --- OTHER CORE FUNCTIONS (UNCHANGED) ---
     async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
     async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
