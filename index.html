@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Sidebar Fixed</title>
+    <title>TradeCloud Pro - Coach Feedback</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -63,8 +63,8 @@
         .nav-drawer button:hover { background: rgba(255,255,255,0.05); }
         .nav-active { border-left: 3px solid var(--accent); background: rgba(187, 134, 252, 0.1) !important; }
         
-        /* SIDEBAR SEPARATOR */
-        .nav-separator { height: 1px; background: var(--border); margin: 10px 0; opacity: 1; display:block; }
+        /* SIDEBAR SEPARATOR (WIEDER DA) */
+        .nav-separator { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 20px; display:block; }
         
         .nav-selector-container { padding: 10px 25px; }
         .nav-selector-label { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
@@ -77,7 +77,7 @@
         
         /* BIG GREETING */
         #user-greeting-name { font-size: 1.2em; color: var(--accent); }
-        .greet-container h2 { margin: 0; font-size: 2.2rem; font-weight: 800; line-height: 1.2; }
+        .greet-container h2 { margin: 0; font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
 
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -155,6 +155,17 @@
         
         .td-note-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; margin-bottom: 20px; font-style: italic; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
         
+        /* COACH FEEDBACK STYLES */
+        .feedback-message {
+            background: rgba(187, 134, 252, 0.1);
+            border: 1px solid var(--accent);
+            color: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .feedback-label { display: block; color: var(--accent); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
+
         .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; margin-top:10px; }
 
@@ -452,7 +463,14 @@
 
             <label>Setup (Bild Link)</label><input type="url" id="imgSetup">
             <label>Notiz</label><textarea id="note" rows="2"></textarea>
+            
             <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"><label>Result (Bild Link)</label><input type="url" id="imgResult"></div>
+            
+            <div id="admin-feedback-container" class="hidden" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+                <label style="color:var(--accent);">👨‍🏫 Coach Feedback (Admin)</label>
+                <textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent);" placeholder="Tipp für den User..."></textarea>
+            </div>
+
             <button onclick="saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
             <button onclick="showView('Übersicht')" style="width:100%; padding:15px; background:none; border:1px solid #333; color:#888; border-radius:8px; margin-top:10px; cursor:pointer;">Abbrechen</button>
         </div>
@@ -751,7 +769,6 @@
                     <div class="card-filters">
                         ${filterHtml}
                     </div>
-
                     ${warningHtml}
                     <div class="jfc-body-grid">
                         <div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div>
@@ -951,7 +968,19 @@
         const t = JSON.parse(decodeURIComponent(tradeDataEncoded));
         const imgUrl = decodeURIComponent(imgUrlEncoded);
         
-        let html = `
+        let html = '';
+        
+        // COACH FEEDBACK (Top Priority)
+        if(t.adminFeedback) {
+            html += `
+                <div class="feedback-message">
+                    <span class="feedback-label">👨‍🏫 Coach Feedback</span>
+                    ${t.adminFeedback}
+                </div>
+            `;
+        }
+
+        html += `
             <div class="td-hero">
                 <span class="td-asset">${t.asset}</span>
                 <span class="td-pnl" style="color:${t.status==='Aktiv'?'#0a84ff':(t.pnl>=0?'#30d158':'#ff453a')}">${t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2)+'€'}</span>
@@ -1171,8 +1200,10 @@
     function showView(v) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active'); document.getElementById('view-title').innerText = v.toUpperCase(); document.getElementById('navDrawer').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open'); document.querySelectorAll('.nav-drawer button').forEach(b => b.classList.remove('nav-active')); const btn = document.getElementById('btn-' + v); if(btn) btn.classList.add('nav-active'); if(v === 'Übersicht') renderDashboard(); if(v === 'Kalender') renderCalendar(); if(v === 'Historie') renderHistory(); if(v === 'Statistik') renderStatistics(); if(v === 'Einstellungen') renderSettingsList(); if(v === 'News') { const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s); } }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); }
     function prepareCreateView() { document.getElementById('editId').value = ""; const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); document.getElementById('datetime').value = now.toISOString().slice(0,16); document.getElementById('assetInput').value = ""; document.getElementById('pnl').value = ""; document.getElementById('note').value = ""; document.getElementById('inpEntry').value = ""; document.getElementById('inpSL').value = ""; document.getElementById('inpTP1').value = ""; document.getElementById('inpTP2').value = ""; document.getElementById('inpTP3').value = ""; if(activeJournal) document.getElementById('inpJournalSelect').value = activeJournal; toggleFormFields(); showView('Trade-erstellen'); }
-    async function saveTrade() { const id = document.getElementById('editId').value; const asset = document.getElementById('assetInput').value.toUpperCase(); if(!asset) return alert("Asset fehlt!"); const data = { userId: auth.currentUser.uid, date: document.getElementById('datetime').value, asset: asset, journal: document.getElementById('inpJournalSelect').value, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value, tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value }; if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data); await loadData(); showView('Übersicht'); }
-    function editTrade(id, closeNow) { const t = trades.find(x => x.id === id); document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date; document.getElementById('assetInput').value = t.asset; document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; document.getElementById('pnl').value = t.pnl; document.getElementById('imgSetup').value = t.imgSetup || ''; document.getElementById('imgResult').value = t.imgResult || ''; document.getElementById('note').value = t.note || ''; document.getElementById('inpEntry').value = t.entry || ''; document.getElementById('inpSL').value = t.sl || ''; document.getElementById('inpTP1').value = t.tp1 || ''; document.getElementById('inpTP2').value = t.tp2 || ''; document.getElementById('inpTP3').value = t.tp3 || ''; toggleFormFields(); showView('Trade-erstellen'); }
+    async function saveTrade() { const id = document.getElementById('editId').value; const asset = document.getElementById('assetInput').value.toUpperCase(); if(!asset) return alert("Asset fehlt!"); const data = { userId: auth.currentUser.uid, date: document.getElementById('datetime').value, asset: asset, journal: document.getElementById('inpJournalSelect').value, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value, tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value, adminFeedback: document.getElementById('inpAdminFeedback').value }; if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data); await loadData(); showView('Übersicht'); }
+    function editTrade(id, closeNow) { const t = trades.find(x => x.id === id); document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date; document.getElementById('assetInput').value = t.asset; document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; document.getElementById('pnl').value = t.pnl; document.getElementById('imgSetup').value = t.imgSetup || ''; document.getElementById('imgResult').value = t.imgResult || ''; document.getElementById('note').value = t.note || ''; document.getElementById('inpEntry').value = t.entry || ''; document.getElementById('inpSL').value = t.sl || ''; document.getElementById('inpTP1').value = t.tp1 || ''; document.getElementById('inpTP2').value = t.tp2 || ''; document.getElementById('inpTP3').value = t.tp3 || ''; 
+    document.getElementById('inpAdminFeedback').value = t.adminFeedback || ''; document.getElementById('admin-feedback-container').classList.toggle('hidden', !isAdmin);
+    toggleFormFields(); showView('Trade-erstellen'); }
     async function delTrade(id) { if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); await loadData(); showView('Historie'); } }
     function toggleFormFields() { const s = document.getElementById('status').value; document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); }
     function togglePrivacy() { privacyMode = !privacyMode; document.documentElement.style.setProperty('--blur', privacyMode ? '5px' : '0px'); }
