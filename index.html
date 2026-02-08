@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Final Fix</title>
+    <title>TradeCloud Pro - Chat Notify</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -75,11 +75,28 @@
         #user-greeting-name { font-size: 1.2em; color: var(--accent); }
         .greet-container h2 { margin: 0; font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
 
+        /* FEEDBACK NOTIFICATION */
         .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.15), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
         .fn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .fn-title { color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .fn-content { font-size: 0.95rem; margin-bottom: 10px; line-height: 1.4; }
         .fn-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        /* CHAT NOTIFICATION STYLE */
+        .chat-notification {
+            background: rgba(10, 132, 255, 0.15); 
+            border: 1px solid #0a84ff;
+            color: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            animation: fadeIn 0.5s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
 
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -95,6 +112,7 @@
         .ot-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .loss-warning { background: rgba(255, 61, 0, 0.15); border-left: 4px solid var(--danger); color: var(--danger); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; margin: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
+        
         .ot-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); margin-left: 8px; vertical-align: middle; }
 
         .card-filters { display: flex; gap: 5px; padding: 10px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -110,12 +128,14 @@
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
+        /* Special Black Calendar & Detail */
         #day-detail-view, #trade-detail-view, #admin-member-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
         
         #day-detail-view .trades-list-card { background: #151517; border-color: #2c2c2e; }
         #day-detail-view .trade-row, #day-detail-view .trade-row-header { border-bottom-color: #2c2c2e; }
         #day-detail-view .tr-date, #day-detail-view .tr-sym, #day-detail-view .dv-stat-val, #day-detail-view .popup-title, #day-detail-view #dv-date-title { color: #ffffff; }
 
+        /* Other Popup Content */
         .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .dv-stat-item { display: flex; flex-direction: column; }
@@ -135,6 +155,7 @@
         .tr-pnl { font-weight: 700; font-size: 0.9rem; text-align: right; min-width: 70px; }
         .tr-arrow { color: #888; margin-left: 10px; font-size: 0.9rem; }
 
+        /* TRADE DETAIL SPECIFICS */
         .td-hero { text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #333; }
         .td-asset { font-size: 1.8rem; font-weight: 800; color: white; display:block; }
         .td-pnl { font-size: 3rem; font-weight: 900; margin-top: 5px; display:block; }
@@ -150,6 +171,7 @@
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; margin-top:10px; }
         .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
 
+        /* ADMIN STYLES */
         .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
         .adm-user-info { display: flex; align-items: center; gap: 10px; }
         .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
@@ -159,6 +181,7 @@
         .adm-tab-btn { flex: 1; padding: 15px; border: none; background: #151517; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; transition:0.2s; }
         .adm-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
 
+        /* --- JOURNAL TABLE --- */
         .hist-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-main); }
         .hist-table th { text-align: left; padding: 15px 10px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-weight: 600; }
         .hist-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-main); }
@@ -166,6 +189,7 @@
         .hist-table tr:last-child td { border-bottom: none; }
         .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
 
+        /* --- CHAT STYLES --- */
         .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; }
@@ -190,6 +214,7 @@
         .msg-wrapper.me .chat-del-btn { left: -25px; }
         .msg-wrapper.other .chat-del-btn { right: -25px; }
 
+        /* --- UTILS --- */
         .text-green { color: var(--success) !important; }
         .text-red { color: var(--danger) !important; }
         .text-tp { color: var(--success); }
@@ -394,6 +419,9 @@
         </div>
         
         <div id="feedback-notifications"></div>
+        <div id="chat-notification" class="chat-notification hidden" onclick="showView('Chat')">
+             💬 Neue Nachricht im Community Chat!
+        </div>
 
         <div id="dashboard-journals-list"></div>
     </section>
@@ -599,6 +627,11 @@
     let adminChartInstance = null;
     let currentDetailTradeId = null;
 
+    // Chat Vars
+    let isChatActive = false;
+    let lastMessageCount = 0;
+    let isFirstLoad = true;
+
     const isLight = localStorage.getItem('tradeTheme') === 'light';
     if(isLight) document.body.classList.add('light-mode');
     document.getElementById('theme-toggle').checked = !isLight;
@@ -606,6 +639,7 @@
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
+            
             await db.collection('users').doc(user.uid).set({
                 email: email,
                 displayName: user.displayName || 'Trader',
@@ -636,9 +670,11 @@
         const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
         currentUserName = capitalizedName;
         document.getElementById('user-greeting-name').innerText = capitalizedName;
+        
         document.getElementById('auth-overlay').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
         document.getElementById('main-header').classList.remove('hidden');
+        
         await loadData();
         loadChat();
     }
@@ -657,6 +693,7 @@
         trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
         populateSelectors();
         renderDashboard(); 
+        
         if(document.getElementById('view-Historie').classList.contains('active')) renderHistory();
     }
 
@@ -673,6 +710,7 @@
         activeJournal = val;
         const createSel = document.getElementById('inpJournalSelect');
         if(createSel) createSel.value = activeJournal;
+        
         const activeId = document.querySelector('.view-section.active').id;
         if(activeId === 'view-Kalender') renderCalendar();
         if(activeId === 'view-Historie') renderHistory();
@@ -682,6 +720,7 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
+    // --- DASHBOARD ---
     function renderDashboard() {
         renderFeedbackNotifications();
         const container = document.getElementById('dashboard-journals-list');
@@ -695,6 +734,7 @@
             const timeframe = journalFilters[journal.id] || 'GESAMT';
             const now = new Date();
             let startDate = null; let endDate = null;
+            
             if(timeframe === 'HEUTE') { startDate = new Date(); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setHours(23,59,59,999); }
             else if(timeframe === 'GESTERN') { startDate = new Date(); startDate.setDate(startDate.getDate()-1); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setDate(endDate.getDate()-1); endDate.setHours(23,59,59,999); }
             else if(timeframe === 'WOCHE') { startDate = new Date(now.getTime() - 7*24*60*60*1000); }
@@ -758,119 +798,7 @@
         if(start && end && configuringJournalId) { journalFilters[configuringJournalId] = 'ZEITRAUM'; journalCustomDates[configuringJournalId] = { start, end }; renderDashboard(); closePopup(); }
     }
 
-    function renderStatistics() {
-        if(!activeJournal) return;
-        const tradesToAnalyze = trades.filter(t => (t.journal || 'Main') === activeJournal && t.status === 'Geschlossen');
-        const assetMap = {}; tradesToAnalyze.forEach(t => { if(!assetMap[t.asset]) assetMap[t.asset] = 0; assetMap[t.asset] += t.pnl; });
-        const sortedAssets = Object.keys(assetMap).sort((a,b) => assetMap[b] - assetMap[a]); 
-        const daysMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}; tradesToAnalyze.forEach(t => { daysMap[new Date(t.date).getDay()] += t.pnl; });
-        const dayLabels = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-        const hourMap = new Array(24).fill(0); tradesToAnalyze.forEach(t => { hourMap[new Date(t.date).getHours()] += t.pnl; });
-        const hourLabels = hourMap.map((_, i) => `${i}:00`);
-        
-        const ctxA = document.getElementById('assetChart').getContext('2d'); if(assetChartInstance) assetChartInstance.destroy();
-        assetChartInstance = new Chart(ctxA, { type: 'bar', data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
-        const ctxW = document.getElementById('weekdayChart').getContext('2d'); if(weekdayChartInstance) weekdayChartInstance.destroy();
-        weekdayChartInstance = new Chart(ctxW, { type: 'bar', data: { labels: dayLabels, datasets: [{ label: 'PnL', data: [0,1,2,3,4,5,6].map(d => daysMap[d]), backgroundColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: [0,1,2,3,4,5,6].map(d => daysMap[d] >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
-        const ctxH = document.getElementById('hourChart').getContext('2d'); if(hourChartInstance) hourChartInstance.destroy();
-        hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
-    }
-
-    function loadChat() {
-        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
-            window.onfocus = () => { document.title = "TradeCloud Pro"; };
-            const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
-            const chatBox = document.getElementById('chat-messages');
-            chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-    }
-
-    function renderMessage(msg) {
-        const isMe = msg.senderId === auth.currentUser.uid;
-        const time = formatChatTime(msg.timestamp);
-        let content = `<div class="msg-text">${msg.text || ''}</div>`;
-        let delBtn = isAdmin ? `<button class="chat-del-btn" onclick="deleteChatMessage('${msg.id}')">✕</button>` : '';
-        if (msg.type === 'trade' && msg.tradeData) {
-            const t = msg.tradeData;
-            const imgUrl = msg.sharedImage || t.imgSetup;
-            const statusLabel = t.status === 'Aktiv' ? 'OPEN' : 'CLOSED';
-            const color = t.status === 'Aktiv' ? '#0a84ff' : '#8e8e93';
-            const thumb = imgUrl ? `<img src="${imgUrl}" class="ct-img">` : '';
-            let sigHtml = '';
-            if(t.entry || t.sl || t.tp1) {
-                sigHtml = `<div class="signal-grid">`;
-                if(t.entry) sigHtml += `<div class="signal-row"><span class="sig-label">Entry</span><span class="sig-val">${t.entry}</span></div>`;
-                if(t.sl) sigHtml += `<div class="signal-row"><span class="sig-label">SL</span><span class="sig-val text-sl">${t.sl}</span></div>`;
-                sigHtml += `</div>`;
-            }
-            const tradeDataString = encodeURIComponent(JSON.stringify(t));
-            const imgUrlString = encodeURIComponent(imgUrl || '');
-            content = `<div class="chat-trade-card" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')"><div class="ct-header"><span>${t.asset}</span><span style="color:${color}">${statusLabel}</span></div><div style="font-size:0.85rem; color:var(--text-sub);">${t.status === 'Aktiv' ? 'Signal 📡' : 'Result 🏁'}</div>${thumb}${sigHtml}<div class="ct-footer"><span>${t.date.split('T')[0]}</span> <span>Klicken zum Kopieren</span></div></div>`;
-        }
-        return `<div class="msg-wrapper ${isMe ? 'me' : 'other'}"><span class="msg-sender">${isMe ? 'Du' : msg.senderName}</span><div class="msg-bubble">${content}<span class="msg-time">${time}</span>${delBtn}</div></div>`;
-    }
-
-    async function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-        await db.collection('chat').add({ text: text, senderName: currentUserName, senderId: auth.currentUser.uid, type: 'text', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-        input.value = '';
-    }
-    
-    function deleteChatMessage(id) { msgToDeleteId = id; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); }
-    async function confirmDeleteMessage() { if(msgToDeleteId) { await db.collection('chat').doc(msgToDeleteId).delete(); closePopup(); } }
-    function closeDeleteModal() { closePopup(); }
-
-    function shareTrade(id) {
-        const trade = trades.find(t => t.id === id);
-        if(!trade) return;
-        shareTradeId = id; shareType = null;
-        document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected', 'disabled'));
-        if(!trade.imgSetup) document.getElementById('opt-setup').classList.add('disabled');
-        if(!trade.imgResult) document.getElementById('opt-result').classList.add('disabled');
-        const sigDiv = document.getElementById('signal-inputs');
-        if(trade.status === 'Aktiv') {
-            sigDiv.classList.remove('hidden');
-            document.getElementById('sig-entry').value = trade.entry || '';
-            document.getElementById('sig-sl').value = trade.sl || '';
-            document.getElementById('sig-tp1').value = trade.tp1 || '';
-            document.getElementById('sig-tp2').value = trade.tp2 || '';
-            document.getElementById('sig-tp3').value = trade.tp3 || '';
-        } else { sigDiv.classList.add('hidden'); }
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('share-modal').classList.remove('hidden'); document.getElementById('share-modal').classList.add('open'); 
-    }
-    
-    function closeShareModal() { closePopup(); }
-    
-    function selectShareOption(type) {
-        const trade = trades.find(t => t.id === shareTradeId);
-        if(type === 'setup' && !trade.imgSetup) return;
-        if(type === 'result' && !trade.imgResult) return;
-        shareType = type;
-        document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected'));
-        document.getElementById('opt-' + type).classList.add('selected');
-    }
-    
-    async function confirmShare() {
-        if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
-        const trade = trades.find(t => t.id === shareTradeId);
-        const tradeCopy = { ...trade }; delete tradeCopy.pnl; delete tradeCopy.userId; 
-        if(trade.status === 'Aktiv') {
-            tradeCopy.entry = document.getElementById('sig-entry').value;
-            tradeCopy.sl = document.getElementById('sig-sl').value;
-            tradeCopy.tp1 = document.getElementById('sig-tp1').value;
-            tradeCopy.tp2 = document.getElementById('sig-tp2').value;
-            tradeCopy.tp3 = document.getElementById('sig-tp3').value;
-        }
-        const sharedImage = shareType === 'setup' ? trade.imgSetup : trade.imgResult;
-        await db.collection('chat').add({ senderName: currentUserName, senderId: auth.currentUser.uid, type: 'trade', tradeData: tradeCopy, sharedImage: sharedImage, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-        closePopup();
-        showView('Chat');
-    }
-
+    // --- FEEDBACK NOTIFICATIONS ---
     function renderFeedbackNotifications() {
         const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
         const container = document.getElementById('feedback-notifications');
@@ -889,6 +817,7 @@
         closeTradeDetail(); await loadData(); 
     }
 
+    // --- SIGNAL DETAIL POPUP LOGIC ---
     function openSignalDetail(tradeDataEncoded, imgUrlEncoded) {
         const t = JSON.parse(decodeURIComponent(tradeDataEncoded));
         const imgUrl = decodeURIComponent(imgUrlEncoded);
@@ -1053,7 +982,6 @@
         const selectedJ = document.getElementById('adm-journal-select').value;
         let filteredTrades = inspectedUserTrades;
         if(selectedJ && inspectedUserJournals.length > 0) {
-             // If a specific journal is selected, or default to first if none selected but available
              const target = selectedJ && selectedJ !== 'Kein Journal' ? selectedJ : inspectedUserJournals[0].name;
              filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === target);
         }
@@ -1087,7 +1015,6 @@
         else { document.getElementById('adm-content-stats').classList.add('hidden'); document.getElementById('adm-content-trades').classList.remove('hidden'); }
     }
 
-    // --- HISTORY RENDER FIX ---
     function renderHistory() {
         if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
         document.getElementById('hist-title').innerText = `Trade Historie (${activeJournal || 'Alle'})`;
@@ -1115,7 +1042,29 @@
     async function toggleJournalVisibility(id, currentHidden) { await db.collection('journals').doc(id).update({ hidden: !currentHidden }); await loadData(); renderSettingsList(); }
     async function deleteJournal(id, name) { if(!confirm(`Warnung: Journal '${name}' und ALLE Trades löschen?`)) return; await db.collection('journals').doc(id).delete(); const batch = db.batch(); const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', name).get(); tQuery.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); if(activeJournal === name) activeJournal = null; await loadData(); renderSettingsList(); }
     function renderSettingsList() { document.getElementById('settings-journal-list').innerHTML = journals.map(j => { const isHidden = j.hidden === true; const opacity = isHidden ? '0.5' : '1'; const eye = isHidden ? '🙈' : '👁️'; return `<div class="settings-list-item" style="opacity:${opacity}"><div><strong>${j.name}</strong> <small style="color:var(--text-sub)">${j.startCap ? j.startCap+'€' : ''}</small></div><div><button class="btn-small" onclick="toggleJournalVisibility('${j.id}', ${isHidden})">${eye}</button><button class="btn-small" onclick="prepareEditJournal('${j.id}')">✎</button><button class="btn-small btn-danger-hover" onclick="deleteJournal('${j.id}', '${j.name}')">🗑</button></div></div>`; }).join(''); }
-    function showView(v) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active'); document.getElementById('view-title').innerText = v.toUpperCase(); document.getElementById('navDrawer').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open'); document.querySelectorAll('.nav-drawer button').forEach(b => b.classList.remove('nav-active')); const btn = document.getElementById('btn-' + v); if(btn) btn.classList.add('nav-active'); if(v === 'Übersicht') renderDashboard(); if(v === 'Kalender') renderCalendar(); if(v === 'Historie') renderHistory(); if(v === 'Statistik') renderStatistics(); if(v === 'Einstellungen') renderSettingsList(); if(v === 'News') { const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s); } }
+    function showView(v) { 
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); 
+        document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active'); 
+        document.getElementById('view-title').innerText = v.toUpperCase(); 
+        document.getElementById('navDrawer').classList.remove('open'); 
+        document.getElementById('menu-overlay').classList.remove('open'); 
+        document.querySelectorAll('.nav-drawer button').forEach(b => b.classList.remove('nav-active')); 
+        const btn = document.getElementById('btn-' + v); if(btn) btn.classList.add('nav-active'); 
+        
+        // CHAT NOTIFY LOGIC
+        isChatActive = (v === 'Chat');
+        if (isChatActive) {
+            document.getElementById('chat-notification').classList.add('hidden');
+            document.getElementById('btn-Chat').innerHTML = '💬 Chat';
+        }
+
+        if(v === 'Übersicht') renderDashboard(); 
+        if(v === 'Kalender') renderCalendar(); 
+        if(v === 'Historie') renderHistory(); 
+        if(v === 'Statistik') renderStatistics(); 
+        if(v === 'Einstellungen') renderSettingsList(); 
+        if(v === 'News') { const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s); } 
+    }
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); }
     function prepareCreateView() { document.getElementById('editId').value = ""; const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); document.getElementById('datetime').value = now.toISOString().slice(0,16); document.getElementById('assetInput').value = ""; document.getElementById('pnl').value = ""; document.getElementById('note').value = ""; document.getElementById('inpEntry').value = ""; document.getElementById('inpSL').value = ""; document.getElementById('inpTP1').value = ""; document.getElementById('inpTP2').value = ""; document.getElementById('inpTP3').value = ""; if(activeJournal) document.getElementById('inpJournalSelect').value = activeJournal; toggleFormFields(); showView('Trade-erstellen'); }
     async function saveTrade() { const id = document.getElementById('editId').value; const asset = document.getElementById('assetInput').value.toUpperCase(); if(!asset) return alert("Asset fehlt!"); const data = { userId: auth.currentUser.uid, date: document.getElementById('datetime').value, asset: asset, journal: document.getElementById('inpJournalSelect').value, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value, tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value, adminFeedback: document.getElementById('inpAdminFeedback').value }; if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data); await loadData(); showView('Übersicht'); }
@@ -1130,6 +1079,26 @@
     function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
     function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
     function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
+    
+    // --- CHAT LISTEN ---
+    function loadChat() {
+        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+            const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Notification Logic
+            if (!isFirstLoad && !isChatActive && messages.length > lastMessageCount) {
+                const notif = document.getElementById('chat-notification');
+                if(notif) notif.classList.remove('hidden');
+                document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
+            }
+            lastMessageCount = messages.length;
+            isFirstLoad = false;
+        });
+    }
+
 </script>
 </body>
 </html>
