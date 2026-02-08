@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Clean Chart</title>
+    <title>TradeCloud Pro - OCR & Chart</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -11,7 +11,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
     <style>
         /* --- THEMES & COLORS --- */
@@ -264,6 +264,9 @@
         @media (max-width: 600px) {
             .input-row-2, .input-row-3 { grid-template-columns: 1fr; gap:0; }
         }
+        
+        /* OCR Loader */
+        #ocr-status { font-size: 0.8rem; color: var(--accent); margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
@@ -315,8 +318,14 @@
                 <div><label>TP 3</label><input type="number" id="inpTP3" step="any"></div>
             </div>
 
-            <label>Setup (Bild Link)</label><input type="url" id="imgSetup">
-            <label>Notiz</label><textarea id="note" rows="2"></textarea>
+            <label>Setup (Bild Link)</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="url" id="imgSetup" style="margin-bottom: 0;">
+                <button class="btn-primary" onclick="analyzeSetupImage()" style="width: auto; padding: 0 15px;" title="Bild analysieren">🪄</button>
+            </div>
+            <div id="ocr-status">Lese Bild...</div>
+
+            <label style="margin-top: 12px; display:block;">Notiz</label><textarea id="note" rows="2"></textarea>
             
             <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"><label>Result (Bild Link)</label><input type="url" id="imgResult"></div>
             
@@ -478,7 +487,7 @@
     </section>
 
     <section id="view-TradingView" class="view-section" style="height: calc(100vh - 70px);">
-         <div id="tradingview_chart" style="height:100%; width:100%; border-radius: 12px; overflow: hidden;"></div>
+         <iframe id="tv-frame" src="https://tradingview.tradequomarkets.com/" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
     </section>
 
     <section id="view-Kalender" class="view-section">
@@ -727,7 +736,12 @@
         if(activeId === 'view-Historie') renderHistory();
         if(activeId === 'view-Statistik') renderStatistics();
         if(activeId === 'view-Übersicht') renderDashboard();
-        if(activeId === 'view-TradingView') setTimeout(renderTradingViewWidget, 50);
+        if(activeId === 'view-TradingView') {
+            const theme = document.body.classList.contains('light-mode') ? "light" : "dark";
+            // Use TradeQuo embed URL dynamically based on theme if supported, or fallback
+            // Note: TradeQuo might not support dynamic theme param in URL, defaulting to their standard
+            document.getElementById('tv-frame').src = "https://tradingview.tradequomarkets.com/";
+        }
         document.getElementById('navDrawer').classList.remove('open');
         document.getElementById('menu-overlay').classList.remove('open');
     }
@@ -1039,26 +1053,64 @@
         }
     }
     
-    function renderTradingViewWidget() {
-        const container = document.getElementById('tradingview_chart');
-        if(!container) return;
-        container.innerHTML = ''; // Clear previous
-        
-        if (typeof TradingView !== 'undefined') {
-             new TradingView.widget({
-                "autosize": true,
-                "symbol": "FX:EURUSD",
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": document.body.classList.contains('light-mode') ? "light" : "dark",
-                "style": "1",
-                "locale": "de_DE",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "hide_side_toolbar": false, // Toolbar enabled for drawing
-                "save_image": false,
-                "container_id": "tradingview_chart"
+    // --- OCR FUNCTIONALITY ---
+    async function analyzeSetupImage() {
+        const url = document.getElementById('imgSetup').value.trim();
+        if(!url) return alert("Bitte erst einen Bild-Link einfügen!");
+
+        const status = document.getElementById('ocr-status');
+        status.style.display = 'block';
+        status.innerText = "Lade Bild über Proxy...";
+
+        try {
+            // Use CORS proxy to fetch image data
+            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+            const response = await fetch(proxyUrl);
+            const blob = await response.blob();
+
+            status.innerText = "Erkenne Text (Tesseract)...";
+            
+            const worker = await Tesseract.createWorker('deu');
+            const ret = await worker.recognize(blob);
+            await worker.terminate();
+            
+            const text = ret.data.text;
+            console.log("OCR Result:", text);
+            
+            status.innerText = "Text analysiert! Fülle Felder...";
+            
+            // Simple Parsing Logic (Experimental)
+            const lines = text.split('\n');
+            
+            // 1. Try to find Asset (e.g. EURUSD, BTCUSD)
+            const assetMatch = text.match(/([A-Z]{3}[A-Z]{3})/);
+            if(assetMatch) document.getElementById('assetInput').value = assetMatch[1];
+
+            // 2. Try to find numbers for prices
+            // This is tricky, we look for keywords line by line
+            lines.forEach(line => {
+                const lower = line.toLowerCase();
+                // Extract number from line
+                const numMatch = line.match(/(\d+\.\d{2,5})/);
+                if(numMatch) {
+                    const val = numMatch[1];
+                    if(lower.includes('stop') || lower.includes('sl') || lower.includes('loss')) {
+                        document.getElementById('inpSL').value = val;
+                    }
+                    if(lower.includes('profit') || lower.includes('tp') || lower.includes('target')) {
+                        document.getElementById('inpTP1').value = val;
+                    }
+                    if(lower.includes('entry') || lower.includes('price') || lower.includes('open')) {
+                        document.getElementById('inpEntry').value = val;
+                    }
+                }
             });
+            
+            setTimeout(() => { status.style.display = 'none'; }, 2000);
+
+        } catch (e) {
+            console.error(e);
+            status.innerText = "Fehler: Konnte Bild nicht lesen (CORS/Format).";
         }
     }
 
