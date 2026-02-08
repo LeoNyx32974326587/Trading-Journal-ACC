@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Ultimate Admin</title>
+    <title>TradeCloud Pro - Fixed V2</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -159,10 +159,8 @@
         .td-val { color: white; font-size: 1.1rem; font-weight: 600; }
         .copy-icon { cursor: pointer; font-size: 0.9rem; margin-left: 8px; color: var(--accent); background:none; border:none; padding:5px; }
         .td-note-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; margin-bottom: 20px; font-style: italic; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
-        
         .feedback-message { background: rgba(187, 134, 252, 0.1); border: 1px solid var(--accent); color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
         .feedback-label { display: block; color: var(--accent); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
-        
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; margin-top:10px; }
         .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
 
@@ -284,7 +282,8 @@
             <div style="font-weight:700; font-size:1.1rem; color:#ffffff;">Trade Details</div>
             <div style="width:40px;"></div>
         </div>
-        <div id="td-content"></div>
+        <div id="td-content">
+            </div>
         
         <div id="adm-feedback-input-area" class="hidden" style="padding:20px; border-top:1px solid #333; margin-top:20px; background:#151517;">
             <label style="color:var(--accent); font-weight:bold; display:block; margin-bottom:8px;">👨‍🏫 Feedback senden:</label>
@@ -486,6 +485,11 @@
             <label>Notiz</label><textarea id="note" rows="2"></textarea>
             
             <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"><label>Result (Bild Link)</label><input type="url" id="imgResult"></div>
+            
+            <div id="admin-feedback-container" class="hidden" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+                <label style="color:var(--accent);">👨‍🏫 Coach Feedback (Admin)</label>
+                <textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent);" placeholder="Tipp für den User..."></textarea>
+            </div>
 
             <button onclick="saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
             <button onclick="showView('Übersicht')" style="width:100%; padding:15px; background:none; border:1px solid #333; color:#888; border-radius:8px; margin-top:10px; cursor:pointer;">Abbrechen</button>
@@ -605,11 +609,10 @@
     let msgToDeleteId = null;
     let configuringJournalId = null;
     
+    // Admin View Variables
     let inspectedUserTrades = [];
     let inspectedUserJournals = [];
     let adminChartInstance = null;
-    
-    // Tracks current context for detail view
     let currentDetailTradeId = null;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
@@ -619,6 +622,8 @@
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
+            
+            // Sync User Data for Admin
             await db.collection('users').doc(user.uid).set({
                 email: email,
                 displayName: user.displayName || 'Trader',
@@ -810,8 +815,8 @@
                             "${t.adminFeedback.substring(0, 80)}${t.adminFeedback.length > 80 ? '...' : ''}"
                         </div>
                         <div class="fn-actions">
-                            <button class="btn-small" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button>
-                            <button class="btn-small" onclick="markFeedbackRead('${t.id}')">✓ Gelesen</button>
+                            <button class="btn-icon" style="border-radius:4px;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button>
+                            <button class="btn-icon" style="border-radius:4px; color:var(--success); border-color:var(--success);" onclick="markFeedbackRead('${t.id}')">✓ Gelesen</button>
                         </div>
                     </div>
                 `;
@@ -917,7 +922,6 @@
             });
             alert("Feedback gesendet!");
             closeTradeDetail();
-            // Optional: Refresh admin view if open
         }
     }
 
@@ -968,7 +972,7 @@
 
         const sel = document.getElementById('adm-journal-select');
         if(inspectedUserJournals.length === 0) { sel.innerHTML = '<option>Kein Journal</option>'; } 
-        else { sel.innerHTML = '<option value="ALL">Alle Journals</option>' + inspectedUserJournals.map(j => `<option value="${j.name}">${j.name}</option>`).join(''); }
+        else { sel.innerHTML = inspectedUserJournals.map(j => `<option value="${j.name}">${j.name}</option>`).join(''); }
         
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('admin-member-modal').classList.remove('hidden');
@@ -980,8 +984,9 @@
     function updateAdminMemberView() {
         const selectedJ = document.getElementById('adm-journal-select').value;
         let filteredTrades = inspectedUserTrades;
-        if(selectedJ !== 'ALL' && selectedJ !== 'Kein Journal') {
-            filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === selectedJ);
+        // Strict filter: only show trades for the exact selected journal name
+        if(selectedJ) {
+             filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === selectedJ);
         }
         
         const closed = filteredTrades.filter(t => t.status === 'Geschlossen');
@@ -1008,7 +1013,7 @@
                 <td>${t.date.split('T')[0]}</td>
                 <td>${t.asset}</td>
                 <td style="text-align:right; color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</td>
-                <td style="text-align:right;"><button class="btn-icon" style="padding:2px 6px; font-size:0.8rem;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button></td>
+                <td style="text-align:right;"><button class="btn-icon" style="padding:4px 8px; font-size:1rem;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button></td>
             </tr>`;
         }).join('');
     }
@@ -1090,100 +1095,6 @@
     function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
     function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
     function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
-    
-    // --- CALENDAR LOGIC (Special Design Applied Here) ---
-    function changeCalMonth(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
-    function renderCalendar() {
-        if(!activeJournal) return;
-        document.getElementById('cal-filter-hint').innerText = `Journal: ${activeJournal}`;
-        const y = calDate.getFullYear(), m = calDate.getMonth();
-        document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-        const grid = document.getElementById('cal-days-grid'); grid.innerHTML = "";
-        const filtered = trades.filter(t => (t.journal || 'Main') === activeJournal);
-        const firstDay = new Date(y, m, 1).getDay(), lastDay = new Date(y, m + 1, 0).getDate();
-        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell" style="opacity:0; cursor:default;"></div>`;
-        for(let d=1; d<=lastDay; d++) {
-            const dateStr = new Date(y, m, d).toDateString();
-            const dayTrades = filtered.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
-            let sum = 0, count = dayTrades.length; dayTrades.forEach(t => sum += t.pnl);
-            let cellClass = 'cal-cell';
-            if(count > 0) { if(sum > 0) cellClass += ' win'; else if(sum < 0) cellClass += ' loss'; }
-            let html = `<div class="cal-date">${d}</div>`;
-            if(count > 0) { html += `<div class="cal-pnl sensitive ${sum>=0?'text-green':'text-red'}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`; }
-            grid.innerHTML += `<div class="${cellClass}" ${count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
-        }
-    }
-
-    function openDayDetail(dateStr) {
-        // 1. Prepare Data
-        const d = new Date(dateStr);
-        document.getElementById('dv-date-title').innerText = d.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-        const dayTrades = trades.filter(t => {
-            if((t.journal || 'Main') !== activeJournal) return false;
-            return t.status === 'Geschlossen' && new Date(t.date).toDateString() === d.toDateString();
-        }).sort((a,b)=> new Date(a.date)-new Date(b.date));
-        
-        let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
-        const wins = dayTrades.filter(t=>t.pnl>0).length;
-        const grossLoss = Math.abs(dayTrades.filter(t=>t.pnl<0).reduce((a,b)=>a+b.pnl,0));
-        const pf = grossLoss===0 ? (wins>0?99:0) : (dayTrades.filter(t=>t.pnl>0).reduce((a,b)=>a+b.pnl,0)/grossLoss);
-        
-        // 2. Fill Stats
-        const pnlEl = document.getElementById('dv-pnl');
-        pnlEl.innerText = (sum<0?'-':'+') + '€' + Math.abs(sum).toFixed(2);
-        pnlEl.className = `dv-stat-val sensitive ${sum>=0?'text-green':'text-red'}`;
-        document.getElementById('dv-winrate').innerText = dayTrades.length ? ((wins/dayTrades.length)*100).toFixed(0)+'%' : '0%';
-        document.getElementById('dv-pf').innerText = pf.toFixed(2);
-        document.getElementById('dv-count').innerText = dayTrades.length;
-
-        // 3. Fill List (Special Design)
-        document.getElementById('dv-list').innerHTML = dayTrades.map(t => {
-            const time = t.date.split('T')[1].slice(0,5);
-            const dateShort = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-            const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
-            const arrow = t.pnl >= 0 ? '↗' : '↘';
-            const arrowClass = t.pnl >= 0 ? 'text-green' : 'text-red';
-            
-            // Pass trade data to open detail on click
-            const tradeDataString = encodeURIComponent(JSON.stringify(t));
-            const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-
-            return `
-            <div class="trade-row" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">
-                <div class="tr-icon ${arrowClass}">${arrow}</div>
-                <div class="tr-date-col">
-                    <span class="tr-date">${dateShort}</span>
-                    <span class="tr-time">${time}</span>
-                </div>
-                <div class="tr-sym">${t.asset}</div>
-                <div class="tr-pnl sensitive ${pnlClass}">${t.pnl.toFixed(2)}</div>
-                <div class="tr-arrow">›</div>
-            </div>`;
-        }).join('');
-
-        // 4. Open Modal FIRST
-        document.getElementById('popup-overlay').classList.add('open');
-        const container = document.getElementById('day-detail-view');
-        container.classList.remove('hidden'); // Ensure visible
-        
-        // 5. Draw Chart
-        const ctx = document.getElementById('dayChart').getContext('2d'); 
-        if(dayChart) dayChart.destroy();
-        let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
-        dayChart = new Chart(ctx, { 
-            type:'line', 
-            data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff453a', borderWidth: 2, fill: true, backgroundColor: sum >= 0 ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 69, 58, 0.1)', tension: 0.1, pointRadius: 0 }] }, 
-            options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#333'}}} } 
-        });
-    }
-
-    function closePopup() { 
-        document.getElementById('popup-overlay').classList.remove('open');
-        document.querySelectorAll('.standard-modal, .modal-base, #day-detail-view, #trade-detail-view, #admin-member-modal').forEach(el => {
-            el.classList.add('hidden');
-            el.classList.remove('open');
-        }); 
-    }
 </script>
 </body>
 </html>
