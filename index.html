@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Workflow Final</title>
+    <title>TradeCloud Pro - Final Workflow</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -75,18 +75,31 @@
         #user-greeting-name { font-size: 1.2em; color: var(--accent); }
         .greet-container h2 { margin: 0; font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
 
-        /* NOTIFICATIONS AREA */
-        #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+        /* NOTIFICATIONS */
+        #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
 
-        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.15), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
+        .feedback-notification { 
+            background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); 
+            border: 1px solid var(--accent); 
+            border-radius: 12px; 
+            padding: 15px; 
+            display: flex; flex-direction: column; 
+            animation: fadeIn 0.5s; 
+        }
         .fn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .fn-title { color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .fn-content { font-size: 0.95rem; margin-bottom: 10px; line-height: 1.4; color: #eee; }
-        .fn-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .fn-content { font-size: 0.95rem; margin-bottom: 12px; line-height: 1.4; color: #eee; font-style: italic; }
+        
+        .chat-notification { 
+            background: rgba(10, 132, 255, 0.2); 
+            border: 1px solid #0a84ff; 
+            color: #fff; padding: 15px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            animation: fadeIn 0.5s; 
+            display: flex; align-items: center; gap: 10px; font-weight: bold; 
+        }
 
-        .chat-notification { background: rgba(10, 132, 255, 0.15); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-
-        /* Journal Card */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
@@ -412,7 +425,7 @@
     <div style="text-align:right; padding:10px 20px;"><button class="btn-icon" onclick="toggleMenu()" style="border:none;background:none;font-size:1.5rem;color:var(--text-sub);">✕</button></div>
     <button onclick="showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
     <button onclick="prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
-    <button onclick="showView('Chat')" id="btn-Chat" style="color:#0a84ff;">💬 Chat</button>
+    <button onclick="showView('Chat')" id="btn-Chat">💬 Chat</button>
     <div class="nav-separator"></div>
     <div class="nav-selector-container">
         <label class="nav-selector-label">AKTUELLES JOURNAL ⌄</label>
@@ -604,6 +617,7 @@
     let msgToDeleteId = null;
     let configuringJournalId = null;
     
+    // Admin View Variables
     let inspectedUserTrades = [];
     let inspectedUserJournals = [];
     let adminChartInstance = null;
@@ -611,8 +625,6 @@
 
     // Chat Vars
     let isChatActive = false;
-    let hasNewChatMessage = false; // Flag for notification
-    let lastMessageCount = 0;
     let isFirstLoad = true;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
@@ -676,7 +688,7 @@
         populateSelectors();
         renderDashboard(); 
         
-        // Always try to render history/stats if active
+        // Always try to render history if active
         if(document.getElementById('view-Historie').classList.contains('active')) renderHistory();
         if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
     }
@@ -707,12 +719,12 @@
 
     // --- DASHBOARD RENDERER (Includes Notifications) ---
     function renderDashboard() {
+        renderNotificationsArea(); // Separate function for clean code
         const container = document.getElementById('dashboard-journals-list');
         container.innerHTML = '';
         Object.values(chartInstances).forEach(c => c.destroy());
         chartInstances = {};
-        
-        renderNotificationsArea(); // Separate function for clean code
+        const todayStr = new Date().toDateString();
 
         journals.forEach(journal => {
             if(journal.hidden) return;
@@ -747,9 +759,16 @@
             const equityCurve = [baseBalance];
             tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
 
+            let todayPnL = 0; closedAll.forEach(t => { if(new Date(t.date).toDateString() === todayStr) todayPnL += t.pnl; });
             const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
             const canvasId = `chart-${journal.id}`;
-            
+            let warningHtml = '';
+            if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
+                const limit = parseFloat(journal.maxDD); let threshold = limit;
+                if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
+                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
+            }
+
             let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
             if(open.length > 0) {
                 openTradesHtml = open.map(t => {
@@ -761,7 +780,7 @@
             const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
             const filterHtml = filters.map(f => { const activeClass = (timeframe === f) ? 'active' : ''; return `<button class="filter-pill ${activeClass}" onclick="setJournalFilter('${journal.id}', '${f}')">${f}</button>`; }).join('');
 
-            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div><div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
+            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
             setTimeout(() => { const ctx = document.getElementById(canvasId).getContext('2d'); chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); }, 50);
         });
     }
@@ -771,7 +790,9 @@
         area.innerHTML = '';
 
         // 1. Chat Notification
-        if (hasNewChatMessage) {
+        const storedChatCount = parseInt(localStorage.getItem('chatCount') || '0');
+        // If there are more messages than we last saw, AND we are not currently in the chat view
+        if (lastMessageCount > storedChatCount && !isChatActive) {
             area.innerHTML += `
             <div class="chat-notification" onclick="showView('Chat')">
                  💬 Neue Nachricht im Community Chat!
@@ -793,18 +814,12 @@
                             "${t.adminFeedback.substring(0, 80)}${t.adminFeedback.length > 80 ? '...' : ''}"
                         </div>
                         <div class="fn-actions">
-                            <button class="btn-icon" style="border-radius:4px;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button>
-                            <button class="btn-icon" style="border-radius:4px; color:var(--success); border-color:var(--success);" onclick="markFeedbackRead('${t.id}')">✓ Gelesen</button>
+                            <button class="btn-primary" style="padding:10px 20px;" onclick="openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button>
                         </div>
                     </div>
                 `;
             });
         }
-    }
-
-    async function markFeedbackRead(tradeId) {
-        await db.collection('trades').doc(tradeId).update({ feedbackRead: true });
-        closeTradeDetail(); await loadData(); 
     }
 
     function setJournalFilter(journalId, timeframe) {
@@ -837,17 +852,28 @@
 
     function loadChat() {
         db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
-            if (snapshot.docChanges().some(change => change.type === 'added')) {
-                 if (!isFirstLoad && !isChatActive) {
-                    hasNewChatMessage = true;
-                    if(document.getElementById('view-Übersicht').classList.contains('active')) renderDashboard();
-                    document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
-                 }
-            }
             const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
             chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Notification Logic via LocalStorage
+            lastMessageCount = messages.length;
+            if (!isFirstLoad && !isChatActive) {
+                const storedCount = parseInt(localStorage.getItem('chatCount') || '0');
+                if (lastMessageCount > storedCount) {
+                    // Update UI if we are on dashboard
+                    if(document.getElementById('view-Übersicht').classList.contains('active')) renderDashboard();
+                    document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
+                }
+            }
+            // Init check on load
+            if(isFirstLoad) {
+                 const storedCount = parseInt(localStorage.getItem('chatCount') || '0');
+                 if (lastMessageCount > storedCount) {
+                     document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
+                 }
+            }
             isFirstLoad = false;
         });
     }
@@ -956,7 +982,7 @@
 
         let html = '';
         if(t.adminFeedback && (!t.feedbackRead || isAdmin)) {
-            html += `<div class="feedback-message"><div style="display:flex; justify-content:space-between; align-items:start;"><span class="feedback-label">👨‍🏫 Coach Feedback</span>${!isAdmin ? `<button class="btn-small" style="background:var(--success); color:black; border:none; padding:2px 8px; font-size:0.7rem;" onclick="markFeedbackRead('${t.id}')">✔ Gelesen & Löschen</button>` : ''}</div><div style="margin-top:5px;">${t.adminFeedback}</div></div>`;
+            html += `<div class="feedback-message"><div style="display:flex; justify-content:space-between; align-items:start;"><span class="feedback-label">👨‍🏫 Coach Feedback</span></div><div style="margin-top:5px;">${t.adminFeedback}</div></div>`;
         }
 
         html += `<div class="td-hero"><span class="td-asset">${t.asset}</span><span class="td-pnl" style="color:${t.status==='Aktiv'?'#0a84ff':(t.pnl>=0?'#30d158':'#ff453a')}">${t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2)+'€'}</span></div><div class="td-grid"><div class="td-box"><div class="td-val-row"><span class="td-label">Entry</span><button id="btn-copy-entry" class="copy-icon" onclick="copyText('${t.entry || ''}', 'btn-copy-entry')">📋</button></div><span class="td-val">${t.entry || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">Stop Loss</span><button id="btn-copy-sl" class="copy-icon" onclick="copyText('${t.sl || ''}', 'btn-copy-sl')">📋</button></div><span class="td-val" style="color:#ff453a">${t.sl || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 1</span><button id="btn-copy-tp1" class="copy-icon" onclick="copyText('${t.tp1 || ''}', 'btn-copy-tp1')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp1 || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 2</span><button id="btn-copy-tp2" class="copy-icon" onclick="copyText('${t.tp2 || ''}', 'btn-copy-tp2')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp2 || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 3</span><button id="btn-copy-tp3" class="copy-icon" onclick="copyText('${t.tp3 || ''}', 'btn-copy-tp3')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp3 || '-'}</span></div><div class="td-box"><span class="td-label">Date</span><span class="td-val">${t.date.split('T')[0]}</span></div></div>`;
@@ -1052,12 +1078,12 @@
              document.getElementById('popup-overlay').classList.remove('open');
         }
         
+        // AUTO-DELETE FEEDBACK ON CLOSE (If Owner)
         if(currentDetailTradeId) {
             const t = trades.find(x => x.id === currentDetailTradeId);
-            if(t && t.feedbackRead && t.userId === auth.currentUser.uid) {
-                // If I am the user and I marked it read, clear it from DB
-                 await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: "" });
-                 await loadData();
+            if(t && t.adminFeedback && !isAdmin && t.userId === auth.currentUser.uid) {
+                 await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: "", feedbackRead: true });
+                 await loadData(); // Reload UI
             }
         }
     }
@@ -1181,9 +1207,11 @@
         
         isChatActive = (v === 'Chat');
         if (isChatActive) {
-            document.getElementById('chat-notification').classList.add('hidden');
+            document.getElementById('chat-notification').classList.add('hidden'); // Hide on view
             document.getElementById('btn-Chat').innerHTML = '💬 Chat';
             hasNewChatMessage = false;
+            // Update local storage so it doesn't reappear on reload
+            localStorage.setItem('chatCount', lastMessageCount);
         }
 
         if(v === 'Übersicht') renderDashboard(); 
