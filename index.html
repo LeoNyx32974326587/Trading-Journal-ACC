@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro</title>
+    <title>TradeCloud Pro10</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -37,7 +37,6 @@
         header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-dark); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .menu-btn { cursor: pointer; font-size: 2rem; color: var(--text-main); background: none; border: none; padding: 0; margin-right: 15px; }
         #view-title { font-weight: 700; font-size: 1.2rem; }
-        .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
         
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 10px; padding-bottom: 50px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
         .nav-drawer.open { left: 0; }
@@ -71,7 +70,6 @@
         .channel-desc { font-size: 0.7rem; color: var(--text-sub); display: block; margin-top: 2px; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
-        .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; }
         .chat-dm-del-btn { background: none; border: none; color: var(--text-sub); font-size: 1rem; padding: 5px; cursor: pointer; }
         .chat-dm-del-btn:hover { color: var(--danger); }
         
@@ -111,12 +109,19 @@
         .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; display: flex; flex-direction: column; min-height: 120px; }
         .ot-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .ot-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); margin-left: 8px; vertical-align: middle; }
         .card-filters { display: flex; gap: 5px; padding: 10px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .filter-pill { padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-sub); border: 1px solid transparent; background: transparent; transition: 0.2s; white-space: nowrap; text-transform: uppercase; }
         .filter-pill:hover { background: rgba(255,255,255,0.05); }
         .filter-pill.active { background: rgba(187, 134, 252, 0.15); color: var(--accent); border-color: var(--accent); }
         .loss-warning { background: rgba(255, 61, 0, 0.15); border-left: 4px solid var(--danger); color: var(--danger); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; margin: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
+        
+        #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
+        
+        /* NEW CHAT NOTIFICATION */
+        .msg-notification { background: rgba(0, 200, 83, 0.1); border: 1px solid var(--success); color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; }
+        .msg-notification-content { flex-grow: 1; }
+        .msg-notification-sender { font-size: 0.75rem; color: var(--success); text-transform: uppercase; display: block; margin-bottom: 4px; }
         
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
@@ -178,9 +183,6 @@
         .hist-table th { text-align: left; padding: 15px 10px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-weight: 600; }
         .hist-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-main); }
         .hist-table tr:hover { background: rgba(255,255,255,0.03); }
-        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; margin-bottom:15px; }
-        .chat-notification { background: rgba(10, 132, 255, 0.2); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; margin-bottom:15px; }
-        .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 1.2rem; cursor: pointer; padding: 5px; margin-left: 10px; }
         .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; position: relative; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
@@ -543,42 +545,24 @@
 </div>
 
 <script>
-    // --- GLOBAL FUNCTIONS ---
-    window.toggleMenu = function() { 
-        document.getElementById('navDrawer').classList.toggle('open'); 
-        document.getElementById('menu-overlay').classList.toggle('open'); 
-    };
-
-    window.closePopup = function() { 
-        document.getElementById('popup-overlay').classList.remove('open');
-        document.querySelectorAll('.modal-base').forEach(el => { el.classList.add('hidden'); el.classList.remove('open'); }); 
-        if(typeof currentDetailTradeId !== 'undefined' && currentDetailTradeId) window.closeTradeDetail();
-    };
+    window.toggleMenu = function() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); };
+    window.closePopup = function() { document.getElementById('popup-overlay').classList.remove('open'); document.querySelectorAll('.modal-base').forEach(el => { el.classList.add('hidden'); el.classList.remove('open'); }); if(typeof currentDetailTradeId !== 'undefined' && currentDetailTradeId) window.closeTradeDetail(); };
 
     window.prepareCreateView = function() { 
         document.getElementById('editId').value = ""; 
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
         document.getElementById('datetime').value = now.toISOString().slice(0,16); 
-        document.getElementById('assetInput').value = ""; 
-        document.getElementById('pnl').value = ""; 
-        document.getElementById('note').value = ""; 
-        document.getElementById('inpEntry').value = ""; 
-        document.getElementById('inpSL').value = ""; 
-        document.getElementById('inpTP1').value = ""; 
-        document.getElementById('inpTP2').value = ""; 
-        document.getElementById('inpTP3').value = ""; 
-        if(typeof activeJournal !== 'undefined' && activeJournal && document.getElementById('inpJournalSelect')) document.getElementById('inpJournalSelect').value = activeJournal; 
+        document.getElementById('assetInput').value = ""; document.getElementById('pnl').value = ""; 
+        document.getElementById('note').value = ""; document.getElementById('inpEntry').value = ""; 
+        document.getElementById('inpSL').value = ""; document.getElementById('inpTP1').value = ""; 
+        document.getElementById('inpTP2').value = ""; document.getElementById('inpTP3').value = ""; 
+        if(typeof activeJournal !== 'undefined' && activeJournal) document.getElementById('inpJournalSelect').value = activeJournal; 
         window.toggleFormFields(); 
-        document.getElementById('trade-form-modal').classList.remove('hidden'); 
-        document.getElementById('trade-form-modal').classList.add('open'); 
-        document.getElementById('popup-overlay').classList.add('open'); 
-        document.getElementById('form-title').innerText="Neuer Trade";
+        document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open'); 
+        document.getElementById('popup-overlay').classList.add('open'); document.getElementById('form-title').innerText="Neuer Trade";
     };
 
-    window.toggleFormFields = function() { 
-        const s = document.getElementById('status').value; 
-        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); 
-    };
+    window.toggleFormFields = function() { const s = document.getElementById('status').value; document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); };
 
     window.saveTrade = async function() { 
         try {
@@ -589,69 +573,39 @@
             let targetJournal = document.getElementById('inpJournalSelect').value;
             if(!targetJournal && journals.length > 0) targetJournal = journals[0].name;
 
-            const data = { 
-                userId: auth.currentUser.uid, 
-                date: document.getElementById('datetime').value, 
-                asset: asset, 
-                journal: targetJournal, // Use robust target
-                status: document.getElementById('status').value, 
-                pnl: parseFloat(document.getElementById('pnl').value) || 0, 
-                imgSetup: document.getElementById('imgSetup').value, 
-                imgResult: document.getElementById('imgResult').value, 
-                note: document.getElementById('note').value, 
-                entry: document.getElementById('inpEntry').value, 
-                sl: document.getElementById('inpSL').value, 
-                tp1: document.getElementById('inpTP1').value, 
-                tp2: document.getElementById('inpTP2').value, 
-                tp3: document.getElementById('inpTP3').value, 
-                adminFeedback: document.getElementById('inpAdminFeedback').value 
-            }; 
-            if(id) await db.collection('trades').doc(id).update(data); 
-            else await db.collection('trades').add(data); 
-            await loadData(); 
-            window.closePopup(); 
-        } catch(e) { console.error("Save Trade Error:", e); alert("Fehler beim Speichern: " + e.message); }
+            const data = { userId: auth.currentUser.uid, date: document.getElementById('datetime').value, asset: asset, journal: targetJournal, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value, tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value, adminFeedback: document.getElementById('inpAdminFeedback').value }; 
+            if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data); 
+            await loadData(); window.closePopup(); 
+        } catch(e) { console.error(e); alert("Fehler beim Speichern"); }
     };
 
     window.editTrade = function(id, closeNow) { 
-        const t = trades.find(x => x.id === id); 
-        if(!t) return;
-        document.getElementById('editId').value = t.id; 
-        document.getElementById('datetime').value = t.date; 
-        document.getElementById('assetInput').value = t.asset; 
-        document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); 
-        document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; 
-        document.getElementById('pnl').value = t.pnl; 
-        document.getElementById('imgSetup').value = t.imgSetup || ''; 
-        document.getElementById('imgResult').value = t.imgResult || ''; 
-        document.getElementById('note').value = t.note || ''; 
-        document.getElementById('inpEntry').value = t.entry || ''; 
-        document.getElementById('inpSL').value = t.sl || ''; 
-        document.getElementById('inpTP1').value = t.tp1 || ''; 
-        document.getElementById('inpTP2').value = t.tp2 || ''; 
-        document.getElementById('inpTP3').value = t.tp3 || ''; 
+        const t = trades.find(x => x.id === id); if(!t) return;
+        document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date; 
+        document.getElementById('assetInput').value = t.asset; document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); 
+        document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; document.getElementById('pnl').value = t.pnl; 
+        document.getElementById('imgSetup').value = t.imgSetup || ''; document.getElementById('imgResult').value = t.imgResult || ''; 
+        document.getElementById('note').value = t.note || ''; document.getElementById('inpEntry').value = t.entry || ''; 
+        document.getElementById('inpSL').value = t.sl || ''; document.getElementById('inpTP1').value = t.tp1 || ''; 
+        document.getElementById('inpTP2').value = t.tp2 || ''; document.getElementById('inpTP3').value = t.tp3 || ''; 
         document.getElementById('inpAdminFeedback').value = t.adminFeedback || ''; 
         document.getElementById('adm-feedback-input-area').classList.toggle('hidden', !isAdmin); 
-        document.getElementById('form-title').innerText="Trade Bearbeiten"; 
-        window.toggleFormFields(); 
-        document.getElementById('trade-form-modal').classList.remove('hidden'); 
-        document.getElementById('trade-form-modal').classList.add('open'); 
+        document.getElementById('form-title').innerText="Trade Bearbeiten"; window.toggleFormFields(); 
+        document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open'); 
         document.getElementById('popup-overlay').classList.add('open'); 
     };
 
-    // CONFIG & INIT
     const firebaseConfig = { apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ", authDomain: "trading-journal-acc.firebaseapp.com", projectId: "trading-journal-acc", storageBucket: "trading-journal-acc.firebasestorage.app", messagingSenderId: "68601000570", appId: "1:68601000570:web:87d3ebd5e86416403e41c3" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    let trades = [], journals = []; 
+    let trades = [], journals = [], activeJournal = null;
     let chartInstances = {}, dayChart = null, assetChartInstance = null, weekdayChartInstance = null, hourChartInstance = null, adminChartInstance = null;
-    let calDate = new Date();
-    let privacyMode = false, activeJournal = null, editingJournalId = null, currentUserName = "User", isAdmin = false;
-    let journalFilters = {}, journalCustomDates = {}, shareTradeId = null, shareType = null, msgToDeleteId = null, configuringJournalId = null;
-    let selectedShareChannel = null;
+    let journalFilters = {}, journalCustomDates = {}, shareTradeId = null, shareType = null, msgToDeleteId = null, configuringJournalId = null, selectedShareChannel = null;
     let inspectedUserTrades = [], inspectedUserJournals = [], currentDetailTradeId = null;
     let isChatActive = false, lastMessageCount = 0, currentChatChannel = 'general', chatListener = null, targetedMemberUid = null;
+    let calDate = new Date(), editingJournalId = null, currentUserName = "User", isAdmin = false, privacyMode = false;
+    let isChatFirstLoad = true; // Flag to prevent notification spam on load
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
     if(isLight) document.body.classList.add('light-mode');
@@ -659,60 +613,31 @@
 
     auth.onAuthStateChanged(async (user) => {
         if(user) {
-            const email = user.email.toLowerCase().trim();
-            await db.collection('users').doc(user.uid).set({
-                email: email,
-                displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || '',
-                allowFeedback: true
-            }, { merge: true });
-
-            if(email === "leon.luca.lauterbach@gmail.com") {
-                isAdmin = true;
-                const admPanel = document.getElementById('admin-panel');
-                if(admPanel) { admPanel.classList.remove('hidden'); window.admLoad(); }
-                document.getElementById('btn-share-pro').classList.remove('hidden'); // Show Pro Channel share for admin
-                finishLogin(user);
-            } else {
-                isAdmin = false;
-                finishLogin(user);
-            }
+            await db.collection('users').doc(user.uid).set({ email: user.email.toLowerCase(), displayName: user.displayName||'User' }, {merge:true});
+            isAdmin = (user.email === "leon.luca.lauterbach@gmail.com");
+            if(isAdmin) { document.getElementById('admin-panel').classList.remove('hidden'); window.admLoad(); document.getElementById('btn-share-pro').classList.remove('hidden'); }
+            finishLogin(user);
         }
     });
 
     async function finishLogin(user) {
-        try {
-            const firstName = user.email.split('@')[0].split('.')[0];
-            currentUserName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-            document.getElementById('user-greeting-name').innerText = currentUserName;
-            
-            const uDoc = await db.collection('users').doc(user.uid).get();
-            const uData = uDoc.data();
-            if(uData && document.getElementById('feedback-toggle')) {
-                document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
-            }
-
-            document.getElementById('auth-overlay').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('main-header').classList.remove('hidden');
-            
-            await loadData();
-            loadChat('general');
-            window.loadDirectMessages(); 
-        } catch(e) {
-            console.error("Login Error:", e);
-        }
+        currentUserName = (user.displayName || user.email.split('@')[0]).replace(/\b\w/g, l => l.toUpperCase());
+        document.getElementById('user-greeting-name').innerText = currentUserName;
+        const uDoc = await db.collection('users').doc(user.uid).get();
+        if(uDoc.exists && document.getElementById('feedback-toggle')) document.getElementById('feedback-toggle').checked = (uDoc.data().allowFeedback !== false);
+        document.getElementById('auth-overlay').classList.add('hidden');
+        document.getElementById('app-content').classList.remove('hidden');
+        document.getElementById('main-header').classList.remove('hidden');
+        await loadData();
+        loadChat('general');
+        window.loadDirectMessages();
     }
 
-    window.toggleFeedbackSetting = async function(val) {
-        if(auth.currentUser) {
-            await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
-        }
-    }
+    window.toggleFeedbackSetting = async function(val) { if(auth.currentUser) await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true }); }
 
     async function loadData() {
+        if(!auth.currentUser) return;
         try {
-            if(!auth.currentUser) return;
             const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
             journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
             if(journals.length === 0) {
@@ -720,24 +645,20 @@
                 const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
                 journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
             }
-            // Use existing activeJournal or fallback to first available
-            if(!activeJournal || !journals.find(j => j.name === activeJournal)) {
-                 activeJournal = journals.length > 0 ? journals[0].name : 'Main';
-            }
-            
+            // FORCE FIRST JOURNAL AS ACTIVE IF NONE SET
+            if(!activeJournal || !journals.find(j => j.name === activeJournal)) activeJournal = journals[0].name;
+
             const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
             trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
             
-            // Fix legacy trades with no journal field
-            trades.forEach(t => {
-                if(!t.journal) t.journal = 'Main';
-            });
+            // Normalize old trades to use first journal if missing
+            trades.forEach(t => { if(!t.journal) t.journal = journals[0].name; });
 
             window.populateSelectors();
             window.renderDashboard();
             if(document.getElementById('view-Historie').classList.contains('active')) window.renderHistory();
             if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
-        } catch(e) { console.error("Data Load Error:", e); }
+        } catch(e) { console.error(e); }
     }
 
     window.populateSelectors = function() {
@@ -764,120 +685,124 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
-    // --- DASHBOARD RENDERER ---
     window.renderDashboard = function() {
-        try {
-            const container = document.getElementById('dashboard-journals-list');
-            container.innerHTML = '';
-            Object.values(chartInstances).forEach(c => c.destroy());
-            chartInstances = {};
+        const container = document.getElementById('dashboard-journals-list');
+        container.innerHTML = '';
+        Object.values(chartInstances).forEach(c => c.destroy());
+        chartInstances = {};
 
-            journals.forEach(journal => {
-                if(journal.hidden) return;
-                const timeframe = journalFilters[journal.id] || 'GESAMT';
-                let tradesInPeriod = filterTradesByTime(journal, timeframe);
-                const startCap = parseFloat(journal.startCap) || 0;
-                // FIX: Case insensitive filtering
-                const closedAll = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
+        journals.forEach(journal => {
+            if(journal.hidden) return;
+            const timeframe = journalFilters[journal.id] || 'GESAMT';
+            // SIMPLE FILTER
+            const closedAll = trades.filter(t => (t.journal === journal.name || (!t.journal && journal.name === 'Main')) && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-                let baseBalance = startCap;
-                if(timeframe !== 'GESAMT') {
-                    const firstTradeInPeriod = tradesInPeriod[0];
-                    if(firstTradeInPeriod) {
-                        const idx = closedAll.findIndex(t => t.id === firstTradeInPeriod.id);
-                        if(idx > 0) baseBalance += closedAll.slice(0, idx).reduce((a,b)=>a+b.pnl, 0);
-                    }
+            let baseBalance = parseFloat(journal.startCap) || 0;
+            let totalPnL = closedAll.reduce((acc, t) => acc + t.pnl, 0);
+            let wins = closedAll.filter(t => t.pnl > 0).length;
+            const winrate = closedAll.length > 0 ? ((wins / closedAll.length) * 100).toFixed(0) : 0;
+            let runningBal = baseBalance;
+            const equityCurve = [baseBalance];
+            closedAll.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
+
+            const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
+            const canvasId = `chart-${journal.id}`;
+            const open = trades.filter(t => (t.journal === journal.name || (!t.journal && journal.name === 'Main')) && t.status === 'Aktiv');
+            
+            let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
+            if(open.length > 0) {
+                openTradesHtml = open.map(t => {
+                    const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
+                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="window.editTrade('${t.id}', true)">Close</button></div></div>`;
+                }).join('');
+            }
+            const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
+            const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="window.setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
+
+            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div><div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
+            setTimeout(() => { 
+                const ctxEl = document.getElementById(canvasId);
+                if(ctxEl) {
+                    const ctx = ctxEl.getContext('2d'); 
+                    chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
                 }
-
-                let totalPnL = tradesInPeriod.reduce((acc, t) => acc + t.pnl, 0);
-                let wins = tradesInPeriod.filter(t => t.pnl > 0).length;
-                const winrate = tradesInPeriod.length > 0 ? ((wins / tradesInPeriod.length) * 100).toFixed(0) : 0;
-                let runningBal = baseBalance;
-                const equityCurve = [baseBalance];
-                tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
-
-                const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
-                const canvasId = `chart-${journal.id}`;
-                // FIX: Open trades filtering
-                const open = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Aktiv');
-                let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
-                if(open.length > 0) {
-                    openTradesHtml = open.map(t => {
-                        const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
-                        return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="window.editTrade('${t.id}', true)">Close</button></div></div>`;
-                    }).join('');
-                }
-                const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
-                const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="window.setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
-                
-                let warningHtml = '';
-                if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
-                    let todayPnL = 0; 
-                    if(closedAll.length > 0) {
-                        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-                        const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
-                        todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
-                    }
-                    const limit = parseFloat(journal.maxDD); let threshold = limit;
-                    if(journal.ddType === 'percent') { 
-                        const allTimePnL = closedAll.reduce((a,b)=>a+b.pnl, 0);
-                        const totalBal = startCap + allTimePnL; 
-                        const currentBalance = Math.max(totalBal, 0); 
-                        threshold = currentBalance * (limit / 100); 
-                    }
-                    if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
-                }
-
-                container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
-                setTimeout(() => { 
-                    const ctxEl = document.getElementById(canvasId);
-                    if(ctxEl) {
-                        const ctx = ctxEl.getContext('2d'); 
-                        chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
-                    }
-                }, 50);
-            });
-            renderNotificationsArea();
-        } catch(e) {
-            console.error("Dashboard Render Error:", e);
-        }
+            }, 50);
+        });
+        renderNotificationsArea();
     }
 
-    function filterTradesByTime(journal, timeframe) {
-        // FIX: Robust Comparison
-        const jTrades = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Geschlossen');
-        const now = new Date();
-        let startDate = null; let endDate = null;
-        if(timeframe === 'HEUTE') { startDate = new Date(); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setHours(23,59,59,999); }
-        else if(timeframe === 'GESTERN') { startDate = new Date(); startDate.setDate(startDate.getDate()-1); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setDate(endDate.getDate()-1); endDate.setHours(23,59,59,999); }
-        else if(timeframe === 'WOCHE') { startDate = new Date(now.getTime() - 7*24*60*60*1000); }
-        else if(timeframe === 'MONAT') { startDate = new Date(now.getTime() - 30*24*60*60*1000); }
-        else if(timeframe === 'JAHR') { startDate = new Date(now.getTime() - 365*24*60*60*1000); }
-        else if(timeframe === 'ZEITRAUM') { const custom = journalCustomDates[journal.id]; if(custom) { startDate = new Date(custom.start); startDate.setHours(0,0,0,0); endDate = new Date(custom.end); endDate.setHours(23,59,59,999); } }
-        if(startDate) {
-            return jTrades.filter(t => { const d = new Date(t.date); if(endDate) return d >= startDate && d <= endDate; return d >= startDate; }).sort((a,b)=>new Date(a.date)-new Date(b.date));
-        }
-        return jTrades.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    }
-    
+    // --- SIMPLE HISTORY RENDERER (Original Logic) ---
+    window.renderHistory = function() {
+        const tbody = document.getElementById('tradeBody');
+        tbody.innerHTML = '';
+        // Robust filter: matches Name OR 'Main' if undefined
+        const filtered = trades.filter(t => (t.journal === activeJournal) || (!t.journal && activeJournal === 'Main'));
+        
+        // Sort by date desc
+        filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        tbody.innerHTML = filtered.map(t => {
+            const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
+            return `<tr>
+                <td><span style="font-weight:bold;">${t.date.split('T')[0]}</span><span class="time-sub">${t.date.split('T')[1]}</span></td>
+                <td>${t.asset}</td>
+                <td class="${pnlClass}" style="text-align:right;">${t.status === 'Aktiv' ? 'OPEN' : t.pnl.toFixed(2)}</td>
+                <td style="text-align:right;"><button class="btn-small" onclick="window.editTrade('${t.id}')">✎</button></td>
+            </tr>`;
+        }).join('');
+    };
+
     // --- CHAT SYSTEM ---
     function loadChat(channel = 'general') {
         if (chatListener) chatListener();
         const chatBox = document.getElementById('chat-messages');
         chatBox.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">Lade Nachrichten...</div>';
+        isChatFirstLoad = true;
 
-        // CLIENT SIDE SORTING TO FIX INDEX ERROR
         try {
             chatListener = db.collection('chat')
                 .where('channel', '==', channel)
                 .onSnapshot({ includeMetadataChanges: true }, snapshot => {
                     let messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                    messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)); // Sort client side
+                    messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)); 
+                    
                     chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
                     chatBox.scrollTop = chatBox.scrollHeight;
-                    if(channel === 'general') lastMessageCount = messages.length;
+                    
+                    // NEW NOTIFICATION LOGIC
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added' && !isChatFirstLoad) {
+                            const msg = change.doc.data();
+                            if (msg.senderId !== auth.currentUser.uid && !document.getElementById('view-Chat').classList.contains('active')) {
+                                showDashboardNotification(msg);
+                            }
+                        }
+                    });
+                    
+                    isChatFirstLoad = false;
                 });
         } catch(e) { console.error("Chat Error:", e); }
+    }
+
+    function showDashboardNotification(msg) {
+        const area = document.getElementById('dashboard-notification-area');
+        // Prevent duplicates
+        if (document.getElementById(`notify-${msg.timestamp?.seconds}`)) return;
+        
+        const div = document.createElement('div');
+        div.className = 'msg-notification';
+        div.id = `notify-${msg.timestamp?.seconds}`;
+        div.innerHTML = `
+            <div class="msg-notification-content" onclick="window.showView('Chat'); window.switchChannel('${msg.channel}')">
+                <span class="msg-notification-sender">Neues von ${msg.senderName}</span>
+                <span style="font-weight:normal;">${msg.text.substring(0, 50)}...</span>
+            </div>
+            <button class="chat-close-btn" onclick="this.parentElement.remove()">✕</button>
+        `;
+        area.prepend(div);
+        
+        // Auto remove after 10s
+        setTimeout(() => { if(div) div.remove(); }, 10000);
     }
 
     window.switchChannel = function(channelId) {
@@ -885,21 +810,17 @@
         document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
         const activeEl = document.getElementById(channelId.startsWith('dm_') ? channelId : 'ch-' + channelId);
         if(activeEl) activeEl.classList.add('active');
-
         let title = "📢 Allgemein";
         if(channelId === 'signals') title = "🚀 Signale";
         if(channelId === 'pro') title = "💎 Pro Signale (Coach)";
         if(channelId.startsWith('dm_')) title = "📩 Direktnachricht";
         document.getElementById('chat-channel-title').innerText = title;
-
         const inputArea = document.getElementById('chat-input-area');
         const lockedMsg = document.getElementById('chat-locked-msg');
         const signalMsg = document.getElementById('chat-signal-msg');
-        
         inputArea.classList.remove('hidden');
         lockedMsg.classList.add('hidden');
         signalMsg.classList.add('hidden');
-
         if (channelId === 'pro' && !isAdmin) {
             inputArea.classList.add('hidden');
             lockedMsg.classList.remove('hidden');
@@ -927,7 +848,6 @@
             const d = doc.data();
             return d.email && d.email.includes(query) && doc.id !== auth.currentUser.uid;
         }).slice(0, 5);
-        
         const list = document.getElementById('search-results');
         list.innerHTML = results.map(doc => {
             const d = doc.data();
@@ -1050,22 +970,6 @@
     }
     
     // --- SHARED FUNCTIONS ---
-    function renderNotificationsArea() {
-        const area = document.getElementById('dashboard-notification-area');
-        area.innerHTML = '';
-        const storedChatCount = parseInt(localStorage.getItem('chatCount') || '0');
-        if (lastMessageCount > storedChatCount && !isChatActive) {
-            area.innerHTML += `<div id="chat-notify-box" class="chat-notification"><div onclick="window.showView('Chat')" style="flex-grow:1; display:flex; align-items:center; gap:10px;">💬 Neue Nachricht im Community Chat!</div><button class="chat-close-btn" onclick="window.dismissChatNotification(event)">✕</button></div>`;
-        }
-        const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
-        if(unreadFeedbackTrades.length > 0) {
-            unreadFeedbackTrades.forEach(t => {
-                const tradeDataString = encodeURIComponent(JSON.stringify(t));
-                const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-                area.innerHTML += `<div class="feedback-notification"><div class="fn-header"><div class="fn-title"><span>💬</span> Coach Feedback zu ${t.asset}</div></div><div class="fn-content">"${t.adminFeedback.substring(0, 80)}${t.adminFeedback.length > 80 ? '...' : ''}"</div><div class="fn-actions"><button class="btn-primary" style="padding:10px 20px;" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">Ansehen</button></div></div>`;
-            });
-        }
-    }
     window.dismissChatNotification = function(e) { e.stopPropagation(); const box = document.getElementById('chat-notify-box'); if(box) box.remove(); document.getElementById('btn-Chat').innerHTML = '💬 Chat'; if(lastMessageCount > 0) localStorage.setItem('chatCount', lastMessageCount); }
     window.setJournalFilter = function(journalId, timeframe) { if(timeframe === 'ZEITRAUM') { configuringJournalId = journalId; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('date-range-modal').classList.remove('hidden'); document.getElementById('date-range-modal').classList.add('open'); } else { journalFilters[journalId] = timeframe; renderDashboard(); } }
     window.applyCustomDate = function() { const start = document.getElementById('custom-start').value; const end = document.getElementById('custom-end').value; if(start && end && configuringJournalId) { journalFilters[configuringJournalId] = 'ZEITRAUM'; journalCustomDates[configuringJournalId] = { start, end }; renderDashboard(); window.closePopup(); } }
@@ -1302,6 +1206,180 @@
             alert("Feedback gesendet!"); closeTradeDetail();
         }
     }
+    
+    // Fix: Move openSignalDetail to global scope so onclick can find it
+    window.openSignalDetail = function(tradeDataEncoded, imgUrlEncoded) {
+        const t = JSON.parse(decodeURIComponent(tradeDataEncoded));
+        const imgUrl = decodeURIComponent(imgUrlEncoded);
+        currentDetailTradeId = t.id; 
+        document.getElementById('popup-overlay').classList.add('open');
+        const modal = document.getElementById('trade-detail-view');
+        modal.classList.remove('hidden'); modal.classList.add('open');
+        
+        const isTradeOwner = t.userId === auth.currentUser.uid;
+        const showAdminInput = isAdmin && !isTradeOwner;
+        const adminInputDiv = document.getElementById('adm-feedback-input-area');
+        if(adminInputDiv) {
+             if(showAdminInput) { adminInputDiv.classList.remove('hidden'); document.getElementById('adm-feedback-text').value = t.adminFeedback || ''; } 
+             else { adminInputDiv.classList.add('hidden'); }
+        }
+
+        let html = '';
+        if(t.adminFeedback && (!t.feedbackRead || isAdmin)) {
+            html += `<div class="feedback-message"><div style="display:flex; justify-content:space-between; align-items:start;"><span class="feedback-label">👨‍🏫 Coach Feedback</span></div><div style="margin-top:5px;">${t.adminFeedback}</div></div>`;
+        }
+
+        html += `<div class="td-hero"><span class="td-asset">${t.asset}</span><span class="td-pnl" style="color:${t.status==='Aktiv'?'#0a84ff':(t.pnl>=0?'#30d158':'#ff453a')}">${t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2)+'€'}</span></div><div class="td-grid"><div class="td-box"><div class="td-val-row"><span class="td-label">Entry</span><button id="btn-copy-entry" class="copy-icon" onclick="copyText('${t.entry || ''}', 'btn-copy-entry')">📋</button></div><span class="td-val">${t.entry || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">Stop Loss</span><button id="btn-copy-sl" class="copy-icon" onclick="copyText('${t.sl || ''}', 'btn-copy-sl')">📋</button></div><span class="td-val" style="color:#ff453a">${t.sl || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 1</span><button id="btn-copy-tp1" class="copy-icon" onclick="copyText('${t.tp1 || ''}', 'btn-copy-tp1')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp1 || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 2</span><button id="btn-copy-tp2" class="copy-icon" onclick="copyText('${t.tp2 || ''}', 'btn-copy-tp2')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp2 || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 3</span><button id="btn-copy-tp3" class="copy-icon" onclick="copyText('${t.tp3 || ''}', 'btn-copy-tp3')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp3 || '-'}</span></div><div class="td-box"><span class="td-label">Date</span><span class="td-val">${t.date.split('T')[0]}</span></div></div>`;
+        
+        if(t.note) { html += `<div class="td-note-box">"${t.note}"</div>`; }
+        if(t.imgSetup) { html += `<div class="img-box"><span class="td-label">Setup</span><img src="${t.imgSetup}" class="td-img" onclick="window.open('${t.imgSetup}','_blank')"></div>`; }
+        if(t.imgResult) { html += `<div class="img-box"><span class="td-label">Ergebnis</span><img src="${t.imgResult}" class="td-img" onclick="window.open('${t.imgResult}','_blank')"></div>`; }
+        document.getElementById('td-content').innerHTML = html;
+    };
+    
+    // Fix: openMemberDetail global and ADMIN DM LOGIC
+    window.openMemberDetail = async function(id, email) {
+        let userDisplayName = "User";
+        try {
+            const userSnap = await db.collection('users').where('email', '==', email).get();
+            if(!userSnap.empty) { userDisplayName = userSnap.docs[0].data().displayName; }
+        } catch(e) {}
+        
+        document.getElementById('adm-detail-name').innerText = userDisplayName;
+        document.getElementById('adm-detail-email').innerText = email;
+        
+        const userSnap = await db.collection('users').where('email', '==', email).get();
+        if(userSnap.empty) { alert("User hat sich noch nie eingeloggt."); return; }
+        const targetUid = userSnap.docs[0].id;
+        targetedMemberUid = targetUid; 
+        
+        // ADMIN AUTO-ACCEPT DM LOGIC
+        // If admin clicks "Nachricht senden", we create an 'accepted' DM channel immediately.
+        const btn = document.getElementById('btn-start-dm');
+        btn.onclick = async function() { 
+            const myUid = auth.currentUser.uid;
+            const ids = [myUid, targetUid].sort();
+            const chatId = `dm_${ids[0]}_${ids[1]}`;
+            
+            // For admins, we set status to 'accepted' instantly so they can chat.
+            // For normal users, it would be 'pending'.
+            await db.collection('chat_requests').doc(chatId).set({
+                users: [myUid, targetUid],
+                status: 'accepted', // AUTO-ACCEPT FOR ADMIN
+                senderId: myUid,
+                senderName: currentUserName,
+                targetName: userDisplayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            window.closePopup();
+            window.showView('Chat');
+            
+            // Force reload DMs and switch
+            window.loadDirectMessages();
+            setTimeout(() => window.switchChannel(chatId), 500); 
+        };
+
+        // CHECK IF USER ALLOWS FEEDBACK
+        const uData = userSnap.docs[0].data();
+        if(uData.allowFeedback === false) {
+             document.getElementById('popup-overlay').classList.add('open');
+             document.getElementById('admin-member-modal').classList.remove('hidden');
+             document.getElementById('admin-member-modal').classList.add('open');
+             
+             document.getElementById('adm-content-stats').innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>🔒 Dieser User hat den Zugriff auf seine Trades deaktiviert.</div>";
+             document.getElementById('adm-content-trades').innerHTML = "";
+             document.getElementById('btn-adm-stats').style.display = 'none';
+             document.getElementById('btn-adm-trades').style.display = 'none';
+             document.getElementById('adm-journal-select').style.display = 'none';
+             return;
+        }
+
+        // RESET UI IF PREVIOUSLY BLOCKED
+        document.getElementById('btn-adm-stats').style.display = 'block';
+        document.getElementById('btn-adm-trades').style.display = 'block';
+        document.getElementById('adm-journal-select').style.display = 'block';
+        
+        // Use AWAIT to ensure data is loaded before rendering
+        const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
+        inspectedUserJournals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
+        
+        const tSnap = await db.collection('trades').where('userId', '==', targetUid).get();
+        inspectedUserTrades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
+
+        const sel = document.getElementById('adm-journal-select');
+        if(inspectedUserJournals.length === 0) { sel.innerHTML = '<option>Kein Journal</option>'; } 
+        else { sel.innerHTML = inspectedUserJournals.map(j => `<option value="${j.name}">${j.name}</option>`).join(''); }
+        
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('admin-member-modal').classList.remove('hidden');
+        document.getElementById('admin-member-modal').classList.add('open');
+        
+        document.getElementById('adm-content-stats').innerHTML = `
+             <div class="dv-stats-grid">
+                <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
+                <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
+                <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
+            </div>
+            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>`;
+
+        window.updateAdminMemberView();
+    };
+    
+    window.updateAdminMemberView = function() {
+        const selectedJ = document.getElementById('adm-journal-select').value;
+        let filteredTrades = inspectedUserTrades;
+        if(selectedJ && inspectedUserJournals.length > 0) {
+             const target = selectedJ && selectedJ !== 'Kein Journal' ? selectedJ : inspectedUserJournals[0].name;
+             // Fix filter logic
+             filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === target);
+        }
+        
+        const closed = filteredTrades.filter(t => t.status === 'Geschlossen');
+        const sum = closed.reduce((a,b) => a + b.pnl, 0);
+        const wins = closed.filter(t => t.pnl > 0).length;
+        const winrate = closed.length ? ((wins/closed.length)*100).toFixed(0) : 0;
+        
+        const pnlEl = document.getElementById('adm-stat-pnl');
+        if(pnlEl) {
+            pnlEl.innerText = sum.toFixed(2) + ' €';
+            pnlEl.style.color = sum >= 0 ? 'var(--success)' : 'var(--danger)';
+        }
+        const winEl = document.getElementById('adm-stat-win');
+        if(winEl) winEl.innerText = winrate + '%';
+        const cntEl = document.getElementById('adm-stat-count');
+        if(cntEl) cntEl.innerText = closed.length;
+        
+        let bal = 0; const data = closed.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t => { bal += t.pnl; return bal; });
+        const ctxEl = document.getElementById('admChart');
+        if(ctxEl) {
+            const ctx = ctxEl.getContext('2d');
+            if(adminChartInstance) adminChartInstance.destroy();
+            adminChartInstance = new Chart(ctx, { type: 'line', data: { labels: data.map(x=>''), datasets: [{ data: data, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#333' } } } } });
+        }
+        
+        const listEl = document.getElementById('adm-trade-list');
+        if(listEl) {
+            listEl.innerHTML = filteredTrades.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t => {
+                const tradeDataString = encodeURIComponent(JSON.stringify(t));
+                const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
+                return `<tr style="font-size:0.8rem;"><td>${t.date.split('T')[0]}</td><td>${t.asset}</td><td style="text-align:right; color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</td><td style="text-align:right;"><button class="btn-icon" style="padding:4px 8px; font-size:1rem;" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button></td></tr>`;
+            }).join('');
+        }
+    };
+    
+    // Fix: Global switchAdminTab function
+    window.switchAdminTab = function(tab) {
+        document.getElementById('btn-adm-stats').classList.toggle('active', tab==='stats');
+        document.getElementById('btn-adm-trades').classList.toggle('active', tab==='trades');
+        if(tab === 'stats') { 
+            document.getElementById('adm-content-stats').classList.remove('hidden'); 
+            document.getElementById('adm-content-trades').classList.add('hidden'); 
+        } else { 
+            document.getElementById('adm-content-stats').classList.add('hidden'); 
+            document.getElementById('adm-content-trades').classList.remove('hidden'); 
+        }
+    };
 </script>
 </body>
 </html>
