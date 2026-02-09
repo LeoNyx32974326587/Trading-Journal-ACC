@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro</title>
+    <title>TradeCloud Pro - Clen Chart</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -223,6 +223,11 @@
         .chat-del-btn:hover { opacity: 1; background: #fff; }
         .msg-wrapper.me .chat-del-btn { left: -25px; }
         .msg-wrapper.other .chat-del-btn { right: -25px; }
+        
+        /* CHAT TABS */
+        .chat-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--cell-bg); }
+        .chat-tab-btn { flex: 1; padding: 15px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-sub); font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .chat-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
 
         /* --- UTILS --- */
         .text-green { color: var(--success) !important; }
@@ -394,8 +399,16 @@
 
     <div id="share-modal" class="modal-base hidden">
         <div class="dv-header"><span class="popup-title">Trade Teilen</span><button class="popup-close" onclick="closeShareModal()">✕</button></div>
-        <p style="font-size:0.8rem; color:var(--text-sub); text-align:center; margin:0;">Wähle, was du teilen möchtest</p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+        <p style="font-size:0.8rem; color:var(--text-sub); text-align:center; margin:0;">Wähle Ziel und Inhalt</p>
+        
+        <label style="font-size:0.8rem; color:var(--text-sub); display:block; margin-top:10px;">TEILEN IN</label>
+        <select id="share-channel" style="margin-bottom:15px;">
+            <option value="public">🌍 Public Chat</option>
+            <option value="signals">📡 Signale (Nur Trades)</option>
+            <option value="admin">🛡️ Admin Chat</option>
+        </select>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:5px;">
             <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
             <div id="opt-result" class="share-opt" onclick="selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
         </div>
@@ -475,10 +488,18 @@
     <section id="view-Chat" class="view-section">
         <div class="card chat-container" style="padding:0;">
             <div class="jfc-header"><div class="jfc-title">Community Chat</div></div>
+            <div class="chat-tabs">
+                <button class="chat-tab-btn active" id="tab-public" onclick="switchChatChannel('public')">🌍 Public</button>
+                <button class="chat-tab-btn" id="tab-signals" onclick="switchChatChannel('signals')">📡 Signale</button>
+                <button class="chat-tab-btn" id="tab-admin" onclick="switchChatChannel('admin')">🛡️ Admin</button>
+            </div>
             <div id="chat-messages" class="chat-messages"></div>
-            <div class="chat-input-area">
+            <div class="chat-input-area" id="chat-input-area">
                 <input type="text" id="chat-input" placeholder="Nachricht schreiben..." onkeypress="if(event.key==='Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()" class="btn-primary" style="width:auto; padding:0 20px;">➤</button>
+            </div>
+            <div id="chat-read-only-msg" class="hidden" style="padding:15px; text-align:center; color:var(--text-sub); font-size:0.9rem; font-style:italic; background:var(--cell-bg);">
+                Nur Lesezugriff oder nur Trades erlaubt.
             </div>
         </div>
     </section>
@@ -650,13 +671,14 @@
     let adminChartInstance = null;
     let currentDetailTradeId = null;
 
-    // NEU: Globale Variable für inspizierten User Feedback-Status
     let inspectedUserFeedbackAllowed = true;
 
     // Chat Vars
     let isChatActive = false;
     let lastMessageCount = 0;
     let isFirstLoad = true;
+    let currentChatChannel = 'public'; // 'public', 'signals', 'admin'
+    let unsubscribeChat = null;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
     if(isLight) document.body.classList.add('light-mode');
@@ -671,7 +693,6 @@
                 photoURL: user.photoURL || ''
             }, { merge: true });
 
-            // NEU: Laden der Feedback-Präferenz
             const userDoc = await db.collection('users').doc(user.uid).get();
             if(userDoc.exists) {
                 const data = userDoc.data();
@@ -727,7 +748,6 @@
         populateSelectors();
         renderDashboard(); 
         
-        // Always try to render history if active
         if(document.getElementById('view-Historie').classList.contains('active')) renderHistory();
         if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
     }
@@ -743,7 +763,6 @@
 
     function changeActiveJournal(val) {
         activeJournal = val;
-        // Also update the create selector
         const createSel = document.getElementById('inpJournalSelect');
         if(createSel) createSel.value = activeJournal;
         
@@ -757,9 +776,8 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
-    // --- DASHBOARD RENDERER (Includes Notifications) ---
     function renderDashboard() {
-        renderNotificationsArea(); // Separate function for clean code
+        renderNotificationsArea(); 
         const container = document.getElementById('dashboard-journals-list');
         container.innerHTML = '';
         Object.values(chartInstances).forEach(c => c.destroy());
@@ -803,7 +821,6 @@
             const canvasId = `chart-${journal.id}`;
             let warningHtml = '';
             
-            // --- FIX FÜR TODAYPNL BUG ---
             const todayDateString = new Date().toDateString();
             const todayPnL = closedAll
                 .filter(t => new Date(t.date).toDateString() === todayDateString)
@@ -835,9 +852,7 @@
         const area = document.getElementById('dashboard-notification-area');
         area.innerHTML = '';
 
-        // 1. Chat Notification Logic
         const storedChatCount = parseInt(localStorage.getItem('chatCount') || '0');
-        // If MORE messages than we have "seen", AND we are not currently in the chat view
         if (lastMessageCount > storedChatCount && !isChatActive) {
             area.innerHTML += `
             <div id="chat-notify-box" class="chat-notification">
@@ -848,7 +863,6 @@
             </div>`;
         }
 
-        // 2. Feedback Notifications
         const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
         if(unreadFeedbackTrades.length > 0) {
             unreadFeedbackTrades.forEach(t => {
@@ -872,16 +886,10 @@
     }
     
     function dismissChatNotification(e) {
-        e.stopPropagation(); // Don't trigger the "open chat" click
-        
-        // 1. Remove Box
+        e.stopPropagation(); 
         const box = document.getElementById('chat-notify-box');
         if(box) box.remove();
-
-        // 2. Remove Red Dot
         document.getElementById('btn-Chat').innerHTML = '💬 Chat';
-
-        // 3. Mark as read in storage so it doesn't reappear on reload
         if(lastMessageCount > 0) {
              localStorage.setItem('chatCount', lastMessageCount);
         }
@@ -915,8 +923,54 @@
         hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
     }
 
+    // --- CHAT FUNCTIONS ---
+
+    function switchChatChannel(channel) {
+        currentChatChannel = channel;
+        
+        // UI Updates
+        document.querySelectorAll('.chat-tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tab-${channel}`).classList.add('active');
+
+        const inputArea = document.getElementById('chat-input-area');
+        const readOnlyMsg = document.getElementById('chat-read-only-msg');
+
+        if (channel === 'public') {
+            inputArea.classList.remove('hidden');
+            readOnlyMsg.classList.add('hidden');
+        } else if (channel === 'signals') {
+            // Signale: Kein Textinput, nur Trades (über Share Button)
+            inputArea.classList.add('hidden');
+            readOnlyMsg.classList.remove('hidden');
+        } else if (channel === 'admin') {
+            // Admin: Nur Admin darf schreiben
+            if (isAdmin) {
+                inputArea.classList.remove('hidden');
+                readOnlyMsg.classList.add('hidden');
+            } else {
+                inputArea.classList.add('hidden');
+                readOnlyMsg.classList.remove('hidden');
+            }
+        }
+
+        loadChat();
+    }
+
     function loadChat() {
-        db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot({ includeMetadataChanges: true }, snapshot => {
+        if(unsubscribeChat) unsubscribeChat(); // Stop old listener
+
+        // Default query: filter by channel (if field exists, old msgs are 'public' implicitly in logic below or we assume 'public')
+        // NOTE: For old messages without 'channel' field, they won't show up in strict query. 
+        // We will assume 'public' for query simplicity or we need to update DB. 
+        // For now, we filter strictly. Old messages might disappear until migrated, but for new functionality this is cleaner.
+        
+        let query = db.collection('chat').where('channel', '==', currentChatChannel).orderBy('timestamp', 'desc').limit(50);
+        
+        // Fallback for Public: Include messages where channel is undefined (migration support)
+        // Firestore doesn't support "where channel == public OR channel == undefined" easily in one query without complex index.
+        // We will just use the strict 'channel' field. Future messages must have it.
+        
+        unsubscribeChat = query.onSnapshot({ includeMetadataChanges: true }, snapshot => {
             const messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).reverse();
             const chatBox = document.getElementById('chat-messages');
             chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
@@ -924,7 +978,6 @@
             
             lastMessageCount = messages.length;
             
-            // KEY FIX: Only update storage if chat is active AND we have messages
             if (isChatActive && lastMessageCount > 0) {
                 localStorage.setItem('chatCount', lastMessageCount);
             }
@@ -932,12 +985,10 @@
             if (!isFirstLoad && !isChatActive) {
                 const storedCount = parseInt(localStorage.getItem('chatCount') || '0');
                 if (lastMessageCount > storedCount) {
-                    // Update UI if we are on dashboard
                     if(document.getElementById('view-Übersicht').classList.contains('active')) renderDashboard();
                     document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
                 }
             }
-            // Init check on load
             if(isFirstLoad) {
                  const storedCount = parseInt(localStorage.getItem('chatCount') || '0');
                  if (lastMessageCount > storedCount) {
@@ -977,7 +1028,18 @@
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
-        await db.collection('chat').add({ text: text, senderName: currentUserName, senderId: auth.currentUser.uid, type: 'text', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        
+        // Security check for Admin channel
+        if (currentChatChannel === 'admin' && !isAdmin) return;
+
+        await db.collection('chat').add({ 
+            text: text, 
+            senderName: currentUserName, 
+            senderId: auth.currentUser.uid, 
+            type: 'text', 
+            channel: currentChatChannel, // Add Channel
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        });
         input.value = '';
     }
     
@@ -1002,6 +1064,10 @@
             document.getElementById('sig-tp2').value = trade.tp2 || '';
             document.getElementById('sig-tp3').value = trade.tp3 || '';
         } else { sigDiv.classList.add('hidden'); }
+        
+        // Reset Selector
+        document.getElementById('share-channel').value = 'public';
+
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('share-modal').classList.remove('hidden'); document.getElementById('share-modal').classList.add('open'); 
     }
@@ -1019,6 +1085,10 @@
     
     async function confirmShare() {
         if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
+        
+        const targetChannel = document.getElementById('share-channel').value;
+        if(targetChannel === 'admin' && !isAdmin) return alert("Du darfst nicht in den Admin-Channel posten.");
+
         const trade = trades.find(t => t.id === shareTradeId);
         const tradeCopy = { ...trade }; delete tradeCopy.pnl; delete tradeCopy.userId; 
         if(trade.status === 'Aktiv') {
@@ -1029,8 +1099,22 @@
             tradeCopy.tp3 = document.getElementById('sig-tp3').value;
         }
         const sharedImage = shareType === 'setup' ? trade.imgSetup : trade.imgResult;
-        await db.collection('chat').add({ senderName: currentUserName, senderId: auth.currentUser.uid, type: 'trade', tradeData: tradeCopy, sharedImage: sharedImage, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        
+        await db.collection('chat').add({ 
+            senderName: currentUserName, 
+            senderId: auth.currentUser.uid, 
+            type: 'trade', 
+            tradeData: tradeCopy, 
+            sharedImage: sharedImage, 
+            channel: targetChannel, // Set Channel
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        });
+        
         closePopup();
+        
+        // Switch to the channel where we just shared
+        currentChatChannel = targetChannel;
+        switchChatChannel(targetChannel);
         showView('Chat');
     }
 
@@ -1043,8 +1127,6 @@
         modal.classList.remove('hidden'); modal.classList.add('open');
         
         const isTradeOwner = t.userId === auth.currentUser.uid;
-        
-        // NEU: Nur anzeigen, wenn Admin UND User Feedback erlaubt hat
         const showAdminInput = isAdmin && !isTradeOwner && inspectedUserFeedbackAllowed;
         
         const adminInputDiv = document.getElementById('adm-feedback-input-area');
@@ -1221,14 +1303,12 @@
         if(userSnap.empty) { alert("User hat sich noch nie eingeloggt."); return; }
         const targetUid = userSnap.docs[0].id;
 
-        // NEU: Prüfen ob dieser User Feedback erlaubt hat
         inspectedUserFeedbackAllowed = true; // Reset
         const uData = userSnap.docs[0].data();
         if (uData.allowCoachFeedback === false) {
              inspectedUserFeedbackAllowed = false;
         }
         
-        // Visueller Hinweis im Admin Header
         if(!inspectedUserFeedbackAllowed) {
             document.getElementById('adm-detail-name').innerHTML += ' <span style="font-size:0.8rem; color:var(--danger); border:1px solid var(--danger); padding:2px 5px; border-radius:4px;">No Feedback</span>';
         }
@@ -1304,7 +1384,6 @@
         }).join('');
     }
 
-    // --- OTHER CORE FUNCTIONS (UNCHANGED) ---
     async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
     async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
     async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
@@ -1328,7 +1407,6 @@
             document.getElementById('chat-notification').classList.add('hidden');
             document.getElementById('btn-Chat').innerHTML = '💬 Chat';
             hasNewChatMessage = false;
-            // UPDATE: Force save current count when opening view
             if(lastMessageCount > 0) localStorage.setItem('chatCount', lastMessageCount);
         }
 
@@ -1338,8 +1416,6 @@
         if(v === 'Statistik') renderStatistics(); 
         if(v === 'Einstellungen') renderSettingsList(); 
         if(v === 'News') { const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s); } 
-        
-        // --- THIS WAS MISSING ---
         if(v === 'TradingView') setTimeout(renderTradingViewWidget, 50);
     }
     
@@ -1357,72 +1433,32 @@
     function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
     function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
     function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
-
-    // --- NEUE FUNKTION: FEEDBACK TOGGLE ---
-    async function toggleFeedback(val) {
-        if(auth.currentUser) {
-            await db.collection('users').doc(auth.currentUser.uid).set({ allowCoachFeedback: val }, { merge: true });
-        }
-    }
-
-    // --- NEUE FUNKTION: BILDER AUSLESEN (OCR) ---
+    async function toggleFeedback(val) { if(auth.currentUser) { await db.collection('users').doc(auth.currentUser.uid).set({ allowCoachFeedback: val }, { merge: true }); } }
     async function runOCR() {
         const url = document.getElementById('imgSetup').value;
         const statusEl = document.getElementById('ocr-status');
-        
         if(!url) { alert("Bitte erst eine Bild-URL einfügen!"); return; }
-        
         statusEl.innerText = '🤖 Lese Daten aus Bild...';
-        
-        // Öffentlicher Demo-Key (für Produktion besser eigenen Key holen auf ocr.space)
         const apiKey = 'helloworld'; 
         const apiEndpoint = `https://api.ocr.space/parse/imageurl?apikey=${apiKey}&url=${url}&language=eng&isOverlayRequired=false`;
-
         try {
             const response = await fetch(apiEndpoint);
             const data = await response.json();
-
-            if (data.IsErroredOnProcessing) {
-                console.error("OCR Fehler:", data.ErrorMessage);
-                statusEl.innerText = '❌ Fehler beim Lesen (CORS oder URL)';
-                return;
-            }
-
+            if (data.IsErroredOnProcessing) { console.error("OCR Fehler:", data.ErrorMessage); statusEl.innerText = '❌ Fehler beim Lesen (CORS oder URL)'; return; }
             if (data.ParsedResults && data.ParsedResults.length > 0) {
                 const text = data.ParsedResults[0].ParsedText;
-                console.log("Extrahierter Text:", text); // Debug
-                
-                // Text bereinigen (Zeilenumbrüche entfernen)
                 const cleanText = text.replace(/(\r\n|\n|\r)/gm, " ");
-
-                // 1. STOP LOSS (Suche nach "Stop", "SL", "Loss" gefolgt von Zahl)
                 const slMatch = cleanText.match(/(?:Stop|SL|Loss)[\s:=-]*(\d+[\.,]\d{2,5})/i);
                 if (slMatch && slMatch[1]) document.getElementById('inpSL').value = slMatch[1].replace(',', '.');
-
-                // 2. ENTRY (Suche nach "Entry", "Open", "Price")
                 const entryMatch = cleanText.match(/(?:Entry|Open|Price)[\s:=-]*(\d+[\.,]\d{2,5})/i);
                 if (entryMatch && entryMatch[1]) document.getElementById('inpEntry').value = entryMatch[1].replace(',', '.');
-
-                // 3. TAKE PROFIT (Suche nach "Target", "TP", "Profit")
                 const tpMatch = cleanText.match(/(?:Target|TP|Profit)[\s:=-]*(\d+[\.,]\d{2,5})/i);
                 if (tpMatch && tpMatch[1]) document.getElementById('inpTP1').value = tpMatch[1].replace(',', '.');
-
-                // 4. ASSET RATEN (Wenn noch leer)
                 const assetMatch = cleanText.match(/\b([A-Z]{3}[A-Z]{3}|GOLD|DAX|US30)\b/);
-                if (assetMatch && !document.getElementById('assetInput').value) {
-                    document.getElementById('assetInput').value = assetMatch[0];
-                }
-
-                statusEl.innerText = '✅ Daten gefunden!';
-                setTimeout(() => statusEl.innerText = '', 3000);
-            } else {
-                statusEl.innerText = '⚠️ Kein Text erkannt';
-            }
-
-        } catch (error) {
-            console.error(error);
-            statusEl.innerText = '❌ Netzwerkfehler';
-        }
+                if (assetMatch && !document.getElementById('assetInput').value) { document.getElementById('assetInput').value = assetMatch[0]; }
+                statusEl.innerText = '✅ Daten gefunden!'; setTimeout(() => statusEl.innerText = '', 3000);
+            } else { statusEl.innerText = '⚠️ Kein Text erkannt'; }
+        } catch (error) { console.error(error); statusEl.innerText = '❌ Netzwerkfehler'; }
     }
 </script>
 </body>
