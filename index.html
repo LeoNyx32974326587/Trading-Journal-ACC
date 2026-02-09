@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro8</title>
+    <title>TradeCloud Pro</title>
     
-    <script>window.onerror=function(m,u,l){console.error("ERR:"+m+" L:"+l);return false;};</script>
+    <script>window.onerror=function(m,u,l){console.error("System: "+m);return false;};</script>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -28,6 +28,7 @@
             --accent: #6200ee; --border: #ddd;
             --popup-bg: #ffffff; --chat-me: #e1f5fe; --chat-other: #f1f1f1;
         }
+
         body { font-family: 'Inter', sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 80px; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none !important; }
         .view-section { display: none; animation: fadeIn 0.3s; }
@@ -55,26 +56,31 @@
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
         .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; }
-        .btn-icon, .btn-small { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition:0.2s; }
-        .btn-icon:hover { border-color: var(--accent); background:rgba(255,255,255,0.1); }
+        .btn-icon, .btn-small, .chart-btn { padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+        .btn-icon:hover, .btn-small:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); transform: translateY(-1px); }
         .btn-danger-hover:hover { border-color: var(--danger); color: var(--danger); }
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
 
         /* DASHBOARD */
         .dashboard-hero { text-align: center; margin-bottom: 20px; }
         .dashboard-hero h1 { margin: 0; font-size: 2rem; color: var(--text-main); }
-        .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; }
+        .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .jfc-title { font-size: 1.3rem; font-weight: 800; }
+        .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
         .jfc-body-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; }
-        .jfc-chart-area { height: 300px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid var(--border); padding: 10px; position:relative; }
+        .jfc-chart-area { position: relative; height: 300px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid var(--border); padding: 10px; }
         .jfc-sidebar { display: flex; flex-direction: column; gap: 15px; }
-        .stat-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px 10px; text-align: center; }
-        .stat-label { font-size: 0.8rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 1.1rem; font-weight: 800; display:block; }
-        .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; min-height: 120px; }
+        .jfc-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-label { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 1.1rem; font-weight: 800; }
+        .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; display: flex; flex-direction: column; min-height: 120px; }
         .ot-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .card-filters { display: flex; gap: 5px; padding: 10px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .filter-pill { padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-sub); border: 1px solid transparent; background: transparent; transition: 0.2s; white-space: nowrap; text-transform: uppercase; }
+        .filter-pill:hover { background: rgba(255,255,255,0.05); }
+        .filter-pill.active { background: rgba(187, 134, 252, 0.15); color: var(--accent); border-color: var(--accent); }
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
         /* CHAT */
@@ -83,7 +89,7 @@
         .chat-main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-dark); position:relative; overflow: hidden; }
         .channel-item { padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; transition:0.2s; }
         .channel-item:hover { background: rgba(255,255,255,0.05); }
-        .channel-item.active { background: rgba(187, 134, 252, 0.1); color: var(--accent); border-left: 4px solid var(--accent); }
+        .channel-item.active { background: rgba(187, 134, 252, 0.1); color: var(--accent); font-weight: bold; border-left: 4px solid var(--accent); }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; width:100%; }
@@ -92,55 +98,68 @@
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
         .msg-sender { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 4px; margin-left: 4px; }
-        .msg-bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.4; border: 1px solid var(--border); position:relative; }
-        .msg-wrapper.me .msg-bubble { background: var(--chat-me); border-color: var(--accent); border-bottom-right-radius: 2px; }
-        .msg-wrapper.other .msg-bubble { background: var(--chat-other); border-bottom-left-radius: 2px; }
+        .msg-bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; border: 1px solid var(--border); position:relative; }
+        .msg-wrapper.me .msg-bubble { background: var(--chat-me); color: var(--text-main); border-bottom-right-radius: 2px; border-color: var(--accent); }
+        .msg-wrapper.other .msg-bubble { background: var(--chat-other); color: var(--text-main); border-bottom-left-radius: 2px; }
         
         .chat-del-btn { position: absolute; top: -10px; width: 26px; height: 26px; border-radius: 50%; border:1px solid var(--danger); background: var(--card-bg); color: var(--danger); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size:12px; opacity:0; transition:0.2s; }
         .msg-wrapper:hover .chat-del-btn { opacity: 1; top:-12px; }
         .msg-wrapper.me .chat-del-btn { left: -35px; }
         .msg-wrapper.other .chat-del-btn { right: -35px; }
-        .chat-dm-del { background:none; border:none; color:var(--text-sub); cursor:pointer; font-size:1.1rem; padding:0 5px; }
-        .chat-dm-del:hover { color:var(--danger); }
-        
+        .chat-dm-del-btn { background: none; border: none; color: var(--text-sub); font-size: 1rem; padding: 5px; cursor: pointer; }
+        .chat-dm-del-btn:hover { color: var(--danger); }
         #chat-send-btn { padding: 0 30px; font-size: 1.8rem; width: auto; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 12px; }
 
         .chat-trade-card { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; width: 240px; margin-top: 5px; cursor: pointer; }
         .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 5px; }
-        @media (max-width: 700px) { .chat-layout { flex-direction: column; } .chat-sidebar { width: 100%; height: 80px; flex-direction: row; overflow-x: auto; border-right:none; border-bottom:1px solid var(--border); } .channel-item { min-width: 140px; justify-content: center; border-bottom:none; } .chat-dm-del { display:none; } /* Hide delete on mobile sidebar for space */ }
+        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
+        .ct-footer { margin-top: 8px; font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; }
+
+        @media (max-width: 700px) {
+            .chat-layout { flex-direction: column; }
+            .chat-sidebar { width: 100%; height: 70px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
+            .channel-item { min-width: 140px; flex-shrink: 0; justify-content: center; text-align: center; padding: 10px; border-bottom: none; border-left: none; }
+            .channel-item.active { border-bottom: 3px solid var(--accent); border-left: none; background: transparent; }
+            .channel-desc { display: none; }
+            .chat-messages { padding: 10px; }
+        }
 
         /* CALENDAR */
         .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; position: relative; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
-        .cal-cell.win { background: rgba(0, 200, 83, 0.15); border-color: var(--success); }
-        .cal-cell.loss { background: rgba(255, 61, 0, 0.15); border-color: var(--danger); }
-        .cal-date { position: absolute; top: 4px; right: 4px; font-size: 0.7rem; color: var(--text-sub); }
-        .cal-pnl { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 0.7rem; font-weight: bold; }
+        .cal-cell.win { background: rgba(0, 200, 83, 0.15); border: 1px solid rgba(0, 200, 83, 0.3); }
+        .cal-cell.loss { background: rgba(255, 61, 0, 0.15); border: 1px solid rgba(255, 61, 0, 0.3); }
+        .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-sub); }
+        .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
         .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: var(--text-sub); }
 
         /* LISTS */
         .hist-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-main); }
         .hist-table th { text-align: left; padding: 15px 10px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-weight: 600; }
-        .hist-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .hist-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-main); }
         .hist-table tr:hover { background: rgba(255,255,255,0.03); }
         .search-res-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); background: var(--cell-bg); border-radius: 6px; margin-bottom: 5px; }
+        .search-res-name { font-weight: bold; display: block; }
+        .search-res-email { font-size: 0.8rem; color: var(--text-sub); }
 
         /* POPUPS */
-        #popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        #popup-overlay.open { display: flex; }
-        .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; max-height: 90vh; overflow-y: auto; position: relative; }
+        #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 3000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        #popup-overlay.open { display: flex; opacity: 1; }
+        .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
         .td-hero { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
-        .td-asset { font-size: 1.8rem; font-weight: 800; display: block; }
-        .td-pnl { font-size: 3rem; font-weight: 900; display: block; margin-top: 5px; }
-        .td-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .td-box { background: var(--cell-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .td-asset { font-size: 1.8rem; font-weight: 800; color: white; display:block; }
+        .td-pnl { font-size: 3rem; font-weight: 900; margin-top: 5px; display:block; }
+        .td-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .td-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; display:flex; flex-direction:column; justify-content:center; }
+        .td-val-row { display: flex; align-items: center; justify-content: space-between; }
+        .td-label { color: #888; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; display: block; font-weight: 600; }
+        .td-val { color: white; font-size: 1.1rem; font-weight: 600; }
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; margin-top:10px; text-align: center; }
         .td-img { max-width: 100%; border-radius: 8px; cursor: pointer; }
 
-        /* AUTH */
+        /* AUTH OVERLAY */
         #auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 5000; }
         
         /* MISC */
@@ -151,13 +170,15 @@
         input:checked + .slider { background-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(26px); }
         .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        
-        .share-opt { padding: 15px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; background: var(--cell-bg); margin-bottom: 8px; transition:0.2s; }
-        .share-opt:hover { border-color: var(--accent); background: rgba(187,134,252,0.1); }
+        .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .share-opt { padding: 15px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; background:var(--cell-bg); margin-bottom:8px; }
+        .share-opt:hover { border-color: var(--accent); background: rgba(187, 134, 252, 0.1); }
         .stats-grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: span 2; }
         .msg-notification { background: rgba(0, 200, 83, 0.1); border: 1px solid var(--success); color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; margin-bottom:15px; }
+        .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 1.2rem; cursor: pointer; padding: 5px; margin-left: 10px; }
+        .input-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
@@ -173,10 +194,10 @@
     
     <div id="day-detail-view" class="modal-base hidden">
         <div class="jfc-header"><span id="dv-date-title" style="font-weight:bold;">Datum</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
-        <div style="height:180px; margin: 15px 0;"><canvas id="dayChart"></canvas></div>
+        <div style="height:150px; margin: 15px 0;"><canvas id="dayChart"></canvas></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-            <div class="stat-box"><span style="color:var(--text-sub); font-size:0.8rem;">PNL</span><span id="dv-pnl" class="stat-value">-</span></div>
-            <div class="stat-box"><span style="color:var(--text-sub); font-size:0.8rem;">TRADES</span><span id="dv-count" class="stat-value">-</span></div>
+            <div class="stat-box"><span class="stat-label">PnL</span><span id="dv-pnl" class="stat-value">-</span></div>
+            <div class="stat-box"><span class="stat-label">Trades</span><span id="dv-count" class="stat-value">-</span></div>
         </div>
         <div id="dv-list"></div>
     </div>
@@ -185,7 +206,7 @@
         <div class="jfc-header"><button onclick="window.closeTradeDetail()" style="background:none; border:none; color:var(--accent);">❮ Zurück</button><span style="font-weight:bold;">Details</span></div>
         <div id="td-content"></div>
         <div id="adm-feedback-area" class="hidden" style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-            <label style="color:var(--accent);">Coach Feedback</label>
+            <label class="td-label" style="color:var(--accent);">Coach Feedback</label>
             <textarea id="adm-feedback-text" rows="3"></textarea>
             <button onclick="window.submitFeedback()" class="btn-primary" style="margin-top:10px;">Senden</button>
         </div>
@@ -195,16 +216,16 @@
         <div class="jfc-header"><span id="form-title" style="font-weight:bold;">Trade</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
         <div style="padding-top:15px;">
             <input type="hidden" id="editId">
-            <label style="font-size:0.8rem; color:var(--text-sub);">Journal</label><select id="inpJournalSelect"></select>
-            <label style="font-size:0.8rem; color:var(--text-sub);">Status</label><select id="status" onchange="window.toggleFormFields()"><option value="Aktiv">Offen</option><option value="Geschlossen">Geschlossen</option></select>
-            <label style="font-size:0.8rem; color:var(--text-sub);">Asset</label><input id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
-            <label style="font-size:0.8rem; color:var(--text-sub);">Datum</label><input type="datetime-local" id="datetime">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div><label style="font-size:0.8rem;">Entry</label><input type="number" id="inpEntry" step="any"></div><div><label style="font-size:0.8rem;">SL</label><input type="number" id="inpSL" step="any"></div></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"><div><label style="font-size:0.8rem;">TP1</label><input type="number" id="inpTP1"></div><div><label style="font-size:0.8rem;">TP2</label><input type="number" id="inpTP2"></div><div><label style="font-size:0.8rem;">TP3</label><input type="number" id="inpTP3"></div></div>
-            <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"></div>
-            <label style="font-size:0.8rem;">Notiz</label><textarea id="note" rows="2"></textarea>
-            <label style="font-size:0.8rem;">Bilder (URL)</label><input id="imgSetup" placeholder="Setup URL"><input id="imgResult" placeholder="Result URL">
-            <div id="admin-feedback-container" class="hidden" style="margin-top:15px; border-top:1px solid #333; padding-top:10px;"><label style="color:var(--accent);">Coach Feedback</label><textarea id="inpAdminFeedback" rows="2"></textarea></div>
+            <label class="td-label">Journal</label><select id="inpJournalSelect"></select>
+            <label class="td-label">Status</label><select id="status" onchange="window.toggleFormFields()"><option value="Aktiv">Offen</option><option value="Geschlossen">Geschlossen</option></select>
+            <label class="td-label">Asset</label><input id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
+            <label class="td-label">Datum</label><input type="datetime-local" id="datetime">
+            <div class="input-row-2"><div><label class="td-label">Entry</label><input type="number" id="inpEntry" step="any"></div><div><label class="td-label">Stop Loss</label><input type="number" id="inpSL" step="any"></div></div>
+            <div class="input-row-3"><div><label class="td-label">TP 1</label><input type="number" id="inpTP1"></div><div><label class="td-label">TP 2</label><input type="number" id="inpTP2"></div><div><label class="td-label">TP 3</label><input type="number" id="inpTP3"></div></div>
+            <div id="closedFields" class="hidden"><label class="td-label" style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"></div>
+            <label class="td-label">Notiz</label><textarea id="note" rows="2"></textarea>
+            <label class="td-label">Bilder (URLs)</label><input id="imgSetup" placeholder="Setup URL"><input id="imgResult" placeholder="Result URL">
+            <div id="admin-feedback-container" class="hidden" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;"><label style="color:var(--accent);">👨‍🏫 Coach Feedback (Admin)</label><textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent);" placeholder="Tipp für den User..."></textarea></div>
             <button onclick="window.saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
         </div>
     </div>
@@ -212,21 +233,21 @@
     <div id="share-channel-modal" class="modal-base hidden">
         <div class="jfc-header"><span style="font-weight:bold;">Teilen</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-            <div class="share-opt" onclick="window.selectShareChannelTarget('general')">📢 Allgemein</div>
-            <div class="share-opt" onclick="window.selectShareChannelTarget('signals')">🚀 Signale</div>
-            <div id="btn-share-pro" class="share-opt hidden" onclick="window.selectShareChannelTarget('pro')">💎 Pro Signale</div>
-            <div class="share-opt" onclick="window.shareToMember()">👤 An Mitglied</div>
+            <button class="share-opt" onclick="window.selectShareChannelTarget('general')">📢 Allgemein</button>
+            <button class="share-opt" onclick="window.selectShareChannelTarget('signals')">🚀 Signale</button>
+            <button id="btn-share-pro" class="share-opt hidden" onclick="window.selectShareChannelTarget('pro')">💎 Pro Signale</button>
+            <button class="share-opt" onclick="window.shareToMember()">👤 An Mitglied</button>
         </div>
     </div>
     
     <div id="share-modal" class="modal-base hidden">
-        <div class="jfc-header"><span style="font-weight:bold;">Inhalt</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
+        <div class="jfc-header"><span style="font-weight:bold;">Inhalt wählen</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-            <div class="share-opt" onclick="window.selectShareOption('setup')">📷 Setup Chart</div>
-            <div class="share-opt" onclick="window.selectShareOption('result')">🏁 Ergebnis Chart</div>
+            <button class="share-opt" onclick="window.selectShareOption('setup')">📷 Setup Chart</button>
+            <button class="share-opt" onclick="window.selectShareOption('result')">🏁 Ergebnis Chart</button>
         </div>
-        <div id="signal-inputs" class="hidden" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-             <input id="sig-entry" placeholder="Entry"><input id="sig-sl" placeholder="SL"><input id="sig-tp1" placeholder="TP 1">
+        <div id="signal-inputs" class="input-row-3 hidden" style="margin-top:10px;">
+            <input type="number" id="sig-entry" placeholder="Entry"><input type="number" id="sig-sl" placeholder="SL"><input type="number" id="sig-tp1" placeholder="TP 1">
         </div>
         <button onclick="window.confirmShare()" class="btn-primary" style="margin-top:15px;">Senden</button>
     </div>
@@ -239,13 +260,15 @@
             <button id="btn-start-dm" class="btn-small" style="margin-top:10px; border-color:var(--accent); color:var(--accent); width:auto; margin:10px auto;">💬 Nachricht senden</button>
         </div>
         <div style="padding:0 20px 20px 20px;">
-            <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL</label>
+            <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
             <select id="adm-journal-select" onchange="window.updateAdminMemberView()" style="width:100%;"></select>
         </div>
-        <div id="adm-content-stats" style="padding:20px;"></div>
-        <div style="max-height:300px; overflow-y:auto; padding:0 20px;">
-            <table class="hist-table"><tbody id="adm-trade-list"></tbody></table>
+        <div style="display:flex; border-bottom:1px solid #333;">
+            <button class="adm-tab-btn active" onclick="window.switchAdminTab('stats')" id="btn-adm-stats">📊 Statistik</button>
+            <button class="adm-tab-btn" onclick="window.switchAdminTab('trades')" id="btn-adm-trades">📜 Trade Liste</button>
         </div>
+        <div id="adm-content-stats" style="padding:20px; overflow-y:auto;"></div>
+        <div id="adm-content-trades" class="hidden" style="padding:0; overflow-y:auto; flex-grow:1;"><table class="hist-table"><tbody id="adm-trade-list"></tbody></table></div>
     </div>
     
     <div id="user-search-modal" class="modal-base hidden">
@@ -307,9 +330,9 @@
     <section id="view-Chat" class="view-section">
         <div class="chat-layout">
             <div class="chat-sidebar">
-                <div class="channel-item active" id="ch-general" onclick="window.switchChannel('general')">📢 Allgemein</div>
-                <div class="channel-item" id="ch-signals" onclick="window.switchChannel('signals')">🚀 Signale</div>
-                <div class="channel-item" id="ch-pro" onclick="window.switchChannel('pro')">💎 Pro Signale</div>
+                <div class="channel-item active" id="ch-general" onclick="window.switchChannel('general')"><div><div class="channel-name">📢 Allgemein</div><span class="channel-desc">Community Talk</span></div></div>
+                <div class="channel-item" id="ch-signals" onclick="window.switchChannel('signals')"><div><div class="channel-name">🚀 Signale</div><span class="channel-desc">Nur Trades (Alle)</span></div></div>
+                <div class="channel-item" id="ch-pro" onclick="window.switchChannel('pro')"><div><div class="channel-name">💎 Pro Signale</div><span class="channel-desc">Nur Coach</span></div></div>
                 <div style="padding:15px; border-top:1px solid var(--border); margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
                     <small style="color:var(--text-sub);">DIREKTNACHRICHTEN</small>
                     <button class="btn-small" onclick="window.openSearchModal()">+</button>
@@ -347,10 +370,10 @@
     </section>
 
     <section id="view-Statistik" class="view-section">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-            <div class="card"><h4>Assets</h4><div style="height:200px;"><canvas id="assetChart"></canvas></div></div>
-            <div class="card"><h4>Wochentage</h4><div style="height:200px;"><canvas id="weekdayChart"></canvas></div></div>
-            <div class="card" style="grid-column: span 2;"><h4>Uhrzeit</h4><div style="height:200px;"><canvas id="hourChart"></canvas></div></div>
+        <div class="stats-grid-view">
+            <div class="card chart-card"><h4>Assets</h4><div style="height:200px;"><canvas id="assetChart"></canvas></div></div>
+            <div class="card chart-card"><h4>Wochentage</h4><div style="height:200px;"><canvas id="weekdayChart"></canvas></div></div>
+            <div class="card full-width"><h4>Uhrzeit</h4><div style="height:200px;"><canvas id="hourChart"></canvas></div></div>
         </div>
     </section>
 
@@ -370,9 +393,11 @@
                 <select id="cType" onchange="window.updateContractSize()" style="margin-bottom:0;"><option value="100000">Forex (100k)</option><option value="1">Indizes/Krypto</option><option value="100">Gold</option><option value="custom">Custom</option></select>
                 <input type="number" id="cContract" value="100000" placeholder="Kontrakt">
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+            <div class="input-row-2" style="margin-top:10px;">
                  <input type="number" id="cBal" placeholder="Konto (€)">
                  <input type="number" id="cRisk" placeholder="Risk %">
+            </div>
+            <div class="input-row-2">
                  <input type="number" id="cEnt" placeholder="Entry">
                  <input type="number" id="cSl" placeholder="Stop Loss">
             </div>
@@ -401,7 +426,11 @@
             <div id="admin-panel" class="hidden" style="margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
                 <h3 style="color:var(--accent);">Admin Bereich</h3>
                 <p style="color:var(--text-sub); font-size:0.9rem;">Mitgliederverwaltung</p>
-                <div id="admin-user-list"></div>
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <input id="admEmail" placeholder="Neues Mitglied (Email)" style="margin-bottom:0;">
+                    <button onclick="window.admAdd()" class="btn-primary" style="width:100px; padding:0;">Add</button>
+                </div>
+                <div id="admList" style="background:var(--cell-bg); border-radius:8px; padding:10px; border:1px solid var(--border);"></div>
             </div>
         </div>
     </section>
@@ -523,7 +552,6 @@
 
             journals.forEach(journal => {
                 const closedAll = trades.filter(t => (t.journal === journal.name) && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
-
                 let baseBalance = parseFloat(journal.startCap) || 0;
                 let totalPnL = closedAll.reduce((acc, t) => acc + (parseFloat(t.pnl)||0), 0);
                 let wins = closedAll.filter(t => t.pnl > 0).length;
@@ -531,7 +559,6 @@
                 let runningBal = baseBalance;
                 const equityCurve = [baseBalance];
                 closedAll.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
-
                 const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
                 const canvasId = `chart-${journal.id}`;
                 const open = trades.filter(t => (t.journal === journal.name) && t.status === 'Aktiv');
@@ -550,29 +577,22 @@
                 }, 50);
             });
             renderNotificationsArea();
-        } catch(e) {
-            console.error("Dashboard Render Error:", e);
-        }
+        } catch(e) { console.error("Dashboard Error", e); }
     }
 
     // --- HISTORY ---
     window.renderHistory = function() {
         const tbody = document.getElementById('tradeBody');
         tbody.innerHTML = '';
-        const filtered = trades.filter(t => (t.journal === activeJournal));
+        const filtered = trades.filter(t => (t.journal || 'Main') === activeJournal);
         filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
-        
         tbody.innerHTML = filtered.map(t => {
-            const pnlClass = t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)');
-            const tradeDataString = encodeURIComponent(JSON.stringify(t));
-            const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-            
+            const color = t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)');
+            const dataStr = encodeURIComponent(JSON.stringify(t));
             return `<tr>
-                <td><b>${t.date.slice(5,10)}</b><br><span style="font-size:0.7rem; color:#666;">${t.date.slice(11,16)}</span></td>
-                <td>${t.asset}</td>
-                <td class="sensitive" style="text-align:right; font-weight:bold; color:${pnlClass}">${t.status === 'Aktiv' ? 'OPEN' : t.pnl.toFixed(2)}</td>
-                <td style="text-align:right; white-space:nowrap;">
-                    <button class="btn-icon" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button>
+                <td><b>${t.date.slice(5,10)}</b></td><td>${t.asset}</td><td style="color:${color};text-align:right;">${t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2)}</td>
+                <td style="text-align:right;">
+                    <button class="btn-icon" onclick="window.openSignalDetail('${dataStr}', '')">ℹ️</button>
                     <button class="btn-icon" onclick="window.shareTrade('${t.id}')">🚀</button>
                     <button class="btn-icon" onclick="window.editTrade('${t.id}')">✎</button>
                     <button class="btn-icon btn-danger-hover" onclick="window.askDelete('${t.id}', 'trade')">🗑</button>
@@ -587,12 +607,10 @@
         const chatBox = document.getElementById('chat-messages');
         chatBox.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">Lade...</div>';
         isChatFirstLoad = true;
-
         try {
             chatListener = db.collection('chat').where('channel', '==', channel).onSnapshot(snap => {
                 let msgs = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 msgs.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)); 
-                
                 chatBox.innerHTML = msgs.map(m => {
                     const isMe = m.senderId === currentUser.uid;
                     let content = `<div class="msg-text">${m.text || ''}</div>`;
@@ -600,33 +618,24 @@
                         const t = m.tradeData;
                         const tStr = encodeURIComponent(JSON.stringify(t));
                         const iStr = encodeURIComponent(m.sharedImage || '');
-                        content = `<div class="chat-trade-card" onclick="window.openSignalDetail('${tStr}', '${iStr}')"><div class="ct-header"><span>${t.asset}</span><span style="color:${t.status==='Aktiv'?'#0a84ff':'#888'}">${t.status}</span></div><div style="font-size:0.85rem; color:var(--text-sub);">${t.status === 'Aktiv' ? 'Signal 📡' : 'Result 🏁'}</div>${m.sharedImage ? `<img src="${m.sharedImage}" class="ct-img">` : ''}</div>`;
+                        content = `<div class="chat-trade-card" onclick="window.openSignalDetail('${tStr}', '${iStr}')"><div class="ct-header"><span>${t.asset}</span><span style="color:${t.status==='Aktiv'?'#0a84ff':'#888'}">${t.status}</span></div><div style="font-size:0.8rem; color:var(--text-sub);">${t.status === 'Aktiv' ? 'Signal 📡' : 'Result 🏁'}</div>${m.sharedImage ? `<img src="${m.sharedImage}" class="ct-img">` : ''}</div>`;
                     }
                     return `<div class="msg-wrapper ${isMe ? 'me' : 'other'}"><span class="msg-sender">${isMe ? 'Du' : m.senderName}</span><div class="msg-bubble">${content}${(isMe||isAdmin)?`<button class="chat-del-btn" onclick="window.askDelete('${m.id}','msg')">🗑</button>`:''}</div></div>`;
                 }).join('');
                 chatBox.scrollTop = chatBox.scrollHeight;
-                
-                snap.docChanges().forEach(change => {
-                    if (change.type === 'added' && !isChatFirstLoad) {
-                        const m = change.doc.data();
-                        if (m.senderId !== auth.currentUser.uid && !document.getElementById('view-Chat').classList.contains('active')) {
-                            showDashboardNotification(m);
-                        }
-                    }
-                });
+                snap.docChanges().forEach(change => { if (change.type === 'added' && !isChatFirstLoad) { const m = change.doc.data(); if (m.senderId !== auth.currentUser.uid && !document.getElementById('view-Chat').classList.contains('active')) showDashboardNotification(m); } });
                 isChatFirstLoad = false;
             });
         } catch(e) { console.error("Chat Error:", e); }
     }
 
     function showDashboardNotification(msg) {
-        const area = document.getElementById('dashboard-notification-area');
         if (document.getElementById(`notify-${msg.timestamp?.seconds}`)) return;
         const div = document.createElement('div');
         div.className = 'msg-notification';
         div.id = `notify-${msg.timestamp?.seconds}`;
         div.innerHTML = `<div onclick="window.showView('Chat'); window.switchChannel('${msg.channel}')" style="flex-grow:1;"><span style="font-size:0.75rem; color:var(--success); text-transform:uppercase; display:block; margin-bottom:4px;">Neues von ${msg.senderName}</span><span style="font-weight:normal;">${msg.text.substring(0, 50)}...</span></div><button class="chat-close-btn" onclick="this.parentElement.remove()">✕</button>`;
-        area.prepend(div);
+        document.getElementById('dashboard-notification-area').prepend(div);
         setTimeout(() => { if(div) div.remove(); }, 10000);
     }
 
@@ -652,111 +661,6 @@
         loadChat(ch);
     }
     
-    // --- DM / CHAT REQUEST SYSTEM ---
-    window.openSearchModal = function() {
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('user-search-modal').classList.remove('hidden');
-        document.getElementById('user-search-modal').classList.add('open');
-        document.getElementById('search-user-input').value = '';
-        document.getElementById('search-results').innerHTML = '';
-    }
-
-    window.searchUsers = async function(query) {
-        if(query.length < 3) return;
-        query = query.toLowerCase();
-        const snap = await db.collection('users').get();
-        const results = snap.docs.filter(doc => {
-            const d = doc.data();
-            return d.email && d.email.includes(query) && doc.id !== auth.currentUser.uid;
-        }).slice(0, 5);
-        const list = document.getElementById('search-results');
-        list.innerHTML = results.map(doc => {
-            const d = doc.data();
-            return `<div class="search-res-item">
-                <div><span class="search-res-name">${d.displayName}</span><span class="search-res-email">${d.email}</span></div>
-                <button class="btn-small" onclick="window.sendChatRequest('${doc.id}', '${d.displayName}')">Anfragen</button>
-            </div>`;
-        }).join('');
-    }
-
-    window.sendChatRequest = async function(targetUid, targetName) {
-        const myUid = auth.currentUser.uid;
-        const ids = [myUid, targetUid].sort();
-        const chatId = `dm_${ids[0]}_${ids[1]}`;
-        await db.collection('chat_requests').doc(chatId).set({
-            users: [myUid, targetUid],
-            status: 'pending',
-            senderId: myUid,
-            senderName: currentUserName,
-            targetName: targetName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(`Anfrage an ${targetName} gesendet!`);
-        window.closePopup();
-        window.loadDirectMessages(); 
-    }
-
-    window.loadDirectMessages = function() {
-        if(!auth.currentUser) return;
-        const myUid = auth.currentUser.uid;
-        db.collection('chat_requests').where('users', 'array-contains', myUid).onSnapshot(snapshot => {
-            const list = document.getElementById('dm-list-area');
-            list.innerHTML = '';
-            snapshot.docs.forEach(doc => {
-                const d = doc.data();
-                const chatId = doc.id;
-                const isSender = d.senderId === myUid;
-                const otherName = isSender ? d.targetName : d.senderName;
-                if(d.status === 'accepted') {
-                     list.innerHTML += `<div class="channel-item" id="${chatId}" onclick="window.switchChannel('${chatId}')">
-                        <span style="flex-grow:1;">📩 ${otherName}</span>
-                        <button class="chat-dm-del" onclick="event.stopPropagation(); window.askDelete('${chatId}', 'msg')">✕</button>
-                     </div>`;
-                } else if(d.status === 'pending') {
-                    if(!isSender) {
-                        list.innerHTML += `<div class="channel-item" style="background:rgba(187,134,252,0.1); flex-direction:column; align-items:start;">
-                            <div style="font-size:0.7rem; color:var(--accent);">Anfrage von:</div>
-                            <div style="font-weight:bold; margin-bottom:5px;">${otherName}</div>
-                            <div style="display:flex; gap:10px; width:100%;">
-                                <button class="btn-small" style="flex:1; border-color:var(--success); color:var(--success);" onclick="window.answerRequest('${chatId}', 'accepted')">✓</button>
-                                <button class="btn-small" style="flex:1; border-color:var(--danger); color:var(--danger);" onclick="window.answerRequest('${chatId}', 'rejected')">✕</button>
-                            </div>
-                        </div>`;
-                    } else {
-                        list.innerHTML += `<div class="channel-item" style="opacity:0.6;"><div><div class="channel-name" style="font-style:italic;">Wartet auf ${otherName}...</div></div></div>`;
-                    }
-                }
-            });
-        });
-    }
-
-    window.answerRequest = async function(docId, status) {
-        if(status === 'rejected') {
-            await db.collection('chat_requests').doc(docId).delete(); 
-        } else {
-            await db.collection('chat_requests').doc(docId).update({ status: status });
-        }
-    }
-    
-    window.sendChatMessage = async function() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-        if(auth.currentUser) {
-             await db.collection('chat').add({ 
-                text: text, 
-                senderName: currentUserName, 
-                senderId: auth.currentUser.uid, 
-                type: 'text', 
-                channel: currentChatChannel,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            input.value = '';
-        } else {
-            alert("Nicht eingeloggt!");
-        }
-    }
-    
     // --- SHARE WORKFLOW ---
     window.shareTrade = function(id) {
         shareTradeId = id;
@@ -764,20 +668,17 @@
         document.getElementById('share-channel-modal').classList.remove('hidden');
         document.getElementById('share-channel-modal').classList.add('open');
     }
-    
-    window.selectShareChannelTarget = function(channel) {
-        shareTargetChannel = channel;
+    window.selectShareChannelTarget = function(ch) {
+        shareTargetChannel = ch;
         document.getElementById('share-channel-modal').classList.remove('open');
         document.getElementById('share-channel-modal').classList.add('hidden');
         document.getElementById('share-modal').classList.remove('hidden'); 
         document.getElementById('share-modal').classList.add('open');
     }
-    
     window.shareToMember = function() {
         document.getElementById('share-channel-modal').classList.remove('open');
         document.getElementById('share-channel-modal').classList.add('hidden');
         window.openSearchModal();
-        // Override search click for sharing
         window.searchUsers = async function(query) {
              if(query.length < 3) return;
              const snap = await db.collection('users').get();
@@ -790,22 +691,18 @@
              ).join('');
         };
     }
-    
     window.finishShareToMember = async function(targetUid) {
         const myUid = auth.currentUser.uid;
         const chatId = `dm_${[myUid, targetUid].sort().join('_')}`;
         await db.collection('chat_requests').doc(chatId).set({
             users: [myUid, targetUid], status: 'accepted'
         }, {merge:true});
-        
         shareTargetChannel = chatId;
         window.closePopup();
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('share-modal').classList.remove('hidden');
         document.getElementById('share-modal').classList.add('open');
     }
-
-    window.closeShareModal = function() { window.closePopup(); }
     window.selectShareOption = function(type) {
         const trade = trades.find(t => t.id === shareTradeId);
         if(type === 'setup' && !trade.imgSetup) return;
@@ -815,34 +712,21 @@
         document.getElementById('opt-' + type).classList.add('selected');
     }
     window.confirmShare = async function() {
-        if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
-        if(!shareTargetChannel) shareTargetChannel = 'general';
-        
-        const trade = trades.find(t => t.id === shareTradeId);
-        const tradeCopy = { ...trade }; delete tradeCopy.pnl; delete tradeCopy.userId; 
-        if(trade.status === 'Aktiv') {
-            tradeCopy.entry = document.getElementById('sig-entry').value || trade.entry;
-            tradeCopy.sl = document.getElementById('sig-sl').value || trade.sl;
-            tradeCopy.tp1 = document.getElementById('sig-tp1').value || trade.tp1;
+        const t = trades.find(t => t.id === shareTradeId);
+        if(t) {
+            const copy = {...t}; delete copy.pnl; delete copy.userId;
+            if(t.status === 'Aktiv') {
+                 copy.entry = document.getElementById('sig-entry').value || t.entry;
+                 copy.sl = document.getElementById('sig-sl').value || t.sl;
+                 copy.tp1 = document.getElementById('sig-tp1').value || t.tp1;
+            }
+            await db.collection('chat').add({ type:'trade', tradeData: copy, sharedImage: shareType==='setup'?t.imgSetup:t.imgResult, senderId: currentUser.uid, senderName: currentUser.displayName, channel: shareTargetChannel, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            window.closePopup(); window.showView('Chat'); window.switchChannel(shareTargetChannel);
         }
-        const sharedImage = shareType === 'setup' ? trade.imgSetup : trade.imgResult;
-        
-        await db.collection('chat').add({ 
-            senderName: currentUserName, 
-            senderId: auth.currentUser.uid, 
-            type: 'trade', 
-            tradeData: tradeCopy, 
-            sharedImage: sharedImage, 
-            channel: shareTargetChannel,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-        });
-        window.closePopup();
-        window.showView('Chat');
-        window.switchChannel(shareTargetChannel);
     }
 
     // --- CALENDAR ---
-    window.changeCalMonth = function(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(trades.filter(t => t.journal === activeJournal)); }
+    window.changeMonth = function(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(trades.filter(t => (t.journal||'Main') === activeJournal)); }
     function renderCalendar(jTrades) {
         const y = calDate.getFullYear(), m = calDate.getMonth();
         document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', {month:'long', year:'numeric'});
@@ -856,42 +740,33 @@
             const dayTrades = jTrades.filter(t => t.date.startsWith(dateStr) && t.status === 'Geschlossen');
             let pnl = 0; dayTrades.forEach(t => pnl += t.pnl);
             let cls = 'cal-cell' + (dayTrades.length > 0 ? (pnl >= 0 ? ' win' : ' loss') : '');
-            grid.innerHTML += `<div class="${cls}" onclick="window.openDay('${dateStr}')"><span class="cal-date">${d}</span>${dayTrades.length ? `<span class="cal-pnl sensitive" style="color:${pnl>=0?'var(--success)':'var(--danger)'}">${pnl.toFixed(0)}</span>` : ''}</div>`;
+            grid.innerHTML += `<div class="${cls}" onclick="window.openDay('${dateStr}')"><span class="cal-date">${d}</span>${dayTrades.length?`<span class="cal-pnl" style="color:${pnl>=0?'#00c853':'#ff3d00'}">${pnl.toFixed(0)}</span>`:''}</div>`;
         }
     }
     window.openDay = function(dateStr) {
-        const dayTrades = trades.filter(t => t.date.startsWith(dateStr) && t.journal === activeJournal);
+        const dayTrades = trades.filter(t => t.date.startsWith(dateStr) && (t.journal||'Main') === activeJournal);
         document.getElementById('dv-date-title').innerText = dateStr;
-        let sum = 0; dayTrades.forEach(t => sum += t.pnl);
-        document.getElementById('dv-pnl').innerText = sum.toFixed(2) + '€';
+        let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
+        document.getElementById('dv-pnl').innerText = sum.toFixed(2)+'€';
         document.getElementById('dv-count').innerText = dayTrades.length;
-        
-        let run = 0; const data = dayTrades.map(t => { run+=t.pnl; return run; });
-        if(chartInstances['day']) chartInstances['day'].destroy();
-        const ctx = document.getElementById('dayChart');
-        chartInstances['day'] = new Chart(ctx.getContext('2d'), { type:'line', data:{labels:data.map(x=>''), datasets:[{data:data, borderColor:'#fff', tension:0.1}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}}} });
-
-        document.getElementById('dv-list').innerHTML = dayTrades.map(t => {
-            const dataStr = encodeURIComponent(JSON.stringify(t));
-            return `<div class="trade-row" onclick="window.openSignalDetail('${dataStr}', '')"><div class="tr-sym">${t.asset}</div><div class="tr-pnl sensitive" style="color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</div><div>›</div></div>`;
-        }).join('');
-
+        document.getElementById('dv-list').innerHTML = dayTrades.map(t => `<div class="trade-row" onclick="window.openSignalDetail('${encodeURIComponent(JSON.stringify(t))}', '')"><div class="tr-sym">${t.asset}</div><div class="tr-pnl sensitive" style="color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</div><div>›</div></div>`).join('');
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('day-detail-view').classList.remove('hidden');
         document.getElementById('day-detail-view').classList.add('open');
-    }
-    
-    // --- DETAILS ---
+        const ctx = document.getElementById('dayChart');
+        if(ctx) { let r=0; const d=dayTrades.map(t=>{r+=t.pnl;return r;}); new Chart(ctx.getContext('2d'), { type:'line', data:{labels:d.map(x=>''), datasets:[{data:d, borderColor:'#fff', tension:0.1}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}}} }); }
+    };
+
+    // --- STANDARD ---
     window.openSignalDetail = function(dStr, iStr) {
         const t = JSON.parse(decodeURIComponent(dStr));
         detailTradeId = t.id;
         const color = t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)');
         const fb = document.getElementById('adm-feedback-area');
-        if(isAdmin) { fb.classList.remove('hidden'); document.getElementById('adm-feedback-text').value = t.adminFeedback || ''; }
-        else if(t.adminFeedback) { fb.classList.remove('hidden'); fb.innerHTML = `<div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:8px;"><b>Coach:</b> ${t.adminFeedback}</div>`; }
-        else { fb.classList.add('hidden'); }
-
-        // Images
+        if(isAdmin) { fb.classList.remove('hidden'); document.getElementById('adm-feedback-text').value = t.adminFeedback||''; }
+        else if(t.adminFeedback) { fb.classList.remove('hidden'); fb.innerHTML = `<div style="background:rgba(255,255,255,0.1); padding:10px;"><b>Coach:</b> ${t.adminFeedback}</div>`; }
+        else fb.classList.add('hidden');
+        
         let imgHtml = '';
         if(t.imgSetup) imgHtml += `<div class="img-box"><span class="td-label">Setup</span><img src="${t.imgSetup}" class="td-img" onclick="window.open('${t.imgSetup}')"></div>`;
         if(t.imgResult) imgHtml += `<div class="img-box"><span class="td-label">Result</span><img src="${t.imgResult}" class="td-img" onclick="window.open('${t.imgResult}')"></div>`;
@@ -902,39 +777,84 @@
                 <div class="td-box"><span class="td-label">Entry</span><span class="td-val">${t.entry||'-'}</span></div>
                 <div class="td-box"><span class="td-label">SL</span><span class="td-val" style="color:var(--danger)">${t.sl||'-'}</span></div>
                 <div class="td-box"><span class="td-label">TP 1</span><span class="td-val" style="color:var(--success)">${t.tp1||'-'}</span></div>
-                <div class="td-box"><span class="td-label">TP 2</span><span class="td-val" style="color:var(--success)">${t.tp2||'-'}</span></div>
-                <div class="td-box"><span class="td-label">TP 3</span><span class="td-val" style="color:var(--success)">${t.tp3||'-'}</span></div>
             </div>
             ${t.note ? `<div class="td-note-box">${t.note}</div>` : ''}
             ${imgHtml}`;
-        
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('trade-detail-view').classList.remove('hidden');
         document.getElementById('trade-detail-view').classList.add('open');
-    }
+    };
 
-    // --- ACTIONS ---
+    window.saveTrade = async function() {
+        const id = document.getElementById('editId').value;
+        const asset = document.getElementById('assetInput').value.toUpperCase();
+        if(!asset) return alert("Asset fehlt!");
+        const data = { userId: currentUser.uid, date: document.getElementById('datetime').value, asset, journal: document.getElementById('inpJournalSelect').value, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value)||0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value, tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value, adminFeedback: document.getElementById('inpAdminFeedback').value };
+        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data);
+        await loadData(); window.closePopup();
+    };
+
+    window.editTrade = function(id) {
+        const t = trades.find(x => x.id === id); if(!t) return;
+        document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date; document.getElementById('assetInput').value = t.asset; document.getElementById('inpJournalSelect').value = t.journal; document.getElementById('status').value = t.status; document.getElementById('pnl').value = t.pnl; document.getElementById('imgSetup').value = t.imgSetup||''; document.getElementById('imgResult').value = t.imgResult||''; document.getElementById('note').value = t.note||''; document.getElementById('inpEntry').value = t.entry||''; document.getElementById('inpSL').value = t.sl||''; document.getElementById('inpTP1').value = t.tp1||''; document.getElementById('inpTP2').value = t.tp2||''; document.getElementById('inpTP3').value = t.tp3||''; 
+        window.toggleFormFields();
+        document.getElementById('popup-overlay').classList.add('open'); document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open');
+    };
+
     window.askDelete = function(id, type) { deleteTargetId = id; deleteType = type; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); };
     window.confirmDelete = async function() {
         if(deleteType === 'trade') { await db.collection('trades').doc(deleteTargetId).delete(); loadData(); }
-        else if(deleteType === 'msg') { await db.collection('chat').doc(deleteTargetId).delete(); } // DM is a msg type here for simplicity if using same func
+        else if(deleteType === 'msg') { await db.collection('chat').doc(deleteTargetId).delete(); }
         else if(deleteType === 'journal') { await db.collection('journals').doc(deleteTargetId).delete(); loadData(); }
         else if(deleteType === 'user') { await db.collection('members').doc(deleteTargetId).delete(); }
         window.closePopup();
     };
+    
+    // Admin & Utils
+    window.openMember = async function(uid, email, name) {
+        document.getElementById('adm-user-name').innerText = name;
+        document.getElementById('adm-user-email').innerText = email;
+        const uDoc = await db.collection('users').doc(uid).get();
+        if(uDoc.exists && uDoc.data().allowFeedback === false) { alert("User hat Zugriff verweigert."); return; }
+        
+        document.getElementById('btn-start-dm').onclick = async () => {
+             const cid = `dm_${[currentUser.uid, uid].sort().join('_')}`;
+             await db.collection('chat_requests').doc(cid).set({users:[currentUser.uid, uid], status:'accepted'},{merge:true});
+             window.closePopup(); window.showView('Chat'); loadDMs(); setTimeout(()=>window.switchChannel(cid), 500);
+        };
+        
+        const tSnap = await db.collection('trades').where('userId', '==', uid).get();
+        const uTrades = tSnap.docs.map(d => ({id:d.id, ...d.data()}));
+        const journals = [...new Set(uTrades.map(t=>t.journal))];
+        document.getElementById('adm-journal-select').innerHTML = journals.map(j => `<option>${j}</option>`).join('');
+        
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('admin-member-modal').classList.remove('hidden');
+        document.getElementById('admin-member-modal').classList.add('open');
+        window.updateAdminMemberView = () => {
+             const j = document.getElementById('adm-journal-select').value;
+             const f = uTrades.filter(t => (t.journal||'Main') === j);
+             let pnl = 0; f.forEach(t => { if(t.status==='Geschlossen') pnl+=t.pnl; });
+             document.getElementById('adm-content-stats').innerHTML = `<div class="stat-box"><span class="stat-value">${pnl.toFixed(2)}€</span><span class="stat-label">Total PnL</span></div>`;
+             document.getElementById('adm-trade-list').innerHTML = f.map(t => `<tr><td>${t.date.slice(0,10)}</td><td>${t.asset}</td><td>${t.pnl}</td></tr>`).join('');
+        };
+        window.updateAdminMemberView();
+    };
 
-    // --- OTHER ---
+    // Generic Utils
     window.toggleMenu = function() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); };
     window.closePopup = function() { document.getElementById('popup-overlay').classList.remove('open'); document.querySelectorAll('.modal-base').forEach(el=>{el.classList.add('hidden');el.classList.remove('open');}); if(detailTradeId) window.closeTradeDetail(); };
     window.closeTradeDetail = function() { document.getElementById('trade-detail-view').classList.remove('open'); document.getElementById('trade-detail-view').classList.add('hidden'); };
     window.toggleFormFields = function() { document.getElementById('closedFields').classList.toggle('hidden', document.getElementById('status').value === 'Aktiv'); };
+    window.changeMonth = function(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(trades.filter(t => (t.journal||'Main') === activeJournal)); };
     window.showView = function(v) { 
         document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-        document.getElementById('view-'+v).classList.add('active');
+        document.getElementById('view-'+v.replace(/\s+/g, '-')).classList.add('active');
         document.getElementById('view-title').innerText = v.toUpperCase();
         window.toggleMenu();
         if(v === 'Übersicht') refreshUI();
-        if(v === 'Statistik') renderStats(trades.filter(t => t.journal === activeJournal));
+        if(v === 'Statistik') renderStats(trades.filter(t => (t.journal||'Main') === activeJournal));
+        if(v === 'News') { const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":"dark","width":"100%","height":"100%","locale":"de"}); document.getElementById('news-box').innerHTML=''; document.getElementById('news-box').appendChild(s); }
     };
     window.prepareCreateView = function() {
         document.getElementById('editId').value = ""; document.getElementById('assetInput').value = ""; document.getElementById('pnl').value = ""; 
@@ -944,51 +864,14 @@
         document.getElementById('popup-overlay').classList.add('open'); document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open');
         window.toggleMenu();
     };
-
-    // --- ADMIN & STATS ---
-    async function loadAdminUsers() {
-        const snap = await db.collection('users').get();
-        document.getElementById('admin-user-list').innerHTML = snap.docs.map(d => `
-            <div class="adm-row">
-                <div class="adm-user-info"><div class="adm-pic" style="background:#333;display:flex;justify-content:center;align-items:center;">👤</div><div><b>${d.data().displayName}</b><br><small>${d.data().email}</small></div></div>
-                <div><button class="btn-small" onclick="window.openMember('${d.id}','${d.data().email}','${d.data().displayName}')">Details</button> <button class="btn-small btn-danger-hover" onclick="window.askDelete('${d.id}','user')">Löschen</button></div>
-            </div>`).join('');
-    }
     
-    window.openMember = async function(uid, email, name) {
-        document.getElementById('adm-user-name').innerText = name;
-        document.getElementById('adm-user-email').innerText = email;
-        
-        document.getElementById('btn-start-dm').onclick = async () => {
-             const cid = `dm_${[currentUser.uid, uid].sort().join('_')}`;
-             await db.collection('chat_requests').doc(cid).set({users:[currentUser.uid, uid], status:'accepted'},{merge:true});
-             window.closePopup(); window.showView('Chat'); loadDMs(); setTimeout(()=>window.switchChannel(cid), 500);
-        };
-        
-        // Load User Data Logic (Simplified for brevity but functional)
-        const tSnap = await db.collection('trades').where('userId', '==', uid).get();
-        const uTrades = tSnap.docs.map(d => ({id:d.id, ...d.data()}));
-        
-        window.updateAdminMemberView = () => {
-             const j = document.getElementById('adm-journal-select').value;
-             const f = uTrades; // Add journal filter if needed
-             let pnl = 0; f.forEach(t => { if(t.status==='Geschlossen') pnl+=t.pnl; });
-             document.getElementById('adm-content-stats').innerHTML = `<div class="stat-box"><span class="stat-value">${pnl.toFixed(2)}€</span><span class="stat-label">Total PnL</span></div>`;
-             document.getElementById('adm-trade-list').innerHTML = f.map(t => `<tr><td>${t.date.slice(0,10)}</td><td>${t.asset}</td><td>${t.pnl}</td></tr>`).join('');
-        };
-        
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('admin-member-modal').classList.remove('hidden');
-        document.getElementById('admin-member-modal').classList.add('open');
-        window.updateAdminMemberView();
-    };
-
+    // Stats Charts
     function renderStats(jTrades) {
          if(!document.getElementById('view-Statistik').classList.contains('active')) return;
          if(assetChartInstance) assetChartInstance.destroy();
          if(weekdayChartInstance) weekdayChartInstance.destroy();
          if(hourChartInstance) hourChartInstance.destroy();
-
+         
          const assetMap = {}; jTrades.forEach(t => { if(t.status==='Geschlossen') assetMap[t.asset] = (assetMap[t.asset]||0) + t.pnl; });
          const assets = Object.keys(assetMap);
          const colors = assets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff3d00');
@@ -1002,13 +885,33 @@
          const hourColors = hourMap.map(v => v >= 0 ? '#00c853' : '#ff3d00');
          hourChartInstance = new Chart(document.getElementById('hourChart'), { type: 'bar', data: { labels: hourMap.map((_,i)=>i), datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourColors }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#222'}}} } });
     }
-
-    // --- SETTINGS ---
-    window.addJournal = async function() { const n=document.getElementById('new-journal-name').value; if(n){ await db.collection('journals').add({name:n, userId:currentUser.uid}); loadData(); } };
-    window.prepareEditJournal = function(id) { const j=journals.find(x=>x.id===id); editingJournalId=id; document.getElementById('new-journal-name').value=j.name; document.getElementById('btn-save-journal').innerText="Speichern"; };
-    window.deleteJournal = async function(id) { if(confirm("Löschen?")) { await db.collection('journals').doc(id).delete(); loadData(); } };
     
-    // --- LOT CALC ---
+    // Admin List
+    async function loadAdminUsers() {
+        const snap = await db.collection('users').get();
+        document.getElementById('admin-user-list').innerHTML = snap.docs.map(d => `
+            <div class="adm-row">
+                <div class="adm-user-info"><div class="adm-pic" style="background:#333;display:flex;justify-content:center;align-items:center;">👤</div><div><b>${d.data().displayName}</b><br><small>${d.data().email}</small></div></div>
+                <div><button class="btn-small" onclick="window.openMember('${d.id}','${d.data().email}','${d.data().displayName}')">Details</button> <button class="btn-small btn-danger-hover" onclick="window.askDelete('${d.id}','user')">Löschen</button></div>
+            </div>`).join('');
+    }
+
+    // DM Loader
+    function loadDMs() {
+         db.collection('chat_requests').where('users','array-contains',currentUser.uid).onSnapshot(s => {
+             document.getElementById('dm-list-area').innerHTML = s.docs.map(d => {
+                 const other = d.data().users.find(u=>u!==currentUser.uid);
+                 return `<div class="channel-item" onclick="window.switchChannel('${d.id}')"><span>📩 Chat</span><button class="chat-dm-del-btn" onclick="event.stopPropagation();window.askDelete('${d.id}','msg')">✕</button></div>`;
+             }).join('');
+         });
+    }
+
+    // Search
+    window.openSearchModal = function() { document.getElementById('popup-overlay').classList.add('open'); document.getElementById('user-search-modal').classList.remove('hidden'); document.getElementById('user-search-modal').classList.add('open'); };
+    window.searchUsers = async function(q) { if(q.length<3)return; const s=await db.collection('users').get(); const r=s.docs.filter(d=>d.data().email.includes(q.toLowerCase())&&d.id!==currentUser.uid).slice(0,5); document.getElementById('search-results').innerHTML=r.map(d=>`<div class="search-res-item"><span>${d.data().displayName}</span><button class="btn-small" onclick="window.sendChatRequest('${d.id}','${d.data().displayName}')">Add</button></div>`).join(''); };
+    window.sendChatRequest = async function(uid, name) { const cid=`dm_${[currentUser.uid,uid].sort().join('_')}`; await db.collection('chat_requests').doc(cid).set({users:[currentUser.uid,uid], status:'pending'}); alert("Gesendet!"); window.closePopup(); loadDMs(); };
+    
+    // Lot Calc
     window.updateContractSize = function() { document.getElementById('cContract').value = document.getElementById('cType').value; };
     window.calcLots = function() {
          const bal = parseFloat(document.getElementById('cBal').value);
@@ -1024,9 +927,14 @@
          }
     };
     
-    // Init TradingView & News
+    // Settings Journals
+    window.addJournal = async function() { const n=document.getElementById('new-journal-name').value; if(n){ await db.collection('journals').add({name:n, userId:currentUser.uid}); loadData(); } };
+    window.prepareEditJournal = function(id) { const j=journals.find(x=>x.id===id); editingJournalId=id; document.getElementById('new-journal-name').value=j.name; };
+    window.deleteJournal = async function(id) { if(confirm("Löschen?")) { await db.collection('journals').doc(id).delete(); loadData(); } };
+
+    // Init Chart
     new TradingView.widget({"autosize": true, "symbol": "FX:EURUSD", "interval": "D", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "de_DE", "enable_publishing": false, "allow_symbol_change": true, "container_id": "tradingview_chart"});
-    const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":"dark","width":"100%","height":"100%","locale":"de"}); document.getElementById('news-box').appendChild(s);
+
 </script>
 </body>
 </html>
