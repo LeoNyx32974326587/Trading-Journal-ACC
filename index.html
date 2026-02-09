@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Clean Chart</title>
+    <title>TradeCloud Pro - Clean Chart1</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -316,11 +316,7 @@
             </div>
 
             <label>Setup (Bild Link)</label>
-            <div style="display:flex; gap:10px;">
-                <input type="url" id="imgSetup" placeholder="Rechtsklick auf TV Bild -> Bildadresse kopieren" style="margin-bottom:0;">
-                <button onclick="runOCR()" class="btn-icon" style="width:50px; font-size:1.2rem;" title="Daten aus Bild lesen">🪄</button>
-            </div>
-            <div id="ocr-status" style="font-size:0.75rem; color:var(--accent); margin-bottom:12px; margin-top:5px; min-height:1rem;"></div>
+            <input type="url" id="imgSetup" placeholder="https://...">
 
             <label>Notiz</label><textarea id="note" rows="2"></textarea>
             
@@ -1311,138 +1307,6 @@
     function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
     function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
     function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
-
-    // --- UPDATED: OCR MIT EIGENEM API KEY + FORCE PNG + TP1/TP2 LOGIK ---
-    async function runOCR() {
-        let url = document.getElementById('imgSetup').value.trim();
-        const statusEl = document.getElementById('ocr-status');
-        
-        if(!url) { alert("Bitte erst eine Bild-URL einfügen!"); return; }
-        
-        statusEl.innerText = '🤖 Lese Daten aus Bild...';
-        statusEl.style.color = 'var(--accent)';
-
-        // 1. TRADINGVIEW URL FIX (AGGRESSIV)
-        // Prüft, ob es ein TradingView Link ist
-        if (url.includes('tradingview.com/x/')) {
-            // Erst entfernen wir alles nach der ID (z.B. nach dem Slash)
-            // https://www.tradingview.com/x/AbCdEf/ -> Wir wollen nur AbCdEf
-            
-            // Wir splitten bei /x/
-            const parts = url.split('/x/');
-            if (parts.length > 1) {
-                // Wir nehmen den Teil NACH /x/
-                let idPart = parts[1];
-                
-                // Wir entfernen alles was kein Buchstabe/Zahl ist (Slash, Query params)
-                // TradingView IDs sind immer alphanumerisch (z.B. 'AbCdEf')
-                // Wir schneiden beim ersten "/" oder "?" ab
-                idPart = idPart.split('/')[0].split('?')[0];
-                
-                // .png entfernen falls schon da, um es sauber neu anzuhängen
-                idPart = idPart.replace('.png', '');
-                
-                // Neu zusammenbauen
-                url = `https://www.tradingview.com/x/${idPart}.png`;
-                console.log("Korrigierte TV URL:", url);
-            }
-        }
-
-        console.log("Analysiere URL:", url);
-
-        // 2. API CONFIG
-        const apiKey = 'K85689091988957'; 
-        
-        // WICHTIG: OCREngine=2 ist besser für Zahlen und Sonderzeichen
-        const apiEndpoint = `https://api.ocr.space/parse/imageurl?apikey=${apiKey}&url=${encodeURIComponent(url)}&language=eng&isOverlayRequired=false&scale=true&OCREngine=2`;
-
-        try {
-            const response = await fetch(apiEndpoint);
-            const data = await response.json();
-
-            // 3. FEHLER DIAGNOSE
-            if (data.IsErroredOnProcessing) {
-                console.error("OCR API Antwort:", data);
-                
-                let errorMsg = data.ErrorMessage || "Unbekannter Fehler";
-                if (Array.isArray(data.ErrorMessage)) errorMsg = data.ErrorMessage[0];
-                
-                if (errorMsg.includes("valid image") || errorMsg.includes("file type")) {
-                    alert("⚠️ Fehler: Der Link ist kein direktes Bild.\n\nBitte in TradingView auf das Kamera-Icon klicken -> Rechtsklick auf 'Link zum Chartbild kopieren' -> 'Adresse des Links kopieren'.\n\nDer Link muss auf .png enden.");
-                } else {
-                    alert("⚠️ API Fehler: " + errorMsg);
-                }
-                
-                statusEl.innerText = '❌ Fehlgeschlagen';
-                statusEl.style.color = 'var(--danger)';
-                return;
-            }
-
-            // 4. ERFOLG - DATEN VERARBEITEN
-            if (data.ParsedResults && data.ParsedResults.length > 0) {
-                const text = data.ParsedResults[0].ParsedText;
-                console.log("Gelesener Text:", text);
-
-                // Text bereinigen (Zeilenumbrüche entfernen)
-                const cleanText = text.replace(/(\r\n|\n|\r)/gm, " ");
-
-                let foundAny = false;
-                
-                // Helper für Komma -> Punkt
-                function cleanNum(str) {
-                    return str.replace(',', '.');
-                }
-
-                // --- NEUE REGEX FÜR FIB TOOL & LABELS (TP1, TP2, TP3) ---
-                // Muster: "TP3" ...irgendwas... "(1,18378)"
-                
-                // TP1
-                const tp1Match = cleanText.match(/(?:TP\s?1|Target\s*?1)[^\d]{0,30}\(?(\d+[\.,]\d{4,5})/i);
-                if (tp1Match && tp1Match[1]) { document.getElementById('inpTP1').value = cleanNum(tp1Match[1]); foundAny = true; }
-
-                // TP2
-                const tp2Match = cleanText.match(/(?:TP\s?2|Target\s*?2)[^\d]{0,30}\(?(\d+[\.,]\d{4,5})/i);
-                if (tp2Match && tp2Match[1]) { document.getElementById('inpTP2').value = cleanNum(tp2Match[1]); foundAny = true; }
-
-                // TP3
-                const tp3Match = cleanText.match(/(?:TP\s?3|Target\s*?3)[^\d]{0,30}\(?(\d+[\.,]\d{4,5})/i);
-                if (tp3Match && tp3Match[1]) { document.getElementById('inpTP3').value = cleanNum(tp3Match[1]); foundAny = true; }
-
-                // Stop Loss (SL)
-                const slMatch = cleanText.match(/(?:SL|Stop|Loss)[^\d]{0,30}\(?(\d+[\.,]\d{4,5})/i);
-                if (slMatch && slMatch[1]) { document.getElementById('inpSL').value = cleanNum(slMatch[1]); foundAny = true; }
-
-                // Entry (Suchlogik: Sucht nach Preisangaben in der Nähe von "Price", "Entry" oder offene Zahlen)
-                const entryMatch = cleanText.match(/(?:Entry|Price|Open)[^\d]{0,30}\(?(\d+[\.,]\d{4,5})/i);
-                if (entryMatch && entryMatch[1]) { document.getElementById('inpEntry').value = cleanNum(entryMatch[1]); foundAny = true; }
-
-                // Asset
-                const assetMatch = cleanText.match(/\b([A-Z]{3}[A-Z]{3}|GOLD|DAX|US30|BTCUSD|ETHUSD)\b/);
-                if (assetMatch && !document.getElementById('assetInput').value) {
-                    document.getElementById('assetInput').value = assetMatch[0];
-                    foundAny = true;
-                }
-
-                if(foundAny) {
-                    statusEl.innerText = '✅ Daten eingetragen!';
-                    statusEl.style.color = 'var(--success)';
-                } else {
-                    statusEl.innerText = '⚠️ Text gelesen, aber keine Labels (TP1/SL) erkannt.';
-                    alert("Text wurde gelesen:\n\n" + cleanText.substring(0, 300) + "\n\n...aber keine Werte erkannt. Versuche einen Screenshot mit klareren Labels.");
-                }
-                
-                setTimeout(() => statusEl.innerText = '', 5000);
-
-            } else {
-                statusEl.innerText = '⚠️ Bild leer oder nicht lesbar.';
-            }
-
-        } catch (error) {
-            console.error(error);
-            statusEl.innerText = '❌ Netzwerkfehler';
-            alert("Netzwerkfehler: Prüfe deine Internetverbindung.");
-        }
-    }
 </script>
 </body>
 </html>
