@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud P5ro</title>
+    <title>TradeCloud Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -27,11 +27,11 @@
             --blur: 0px;
             --popup-bg: #1a1a1a; 
             
-            /* WHATSAPP STYLE COLORS (For Chat Only) */
+            /* WHATSAPP STYLE COLORS (DARK) */
             --wa-bg: #0b141a;
             --wa-header: #202c33;
-            --wa-bubble-in: #202c33;
-            --wa-bubble-out: #005c4b;
+            --wa-bubble-in: #202c33; /* Incoming */
+            --wa-bubble-out: #005c4b; /* Outgoing */
             --wa-input-bg: #2a3942;
             --wa-tick: #53bdeb;
         }
@@ -111,26 +111,23 @@
 
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
-        /* --- POPUPS & MODALS (OLD DESIGN RESTORED) --- */
+        /* --- POPUPS & MODALS --- */
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
-        /* RESTORED DAY DETAIL VIEW STYLE (Original Black) */
         #day-detail-view { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
         #day-detail-view .trades-list-card { background: #151517 !important; border: 1px solid #2c2c2e !important; border-radius: 12px; overflow: hidden; }
         #day-detail-view .trade-row { border-bottom: 1px solid #2c2c2e !important; display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; }
         #day-detail-view .trade-row-header { border-bottom: 1px solid #2c2c2e !important; color: #888; display: flex; padding: 10px 15px; font-size: 0.8rem; }
         #day-detail-view .tr-date, #day-detail-view .tr-sym, #day-detail-view .dv-stat-val, #day-detail-view .popup-title, #day-detail-view #dv-date-title { color: #ffffff !important; }
 
-        /* RESTORED ADMIN MEMBER MODAL STYLE (Original Black) */
         #admin-member-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
         #admin-member-modal .hist-table th { border-bottom: 1px solid #333; color: #888; }
         #admin-member-modal .hist-table td { border-bottom: 1px solid #333; color: #fff; }
         #admin-member-modal .stat-box { background: #151517; border: 1px solid #333; }
 
-        /* OTHER MODALS */
-        #trade-detail-view, #trade-form-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
+        #trade-detail-view, #trade-form-modal, #add-contact-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
         .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .dv-stat-item { display: flex; flex-direction: column; }
@@ -155,18 +152,17 @@
         /* --- WHATSAPP STYLE CHAT --- */
         .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--wa-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: relative; }
         
-        /* Lobby (Chat List) */
         .chat-lobby { height: 100%; display: flex; flex-direction: column; background: var(--card-bg); }
-        .cl-header { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; background: var(--wa-header); }
+        .cl-header { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; background: var(--wa-header); display:flex; justify-content:space-between; align-items:center; }
         .cl-list { overflow-y: auto; flex-grow: 1; }
         .cl-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer; transition: 0.2s; gap: 15px; }
         .cl-item:hover { background: rgba(255,255,255,0.05); }
         .cl-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; flex-shrink: 0; }
         .cl-info { display: flex; flex-direction: column; flex-grow: 1; }
-        .cl-name { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
+        .cl-name { font-weight: bold; font-size: 1rem; margin-bottom: 4px; display:flex; align-items:center; gap:5px; }
         .cl-last { font-size: 0.8rem; color: var(--text-sub); }
+        .coach-tag { background: var(--accent); color: #000; padding: 1px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
 
-        /* Active Chat Room */
         .chat-room { display: flex; flex-direction: column; height: 100%; background: var(--wa-bg); }
         .cr-header { padding: 10px 15px; background: var(--wa-header); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
         .cr-back-btn { background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; padding: 5px; }
@@ -178,7 +174,6 @@
         .chat-input-field:focus { outline: none; }
         .chat-send-btn { background: var(--success); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2rem; flex-shrink: 0; }
         
-        /* Message Bubbles (WhatsApp Style) */
         .msg-wrapper { max-width: 80%; display: flex; flex-direction: column; position: relative; margin-bottom: 2px; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
@@ -193,10 +188,8 @@
         .msg-wrapper.other .msg-time { color: var(--text-sub); }
         .msg-tick { font-size: 0.7rem; color: var(--wa-tick); }
 
-        /* TRADE CARD IN CHAT - FIXED VISIBILITY */
         .chat-trade-card { background: rgba(0,0,0,0.4); border-radius: 6px; padding: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
         
-        /* --- RESTORED ADMIN & HISTORY STYLES (Old Design) --- */
         .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
         .adm-user-info { display: flex; align-items: center; gap: 10px; }
         .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
@@ -310,6 +303,18 @@
         </div>
     </div>
     
+    <div id="add-contact-modal" class="modal-base hidden">
+        <div class="dv-header">
+            <span class="popup-title">Kontakt hinzufügen</span>
+            <button class="popup-close" onclick="closePopup()">✕</button>
+        </div>
+        <div style="padding:15px;">
+            <p style="color:var(--text-sub); font-size:0.9rem;">Gib die E-Mail Adresse des Mitglieds ein.</p>
+            <input type="email" id="contact-email-input" placeholder="user@email.com">
+            <button onclick="sendContactRequest()" class="btn-primary" style="margin-top:10px;">Anfragen</button>
+        </div>
+    </div>
+
     <div id="trade-detail-view" class="modal-base hidden">
         <div class="dv-header">
             <button onclick="closeTradeDetail()" style="background:none; border:none; color:#0a84ff; font-size:1rem; cursor:pointer; font-weight:600;">❮ Back</button>
@@ -458,7 +463,10 @@
         <div class="card chat-container" style="border:none; border-radius:0; height:100%; margin:0;">
             
             <div id="chat-lobby" class="chat-lobby">
-                <div class="cl-header">CHATS</div>
+                <div class="cl-header">
+                    <span>CHATS</span>
+                    <button class="btn-icon" style="background:none; border:none; font-size:1.5rem;" onclick="openAddContactModal()">+</button>
+                </div>
                 <div class="cl-list">
                     <div class="cl-item" onclick="enterChat('public', '🌍 Public Chat')">
                         <div class="cl-avatar" style="background:#2a9d8f;">🌍</div>
@@ -473,7 +481,9 @@
                         <div class="cl-info"><div class="cl-name">Pro Signal</div><div class="cl-last">Trades & Infos vom Coach</div></div>
                     </div>
                     
-                    <div style="padding:10px 15px; font-size:0.8rem; color:var(--text-sub); font-weight:bold; margin-top:10px;">MITGLIEDER (Private Nachrichten)</div>
+                    <div id="friend-requests-area"></div>
+
+                    <div style="padding:10px 15px; font-size:0.8rem; color:var(--text-sub); font-weight:bold; margin-top:10px;">KONTAKTE</div>
                     <div id="chat-user-list"></div>
                 </div>
             </div>
@@ -670,6 +680,7 @@
     let editingJournalId = null;
     let currentUserName = "User";
     let isAdmin = false;
+    const adminEmail = "leon.luca.lauterbach@gmail.com";
     
     let journalFilters = {}; 
     let journalCustomDates = {}; 
@@ -712,7 +723,7 @@
                 document.getElementById('feedback-toggle').checked = allowFeedback;
             }
 
-            if(email === "leon.luca.lauterbach@gmail.com") {
+            if(email === adminEmail) {
                 isAdmin = true;
                 const admPanel = document.getElementById('admin-panel');
                 if(admPanel) { admPanel.classList.remove('hidden'); admLoad(); }
@@ -742,7 +753,7 @@
         document.getElementById('main-header').classList.remove('hidden');
         
         await loadData();
-        loadUsersForChat();
+        loadContactsAndRequests();
     }
 
     async function loadData() {
@@ -935,32 +946,133 @@
         hourChartInstance = new Chart(ctxH, { type: 'bar', data: { labels: hourLabels, datasets: [{ label: 'PnL', data: hourMap, backgroundColor: hourMap.map(v => v >= 0 ? 'rgba(48, 209, 88, 0.5)' : 'rgba(255, 69, 58, 0.5)'), borderColor: hourMap.map(v => v >= 0 ? '#00c853' : '#ff453a'), borderWidth: 1 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{y:{grid:{color:'#222'}}}, plugins:{legend:{display:false}} } });
     }
 
-    // --- CHAT & USERS FUNCTIONS ---
+    // --- CHAT & CONTACTS LOGIC ---
 
-    async function loadUsersForChat() {
-        const list = document.getElementById('chat-user-list');
-        list.innerHTML = 'Lade User...';
+    function openAddContactModal() {
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('add-contact-modal').classList.remove('hidden');
+        document.getElementById('add-contact-modal').classList.add('open');
+    }
+
+    async function sendContactRequest() {
+        const email = document.getElementById('contact-email-input').value.toLowerCase().trim();
+        if(!email) return;
+        if(email === auth.currentUser.email) return alert("Du kannst dich nicht selbst hinzufügen.");
+
         try {
-            const snap = await db.collection('users').get();
-            const users = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => u.id !== auth.currentUser.uid);
+            const userQuery = await db.collection('users').where('email', '==', email).get();
+            if(userQuery.empty) return alert("User nicht gefunden.");
             
-            if(users.length === 0) {
-                list.innerHTML = '<div style="padding:15px; color:var(--text-sub);">Keine anderen Mitglieder gefunden.</div>';
+            const targetUser = userQuery.docs[0];
+            const targetUid = targetUser.id;
+
+            // Check if relationship exists
+            const existing = await db.collection('friendships')
+                .where('users', 'array-contains', auth.currentUser.uid).get();
+            
+            let alreadyExists = false;
+            existing.forEach(doc => {
+                const data = doc.data();
+                if(data.users.includes(targetUid)) alreadyExists = true;
+            });
+
+            if(alreadyExists) return alert("Kontaktanfrage bereits gesendet oder Kontakt vorhanden.");
+
+            // ADMIN LOGIC: If I am admin, auto-accept
+            // NORMAL LOGIC: If I am normal, pending
+            let status = 'pending';
+            if (isAdmin) status = 'accepted'; 
+
+            await db.collection('friendships').add({
+                users: [auth.currentUser.uid, targetUid],
+                requesterId: auth.currentUser.uid,
+                receiverId: targetUid,
+                status: status,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert(isAdmin ? "Kontakt hinzugefügt." : "Anfrage gesendet.");
+            closePopup();
+            loadContactsAndRequests();
+
+        } catch(e) {
+            console.error(e);
+            alert("Fehler beim Senden.");
+        }
+    }
+
+    function loadContactsAndRequests() {
+        const reqArea = document.getElementById('friend-requests-area');
+        const listArea = document.getElementById('chat-user-list');
+        
+        reqArea.innerHTML = '';
+        listArea.innerHTML = '<div style="padding:15px; color:var(--text-sub);">Lade Kontakte...</div>';
+
+        db.collection('friendships').where('users', 'array-contains', auth.currentUser.uid).onSnapshot(async snapshot => {
+            reqArea.innerHTML = '';
+            listArea.innerHTML = '';
+            
+            if(snapshot.empty) {
+                listArea.innerHTML = '<div style="padding:15px; color:var(--text-sub);">Keine Kontakte. Drücke + um jemanden hinzuzufügen.</div>';
                 return;
             }
 
-            list.innerHTML = users.map(u => {
-                const name = u.displayName || 'Unbekannt';
-                const initial = name.charAt(0).toUpperCase();
-                return `
-                <div class="cl-item" onclick="enterPrivateChat('${u.id}', '${name}')">
-                    <div class="cl-avatar" style="background:#555;">${initial}</div>
-                    <div class="cl-info"><div class="cl-name">${name}</div><div class="cl-last">Privater Chat</div></div>
-                </div>`;
-            }).join('');
-        } catch(e) {
-            list.innerHTML = 'Fehler beim Laden der Mitglieder.';
-        }
+            for (const doc of snapshot.docs) {
+                const data = doc.data();
+                const otherUid = data.users.find(uid => uid !== auth.currentUser.uid);
+                
+                // Get User Info
+                let otherName = "Unbekannt";
+                let otherEmail = "";
+                try {
+                    const uDoc = await db.collection('users').doc(otherUid).get();
+                    if(uDoc.exists) {
+                        otherName = uDoc.data().displayName;
+                        otherEmail = uDoc.data().email;
+                    }
+                } catch(e) {}
+
+                // REQUESTS (Only if I am receiver AND status is pending)
+                if (data.status === 'pending' && data.receiverId === auth.currentUser.uid) {
+                    reqArea.innerHTML += `
+                        <div class="cl-item" style="background:rgba(187,134,252,0.1);">
+                            <div class="cl-avatar" style="background:var(--accent);">?</div>
+                            <div class="cl-info">
+                                <div class="cl-name">${otherName}</div>
+                                <div class="cl-last">Möchte chatten</div>
+                            </div>
+                            <button class="btn-small" onclick="acceptRequest('${doc.id}')" style="margin-right:5px;">✓</button>
+                            <button class="btn-small btn-danger-hover" onclick="declineRequest('${doc.id}')">✕</button>
+                        </div>
+                    `;
+                }
+                
+                // ACCEPTED CONTACTS (Or if I am Admin and added them)
+                else if (data.status === 'accepted') {
+                    const initial = otherName.charAt(0).toUpperCase();
+                    // Check if the other person is the Admin
+                    let displayHtml = `<div class="cl-name">${otherName}</div>`;
+                    if(otherEmail === adminEmail) {
+                        displayHtml = `<div class="cl-name">${otherName} <span class="coach-tag">Coach</span></div>`;
+                    }
+
+                    listArea.innerHTML += `
+                        <div class="cl-item" onclick="enterPrivateChat('${otherUid}', '${otherName}')">
+                            <div class="cl-avatar" style="background:#555;">${initial}</div>
+                            <div class="cl-info">${displayHtml}<div class="cl-last">Privater Chat</div></div>
+                        </div>
+                    `;
+                }
+            }
+        });
+    }
+
+    async function acceptRequest(docId) {
+        await db.collection('friendships').doc(docId).update({ status: 'accepted' });
+    }
+
+    async function declineRequest(docId) {
+        await db.collection('friendships').doc(docId).delete();
     }
 
     function getChatId(uid1, uid2) {
@@ -1035,7 +1147,6 @@
         const time = formatChatTime(msg.timestamp);
         let content = `<div class="msg-text">${msg.text || ''}</div>`;
         
-        // Admin delete button (little visual tweak for WA style)
         let delBtn = isAdmin ? `<button style="position:absolute; top:2px; right:5px; background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer;" onclick="deleteChatMessage('${msg.id}')">✕</button>` : '';
         
         if (msg.type === 'trade' && msg.tradeData) {
