@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Proz</title>
+    <title>TradeCloud Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -567,6 +567,52 @@
         document.getElementById('menu-overlay').classList.toggle('open'); 
     }
     
+    // DEFINE POPUP & HELPER FUNCTIONS GLOBALLY TO PREVENT REFERENCE ERRORS
+    function prepareCreateView() { 
+        document.getElementById('editId').value = ""; 
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
+        document.getElementById('datetime').value = now.toISOString().slice(0,16); 
+        document.getElementById('assetInput').value = ""; 
+        document.getElementById('pnl').value = ""; 
+        document.getElementById('note').value = ""; 
+        document.getElementById('inpEntry').value = ""; 
+        document.getElementById('inpSL').value = ""; 
+        document.getElementById('inpTP1').value = ""; 
+        document.getElementById('inpTP2').value = ""; 
+        document.getElementById('inpTP3').value = ""; 
+        if(activeJournal) document.getElementById('inpJournalSelect').value = activeJournal; 
+        toggleFormFields(); 
+        document.getElementById('trade-form-modal').classList.remove('hidden'); 
+        document.getElementById('trade-form-modal').classList.add('open'); 
+        document.getElementById('popup-overlay').classList.add('open'); 
+        document.getElementById('form-title').innerText="Neuer Trade";
+    }
+
+    function editTrade(id, closeNow) { 
+        const t = trades.find(x => x.id === id); 
+        document.getElementById('editId').value = t.id; 
+        document.getElementById('datetime').value = t.date; 
+        document.getElementById('assetInput').value = t.asset; 
+        document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); 
+        document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; 
+        document.getElementById('pnl').value = t.pnl; 
+        document.getElementById('imgSetup').value = t.imgSetup || ''; 
+        document.getElementById('imgResult').value = t.imgResult || ''; 
+        document.getElementById('note').value = t.note || ''; 
+        document.getElementById('inpEntry').value = t.entry || ''; 
+        document.getElementById('inpSL').value = t.sl || ''; 
+        document.getElementById('inpTP1').value = t.tp1 || ''; 
+        document.getElementById('inpTP2').value = t.tp2 || ''; 
+        document.getElementById('inpTP3').value = t.tp3 || ''; 
+        document.getElementById('inpAdminFeedback').value = t.adminFeedback || ''; 
+        document.getElementById('adm-feedback-input-area').classList.toggle('hidden', !isAdmin); 
+        document.getElementById('form-title').innerText="Trade Bearbeiten";
+        toggleFormFields(); 
+        document.getElementById('trade-form-modal').classList.remove('hidden'); 
+        document.getElementById('trade-form-modal').classList.add('open'); 
+        document.getElementById('popup-overlay').classList.add('open'); 
+    }
+    
     // ERROR HANDLER
     window.onerror = function(message, source, lineno, colno, error) {
         console.error("Global Error:", message, "Line:", lineno);
@@ -620,8 +666,8 @@
             await db.collection('users').doc(user.uid).set({
                 email: email,
                 displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || ''
-            }, { merge: true }); // Ensure user doc exists
+                photoURL: user.photoURL || '',
+            }, { merge: true });
 
             if(email === "leon.luca.lauterbach@gmail.com") {
                 isAdmin = true;
@@ -662,7 +708,6 @@
 
     async function toggleFeedbackSetting(val) {
         if(auth.currentUser) {
-            // FIX: Use set merge to be safe
             await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
         }
     }
@@ -677,7 +722,6 @@
                 const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
                 journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
             }
-            // FIX: Ensure Active Journal is valid
             if(!activeJournal || !journals.find(j => j.name === activeJournal)) {
                  activeJournal = journals[0].name;
             }
@@ -763,13 +807,12 @@
                 // CRITICAL FIX: Safe Calculation
                 let warningHtml = '';
                 if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
-                    let todayPnL = 0; // Init safely
+                    let todayPnL = 0; 
                     if(closedAll.length > 0) {
                         const todayStart = new Date(); todayStart.setHours(0,0,0,0);
                         const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
                         todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
                     }
-                    
                     const limit = parseFloat(journal.maxDD); let threshold = limit;
                     if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
                     if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
@@ -979,6 +1022,7 @@
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
+        // Fix: Simplified check to prevent failure if isAdmin undefined
         if(currentChatChannel === 'pro' && !isAdmin) return;
 
         await db.collection('chat').add({ 
