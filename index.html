@@ -1323,18 +1323,16 @@
         statusEl.style.color = 'var(--accent)';
 
         // 1. TRADINGVIEW URL FIX (AGGRESSIV)
-        // Prüft, ob es ein TradingView Link ist und fügt .png hinzu, wenn es fehlt
         if (url.includes('tradingview.com/x/')) {
-            // Wir entfernen alles nach dem Code und hängen .png an
-            // Bsp: https://www.tradingview.com/x/AbCdEf/ -> https://www.tradingview.com/x/AbCdEf.png
+            // Wir entfernen alles unnötige am Ende (wie Trailing Slash oder Query Params)
+            // und hängen hart .png an
             const parts = url.split('/x/');
             if (parts.length > 1) {
-                // Wir nehmen nur den alphanumerischen Code
-                // Wir entfernen auch eventuelle Query-Strings (?)
-                let code = parts[1].split('?')[0]; 
-                if(!code.endsWith('.png')) {
-                    url = `https://www.tradingview.com/x/${code}.png`;
-                }
+                // Nur den ID-Teil nehmen (alles bis zum nächsten Slash oder Ende)
+                let id = parts[1].split('/')[0];
+                // Falls User schon .png kopiert hat, entfernen wir es kurz, um es sauber neu anzuhängen
+                id = id.replace('.png', '');
+                url = `https://www.tradingview.com/x/${id}.png`;
             }
         }
 
@@ -1343,7 +1341,6 @@
         // 2. API CONFIG
         const apiKey = 'K85689091988957'; 
         
-        // WICHTIG: OCREngine=2 ist besser für Zahlen und Sonderzeichen
         const apiEndpoint = `https://api.ocr.space/parse/imageurl?apikey=${apiKey}&url=${encodeURIComponent(url)}&language=eng&isOverlayRequired=false&scale=true&OCREngine=2`;
 
         try {
@@ -1353,7 +1350,6 @@
             // 3. FEHLER DIAGNOSE
             if (data.IsErroredOnProcessing) {
                 console.error("OCR API Antwort:", data);
-                
                 let errorMsg = data.ErrorMessage || "Unbekannter Fehler";
                 if (Array.isArray(data.ErrorMessage)) errorMsg = data.ErrorMessage[0];
                 
@@ -1378,43 +1374,30 @@
 
                 let foundAny = false;
 
-                // --- NEUE REGEX FÜR FIB TOOL & LABELS (TP1, TP2, TP3) ---
-                // Sucht nach "TP1" oder "TP 1", ignoriert dann Müll, sucht dann Zahl
+                // --- TOLERANTE REGEX FÜR TP1 (1.12345) oder TP 1 (1,12345) ---
+                // [\s\S]{0,20}? ignoriert bis zu 20 Zeichen Müll zwischen Label und Zahl
                 
-                // TP1 (Erlaubt Labels wie "TP1 (1.1234)" oder "TP 1 : 1.1234")
-                const tp1Match = cleanText.match(/(?:TP\s?1|Target\s*?1)[\s\S]{0,15}?\(?(\d+[\.,]\d{4,5})/i);
-                if (tp1Match && tp1Match[1]) {
-                    document.getElementById('inpTP1').value = tp1Match[1].replace(',', '.');
-                    foundAny = true;
-                }
+                function cleanNum(n) { return n.replace(',', '.'); }
+
+                // TP1
+                const tp1Match = cleanText.match(/(?:TP\s?1|Target\s*?1)[^\d\n]{0,20}(\d+[\.,]\d{2,6})/i);
+                if (tp1Match && tp1Match[1]) { document.getElementById('inpTP1').value = cleanNum(tp1Match[1]); foundAny = true; }
 
                 // TP2
-                const tp2Match = cleanText.match(/(?:TP\s?2|Target\s*?2)[\s\S]{0,15}?\(?(\d+[\.,]\d{4,5})/i);
-                if (tp2Match && tp2Match[1]) {
-                    document.getElementById('inpTP2').value = tp2Match[1].replace(',', '.');
-                    foundAny = true;
-                }
+                const tp2Match = cleanText.match(/(?:TP\s?2|Target\s*?2)[^\d\n]{0,20}(\d+[\.,]\d{2,6})/i);
+                if (tp2Match && tp2Match[1]) { document.getElementById('inpTP2').value = cleanNum(tp2Match[1]); foundAny = true; }
 
                 // TP3
-                const tp3Match = cleanText.match(/(?:TP\s?3|Target\s*?3)[\s\S]{0,15}?\(?(\d+[\.,]\d{4,5})/i);
-                if (tp3Match && tp3Match[1]) {
-                    document.getElementById('inpTP3').value = tp3Match[1].replace(',', '.');
-                    foundAny = true;
-                }
+                const tp3Match = cleanText.match(/(?:TP\s?3|Target\s*?3)[^\d\n]{0,20}(\d+[\.,]\d{2,6})/i);
+                if (tp3Match && tp3Match[1]) { document.getElementById('inpTP3').value = cleanNum(tp3Match[1]); foundAny = true; }
 
                 // Stop Loss (SL)
-                const slMatch = cleanText.match(/(?:SL|Stop|Loss)[\s\S]{0,15}?\(?(\d+[\.,]\d{4,5})/i);
-                if (slMatch && slMatch[1]) {
-                    document.getElementById('inpSL').value = slMatch[1].replace(',', '.');
-                    foundAny = true;
-                }
+                const slMatch = cleanText.match(/(?:SL|Stop|Loss)[^\d\n]{0,20}(\d+[\.,]\d{2,6})/i);
+                if (slMatch && slMatch[1]) { document.getElementById('inpSL').value = cleanNum(slMatch[1]); foundAny = true; }
 
-                // Entry (Suchlogik: Sucht nach Preisangaben in der Nähe von "Price", "Entry" oder offene Zahlen)
-                const entryMatch = cleanText.match(/(?:Entry|Price|Open)[\s\S]{0,15}?\(?(\d+[\.,]\d{4,5})/i);
-                if (entryMatch && entryMatch[1]) {
-                    document.getElementById('inpEntry').value = entryMatch[1].replace(',', '.');
-                    foundAny = true;
-                }
+                // Entry
+                const entryMatch = cleanText.match(/(?:Entry|Price|Open)[^\d\n]{0,20}(\d+[\.,]\d{2,6})/i);
+                if (entryMatch && entryMatch[1]) { document.getElementById('inpEntry').value = cleanNum(entryMatch[1]); foundAny = true; }
 
                 // Asset
                 const assetMatch = cleanText.match(/\b([A-Z]{3}[A-Z]{3}|GOLD|DAX|US30|BTCUSD|ETHUSD)\b/);
@@ -1428,7 +1411,8 @@
                     statusEl.style.color = 'var(--success)';
                 } else {
                     statusEl.innerText = '⚠️ Text gelesen, aber keine Labels (TP1/SL) erkannt.';
-                    alert("Text wurde gelesen:\n\n" + cleanText.substring(0, 300) + "\n\n...aber keine Werte erkannt. Versuche einen Screenshot mit klareren Labels.");
+                    // Debug-Ausgabe für den User, falls OCR "TP1" als "TPl" liest
+                    alert("Text wurde gelesen:\n\n" + cleanText.substring(0, 200) + "...\n\nAber keine Werte erkannt. Versuche einen Screenshot mit klareren Labels.");
                 }
                 
                 setTimeout(() => statusEl.innerText = '', 5000);
