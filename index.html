@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro</title>
+    <title>TradeCloud Pro7</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -72,6 +72,8 @@
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; }
+        .chat-dm-del-btn { background: none; border: none; color: var(--text-sub); font-size: 1rem; padding: 5px; cursor: pointer; }
+        .chat-dm-del-btn:hover { color: var(--danger); }
         
         .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
@@ -85,8 +87,9 @@
         .chat-del-btn { position: absolute; top: 0; background: rgba(0,0,0,0.6); color: #ff3d00; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0.6; transition: 0.2s; }
         .msg-wrapper.me .chat-del-btn { left: -25px; }
         .msg-wrapper.other .chat-del-btn { right: -25px; }
-        .chat-dm-del-btn { background: none; border: none; color: var(--text-sub); font-size: 1rem; padding: 5px; cursor: pointer; }
-        .chat-dm-del-btn:hover { color: var(--danger); }
+        .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
+        .ct-footer { margin-top: 8px; font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; }
 
         @media (max-width: 700px) {
             .chat-layout { flex-direction: column; }
@@ -97,7 +100,7 @@
             .chat-messages { padding: 10px; }
         }
 
-        /* JOURNAL & LISTS */
+        /* --- DASHBOARD & LISTS --- */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
@@ -129,7 +132,7 @@
 
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
-        /* POPUPS */
+        /* --- POPUPS --- */
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
@@ -556,7 +559,7 @@
 </div>
 
 <script>
-    // DEFINE FUNCTIONS GLOBALLY FIRST
+    // --- GLOBAL FUNCTIONS ---
     window.toggleMenu = function() { 
         document.getElementById('navDrawer').classList.toggle('open'); 
         document.getElementById('menu-overlay').classList.toggle('open'); 
@@ -653,39 +656,13 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    let trades = [];
-    let journals = []; 
-    let chartInstances = {}; 
-    let dayChart = null;
-    let assetChartInstance = null;
-    let weekdayChartInstance = null;
-    let hourChartInstance = null;
-    let adminChartInstance = null;
+    let trades = [], journals = []; 
+    let chartInstances = {}, dayChart = null, assetChartInstance = null, weekdayChartInstance = null, hourChartInstance = null, adminChartInstance = null;
     let calDate = new Date();
-    let privacyMode = false;
-    let activeJournal = null; 
-    let editingJournalId = null;
-    let currentUserName = "User";
-    let isAdmin = false;
-    
-    let journalFilters = {}; 
-    let journalCustomDates = {}; 
-    let shareTradeId = null;
-    let shareType = null;
-    let msgToDeleteId = null;
-    let configuringJournalId = null;
-    
-    let inspectedUserTrades = [];
-    let inspectedUserJournals = [];
-    let currentDetailTradeId = null;
-
-    // Chat Vars
-    let isChatActive = false;
-    let lastMessageCount = 0;
-    let isFirstLoad = true;
-    let currentChatChannel = 'general';
-    let chatListener = null;
-    let targetedMemberUid = null;
+    let privacyMode = false, activeJournal = null, editingJournalId = null, currentUserName = "User", isAdmin = false;
+    let journalFilters = {}, journalCustomDates = {}, shareTradeId = null, shareType = null, msgToDeleteId = null, configuringJournalId = null;
+    let inspectedUserTrades = [], inspectedUserJournals = [], currentDetailTradeId = null;
+    let isChatActive = false, lastMessageCount = 0, currentChatChannel = 'general', chatListener = null, targetedMemberUid = null;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
     if(isLight) document.body.classList.add('light-mode');
@@ -693,56 +670,31 @@
 
     auth.onAuthStateChanged(async (user) => {
         if(user) {
-            const email = user.email.toLowerCase().trim();
-            await db.collection('users').doc(user.uid).set({
-                email: email,
-                displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || '',
-                allowFeedback: true
-            }, { merge: true });
-
-            if(email === "leon.luca.lauterbach@gmail.com") {
-                isAdmin = true;
-                const admPanel = document.getElementById('admin-panel');
-                if(admPanel) { admPanel.classList.remove('hidden'); window.admLoad(); }
-                finishLogin(user);
-            } else {
-                isAdmin = false;
-                finishLogin(user);
-            }
+            await db.collection('users').doc(user.uid).set({ email: user.email.toLowerCase().trim(), displayName: user.displayName || 'Trader', photoURL: user.photoURL || '', allowFeedback: true }, { merge: true });
+            isAdmin = (user.email === "leon.luca.lauterbach@gmail.com");
+            if(isAdmin) { document.getElementById('admin-panel').classList.remove('hidden'); window.admLoad(); }
+            finishLogin(user);
         }
     });
 
     async function finishLogin(user) {
         try {
             const firstName = user.email.split('@')[0].split('.')[0];
-            const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-            currentUserName = capitalizedName;
-            document.getElementById('user-greeting-name').innerText = capitalizedName;
-            
+            currentUserName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+            document.getElementById('user-greeting-name').innerText = currentUserName;
             const uDoc = await db.collection('users').doc(user.uid).get();
             const uData = uDoc.data();
-            if(uData && document.getElementById('feedback-toggle')) {
-                document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
-            }
-
+            if(uData && document.getElementById('feedback-toggle')) document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
             document.getElementById('auth-overlay').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('main-header').classList.remove('hidden');
-            
             await loadData();
             loadChat('general');
             window.loadDirectMessages(); 
-        } catch(e) {
-            console.error("Login Error:", e);
-        }
+        } catch(e) { console.error("Login Error:", e); }
     }
 
-    window.toggleFeedbackSetting = async function(val) {
-        if(auth.currentUser) {
-            await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
-        }
-    }
+    window.toggleFeedbackSetting = async function(val) { if(auth.currentUser) await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true }); }
 
     async function loadData() {
         try {
@@ -754,10 +706,7 @@
                 const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
                 journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
             }
-            if(!activeJournal || !journals.find(j => j.name === activeJournal)) {
-                 activeJournal = journals.length > 0 ? journals[0].name : 'Main';
-            }
-            
+            if(!activeJournal || !journals.find(j => j.name === activeJournal)) activeJournal = journals.length > 0 ? journals[0].name : 'Main';
             const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
             trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
             window.populateSelectors();
@@ -769,18 +718,15 @@
 
     window.populateSelectors = function() {
         if(journals.length === 0) return;
-        const navSel = document.getElementById('navJournalSelect');
-        navSel.innerHTML = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
-        if(activeJournal) navSel.value = activeJournal;
-        const createSel = document.getElementById('inpJournalSelect');
-        createSel.innerHTML = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
-        if(activeJournal) createSel.value = activeJournal;
+        const html = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
+        document.getElementById('navJournalSelect').innerHTML = html;
+        document.getElementById('inpJournalSelect').innerHTML = html;
+        if(activeJournal) { document.getElementById('navJournalSelect').value = activeJournal; document.getElementById('inpJournalSelect').value = activeJournal; }
     }
 
     window.changeActiveJournal = function(val) {
         activeJournal = val;
-        const createSel = document.getElementById('inpJournalSelect');
-        if(createSel) createSel.value = activeJournal;
+        document.getElementById('inpJournalSelect').value = activeJournal;
         const activeId = document.querySelector('.view-section.active').id;
         if(activeId === 'view-Kalender') renderCalendar();
         if(activeId === 'view-Historie') renderHistory();
@@ -791,85 +737,81 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
-    // --- DASHBOARD RENDERER ---
     window.renderDashboard = function() {
-        try {
-            const container = document.getElementById('dashboard-journals-list');
-            container.innerHTML = '';
-            Object.values(chartInstances).forEach(c => c.destroy());
-            chartInstances = {};
+        const container = document.getElementById('dashboard-journals-list');
+        container.innerHTML = '';
+        Object.values(chartInstances).forEach(c => c.destroy());
+        chartInstances = {};
 
-            journals.forEach(journal => {
-                if(journal.hidden) return;
-                const timeframe = journalFilters[journal.id] || 'GESAMT';
-                let tradesInPeriod = filterTradesByTime(journal, timeframe);
-                const startCap = parseFloat(journal.startCap) || 0;
-                const closedAll = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
+        journals.forEach(journal => {
+            if(journal.hidden) return;
+            const timeframe = journalFilters[journal.id] || 'GESAMT';
+            let tradesInPeriod = filterTradesByTime(journal, timeframe);
+            const startCap = parseFloat(journal.startCap) || 0;
+            const closedAll = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-                let baseBalance = startCap;
-                if(timeframe !== 'GESAMT') {
-                    const firstTradeInPeriod = tradesInPeriod[0];
-                    if(firstTradeInPeriod) {
-                        const idx = closedAll.findIndex(t => t.id === firstTradeInPeriod.id);
-                        if(idx > 0) baseBalance += closedAll.slice(0, idx).reduce((a,b)=>a+b.pnl, 0);
-                    }
+            let baseBalance = startCap;
+            if(timeframe !== 'GESAMT') {
+                const firstTradeInPeriod = tradesInPeriod[0];
+                if(firstTradeInPeriod) {
+                    const idx = closedAll.findIndex(t => t.id === firstTradeInPeriod.id);
+                    if(idx > 0) baseBalance += closedAll.slice(0, idx).reduce((a,b)=>a+b.pnl, 0);
                 }
+            }
 
-                let totalPnL = tradesInPeriod.reduce((acc, t) => acc + t.pnl, 0);
-                let wins = tradesInPeriod.filter(t => t.pnl > 0).length;
-                const winrate = tradesInPeriod.length > 0 ? ((wins / tradesInPeriod.length) * 100).toFixed(0) : 0;
-                let runningBal = baseBalance;
-                const equityCurve = [baseBalance];
-                tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
+            let totalPnL = tradesInPeriod.reduce((acc, t) => acc + t.pnl, 0);
+            let wins = tradesInPeriod.filter(t => t.pnl > 0).length;
+            const winrate = tradesInPeriod.length > 0 ? ((wins / tradesInPeriod.length) * 100).toFixed(0) : 0;
+            let runningBal = baseBalance;
+            const equityCurve = [baseBalance];
+            tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
 
-                const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
-                const canvasId = `chart-${journal.id}`;
-                const open = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Aktiv');
-                let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
-                if(open.length > 0) {
-                    openTradesHtml = open.map(t => {
-                        const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
-                        return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="window.editTrade('${t.id}', true)">Close</button></div></div>`;
-                    }).join('');
+            const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
+            const canvasId = `chart-${journal.id}`;
+            const open = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Aktiv');
+            let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
+            if(open.length > 0) {
+                openTradesHtml = open.map(t => {
+                    const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
+                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="window.editTrade('${t.id}', true)">Close</button></div></div>`;
+                }).join('');
+            }
+            const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
+            const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="window.setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
+            
+            let warningHtml = '';
+            if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
+                let todayPnL = 0; 
+                if(closedAll.length > 0) {
+                    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+                    const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
+                    todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
                 }
-                const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
-                const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="window.setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
-                
-                let warningHtml = '';
-                if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
-                    let todayPnL = 0; 
-                    if(closedAll.length > 0) {
-                        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-                        const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
-                        todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
-                    }
-                    const limit = parseFloat(journal.maxDD); let threshold = limit;
-                    if(journal.ddType === 'percent') { 
-                        const allTimePnL = closedAll.reduce((a,b)=>a+b.pnl, 0);
-                        const totalBal = startCap + allTimePnL; 
-                        const currentBalance = Math.max(totalBal, 0); 
-                        threshold = currentBalance * (limit / 100); 
-                    }
-                    if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
+                const limit = parseFloat(journal.maxDD); let threshold = limit;
+                if(journal.ddType === 'percent') { 
+                    const allTimePnL = closedAll.reduce((a,b)=>a+b.pnl, 0);
+                    const totalBal = startCap + allTimePnL; 
+                    const currentBalance = Math.max(totalBal, 0); 
+                    threshold = currentBalance * (limit / 100); 
                 }
+                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
+            }
 
-                container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
-                setTimeout(() => { 
-                    const ctxEl = document.getElementById(canvasId);
-                    if(ctxEl) {
-                        const ctx = ctxEl.getContext('2d'); 
-                        chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
-                    }
-                }, 50);
-            });
-            renderNotificationsArea();
-        } catch(e) {
-            console.error("Dashboard Render Error:", e);
-        }
+            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
+            setTimeout(() => { 
+                const ctxEl = document.getElementById(canvasId);
+                if(ctxEl) {
+                    const ctx = ctxEl.getContext('2d'); 
+                    chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
+                }
+            }, 50);
+        });
+        renderNotificationsArea();
     }
 
     function filterTradesByTime(journal, timeframe) {
-        const jTrades = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Geschlossen');
+        // Fix: Case insensitive comparison for journal name
+        const jTrades = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Geschlossen');
         const now = new Date();
         let startDate = null; let endDate = null;
         if(timeframe === 'HEUTE') { startDate = new Date(); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setHours(23,59,59,999); }
@@ -901,9 +843,7 @@
                     chatBox.scrollTop = chatBox.scrollHeight;
                     if(channel === 'general') lastMessageCount = messages.length;
                 });
-        } catch(e) {
-            console.error("Chat Error:", e);
-        }
+        } catch(e) { console.error("Chat Error:", e); }
     }
 
     window.switchChannel = function(channelId) {
@@ -911,21 +851,17 @@
         document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
         const activeEl = document.getElementById(channelId.startsWith('dm_') ? channelId : 'ch-' + channelId);
         if(activeEl) activeEl.classList.add('active');
-
         let title = "📢 Allgemein";
         if(channelId === 'signals') title = "🚀 Signale";
         if(channelId === 'pro') title = "💎 Pro Signale (Coach)";
         if(channelId.startsWith('dm_')) title = "📩 Direktnachricht";
         document.getElementById('chat-channel-title').innerText = title;
-
         const inputArea = document.getElementById('chat-input-area');
         const lockedMsg = document.getElementById('chat-locked-msg');
         const signalMsg = document.getElementById('chat-signal-msg');
-        
         inputArea.classList.remove('hidden');
         lockedMsg.classList.add('hidden');
         signalMsg.classList.add('hidden');
-
         if (channelId === 'pro' && !isAdmin) {
             inputArea.classList.add('hidden');
             lockedMsg.classList.remove('hidden');
@@ -936,7 +872,6 @@
         loadChat(channelId);
     }
     
-    // --- DM / CHAT REQUEST SYSTEM ---
     window.openSearchModal = function() {
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('user-search-modal').classList.remove('hidden');
@@ -953,7 +888,6 @@
             const d = doc.data();
             return d.email && d.email.includes(query) && doc.id !== auth.currentUser.uid;
         }).slice(0, 5);
-        
         const list = document.getElementById('search-results');
         list.innerHTML = results.map(doc => {
             const d = doc.data();
@@ -969,12 +903,7 @@
         const ids = [myUid, targetUid].sort();
         const chatId = `dm_${ids[0]}_${ids[1]}`;
         await db.collection('chat_requests').doc(chatId).set({
-            users: [myUid, targetUid],
-            status: 'pending',
-            senderId: myUid,
-            senderName: currentUserName,
-            targetName: targetName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            users: [myUid, targetUid], status: 'pending', senderId: myUid, senderName: currentUserName, targetName: targetName, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert(`Anfrage an ${targetName} gesendet!`);
         window.closePopup();
@@ -993,7 +922,6 @@
                 const isSender = d.senderId === myUid;
                 const otherName = isSender ? d.targetName : d.senderName;
                 if(d.status === 'accepted') {
-                     // Add Delete Button Logic Here
                      list.innerHTML += `<div class="channel-item" id="${chatId}" onclick="window.switchChannel('${chatId}')">
                         <div style="flex-grow:1;"><div class="channel-name">📩 ${otherName}</div></div>
                         <button class="chat-dm-del-btn" onclick="window.deleteDM('${chatId}', event)">✕</button>
@@ -1010,19 +938,14 @@
     }
 
     window.answerRequest = async function(docId, status) {
-        if(status === 'rejected') {
-            await db.collection('chat_requests').doc(docId).delete(); 
-        } else {
-            await db.collection('chat_requests').doc(docId).update({ status: status });
-        }
+        if(status === 'rejected') await db.collection('chat_requests').doc(docId).delete(); 
+        else await db.collection('chat_requests').doc(docId).update({ status: status });
     }
     
-    // NEU: DM Löschen
     window.deleteDM = async function(chatId, event) {
         event.stopPropagation();
         if(confirm("Möchtest du diesen Chat wirklich löschen?")) {
             await db.collection('chat_requests').doc(chatId).delete();
-            // Optional: Auch Nachrichten löschen? Besser nur den Eintrag entfernen.
             if(currentChatChannel === chatId) window.switchChannel('general');
         }
     }
@@ -1053,18 +976,8 @@
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
-        
-        // Removed complex checks to ensure functionality first
-        // if(currentChatChannel === 'pro' && !isAdmin) return;
-
-        await db.collection('chat').add({ 
-            text: text, 
-            senderName: currentUserName, 
-            senderId: auth.currentUser.uid, 
-            type: 'text', 
-            channel: currentChatChannel,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-        });
+        // Fix: Removed restrictions so chat works reliably
+        await db.collection('chat').add({ text: text, senderName: currentUserName, senderId: auth.currentUser.uid, type: 'text', channel: currentChatChannel, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         input.value = '';
     }
     
@@ -1351,7 +1264,7 @@
         document.getElementById('td-content').innerHTML = html;
     };
     
-    // Fix: openMemberDetail global
+    // Fix: openMemberDetail global and ADMIN DM LOGIC
     window.openMemberDetail = async function(id, email) {
         let userDisplayName = "User";
         try {
@@ -1367,9 +1280,32 @@
         const targetUid = userSnap.docs[0].id;
         targetedMemberUid = targetUid; 
         
-        // UPDATE DM BUTTON WITH CORRECT TARGET ID
+        // ADMIN AUTO-ACCEPT DM LOGIC
+        // If admin clicks "Nachricht senden", we create an 'accepted' DM channel immediately.
         const btn = document.getElementById('btn-start-dm');
-        btn.onclick = function() { window.startDirectMessage(); }; // It uses the global targetedMemberUid now
+        btn.onclick = async function() { 
+            const myUid = auth.currentUser.uid;
+            const ids = [myUid, targetUid].sort();
+            const chatId = `dm_${ids[0]}_${ids[1]}`;
+            
+            // For admins, we set status to 'accepted' instantly so they can chat.
+            // For normal users, it would be 'pending'.
+            await db.collection('chat_requests').doc(chatId).set({
+                users: [myUid, targetUid],
+                status: 'accepted', // AUTO-ACCEPT FOR ADMIN
+                senderId: myUid,
+                senderName: currentUserName,
+                targetName: userDisplayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            window.closePopup();
+            window.showView('Chat');
+            
+            // Force reload DMs and switch
+            window.loadDirectMessages();
+            setTimeout(() => window.switchChannel(chatId), 500); 
+        };
 
         // CHECK IF USER ALLOWS FEEDBACK
         const uData = userSnap.docs[0].data();
@@ -1391,6 +1327,7 @@
         document.getElementById('btn-adm-trades').style.display = 'block';
         document.getElementById('adm-journal-select').style.display = 'block';
         
+        // Use AWAIT to ensure data is loaded before rendering
         const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
         inspectedUserJournals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
         
@@ -1405,6 +1342,7 @@
         document.getElementById('admin-member-modal').classList.remove('hidden');
         document.getElementById('admin-member-modal').classList.add('open');
         
+        // Reset container content
         document.getElementById('adm-content-stats').innerHTML = `
              <div class="dv-stats-grid">
                 <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
@@ -1413,11 +1351,63 @@
             </div>
             <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>`;
 
-        updateAdminMemberView();
+        window.updateAdminMemberView();
     };
     
-    window.updateAdminMemberView = updateAdminMemberView;
-    window.switchAdminTab = switchAdminTab;
+    window.updateAdminMemberView = function() {
+        const selectedJ = document.getElementById('adm-journal-select').value;
+        let filteredTrades = inspectedUserTrades;
+        if(selectedJ && inspectedUserJournals.length > 0) {
+             const target = selectedJ && selectedJ !== 'Kein Journal' ? selectedJ : inspectedUserJournals[0].name;
+             // Fix filter logic
+             filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === target);
+        }
+        
+        const closed = filteredTrades.filter(t => t.status === 'Geschlossen');
+        const sum = closed.reduce((a,b) => a + b.pnl, 0);
+        const wins = closed.filter(t => t.pnl > 0).length;
+        const winrate = closed.length ? ((wins/closed.length)*100).toFixed(0) : 0;
+        
+        const pnlEl = document.getElementById('adm-stat-pnl');
+        if(pnlEl) {
+            pnlEl.innerText = sum.toFixed(2) + ' €';
+            pnlEl.style.color = sum >= 0 ? 'var(--success)' : 'var(--danger)';
+        }
+        const winEl = document.getElementById('adm-stat-win');
+        if(winEl) winEl.innerText = winrate + '%';
+        const cntEl = document.getElementById('adm-stat-count');
+        if(cntEl) cntEl.innerText = closed.length;
+        
+        let bal = 0; const data = closed.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t => { bal += t.pnl; return bal; });
+        const ctxEl = document.getElementById('admChart');
+        if(ctxEl) {
+            const ctx = ctxEl.getContext('2d');
+            if(adminChartInstance) adminChartInstance.destroy();
+            adminChartInstance = new Chart(ctx, { type: 'line', data: { labels: data.map(x=>''), datasets: [{ data: data, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#333' } } } } });
+        }
+        
+        const listEl = document.getElementById('adm-trade-list');
+        if(listEl) {
+            listEl.innerHTML = filteredTrades.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t => {
+                const tradeDataString = encodeURIComponent(JSON.stringify(t));
+                const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
+                return `<tr style="font-size:0.8rem;"><td>${t.date.split('T')[0]}</td><td>${t.asset}</td><td style="text-align:right; color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</td><td style="text-align:right;"><button class="btn-icon" style="padding:4px 8px; font-size:1rem;" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button></td></tr>`;
+            }).join('');
+        }
+    };
+    
+    // Fix: Global switchAdminTab function
+    window.switchAdminTab = function(tab) {
+        document.getElementById('btn-adm-stats').classList.toggle('active', tab==='stats');
+        document.getElementById('btn-adm-trades').classList.toggle('active', tab==='trades');
+        if(tab === 'stats') { 
+            document.getElementById('adm-content-stats').classList.remove('hidden'); 
+            document.getElementById('adm-content-trades').classList.add('hidden'); 
+        } else { 
+            document.getElementById('adm-content-stats').classList.add('hidden'); 
+            document.getElementById('adm-content-trades').classList.remove('hidden'); 
+        }
+    };
 </script>
 </body>
 </html>
