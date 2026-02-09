@@ -27,14 +27,13 @@
             --popup-bg: #ffffff; --chat-me: #e1f5fe; --chat-other: #f1f1f1;
         }
 
-        /* --- GLOBAL --- */
         body { font-family: 'Inter', sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 80px; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none !important; }
         .view-section { display: none; animation: fadeIn 0.3s; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- HEADER & NAV --- */
+        /* HEADER & NAV */
         header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-dark); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .menu-btn { cursor: pointer; font-size: 2rem; color: var(--text-main); background: none; border: none; padding: 0; margin-right: 15px; }
         #view-title { font-weight: 700; font-size: 1.2rem; }
@@ -52,7 +51,7 @@
         .nav-selector-label { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
         #navJournalSelect { width: 100%; padding: 12px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; font-size:1rem; }
 
-        /* --- UI ELEMENTS --- */
+        /* UI */
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
         .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; }
@@ -60,23 +59,19 @@
         .btn-icon:hover, .btn-small:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); transform: translateY(-1px); }
         .btn-danger-hover:hover { border-color: var(--danger); color: var(--danger); }
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
-        
-        /* --- CHAT SYSTEM --- */
+
+        /* CHAT */
         .chat-layout { display: flex; height: calc(100vh - 140px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .chat-sidebar { width: var(--sidebar-w); background: var(--cell-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
         .chat-main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-dark); position:relative; overflow: hidden; }
-        
         .channel-item { padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; display:flex; justify-content: space-between; align-items: center; }
         .channel-item:hover { background: rgba(255,255,255,0.05); }
         .channel-item.active { background: rgba(187, 134, 252, 0.1); color: var(--accent); font-weight: bold; border-left: 4px solid var(--accent); }
         .channel-name { font-size: 0.95rem; }
         .channel-desc { font-size: 0.7rem; color: var(--text-sub); display: block; margin-top: 2px; }
-        
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; }
-        
-        /* Chat Messages */
         .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
@@ -89,10 +84,6 @@
         .chat-del-btn { position: absolute; top: 0; background: rgba(0,0,0,0.6); color: #ff3d00; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0.6; transition: 0.2s; }
         .msg-wrapper.me .chat-del-btn { left: -25px; }
         .msg-wrapper.other .chat-del-btn { right: -25px; }
-        .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
-        .ct-footer { margin-top: 8px; font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; }
-
         @media (max-width: 700px) {
             .chat-layout { flex-direction: column; }
             .chat-sidebar { width: 100%; height: 70px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
@@ -102,7 +93,7 @@
             .chat-messages { padding: 10px; }
         }
 
-        /* --- DASHBOARD & LISTS --- */
+        /* JOURNAL & LISTS */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
@@ -134,12 +125,11 @@
 
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
-        /* --- POPUPS --- */
+        /* POPUPS */
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
-        /* FIX: Calendar Popup Styles */
         .trades-list-card { background: var(--cell-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-size: 0.8rem; }
         .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition:0.2s; }
@@ -166,7 +156,7 @@
         input:checked + .slider { background-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        /* --- UTILS --- */
+        /* UTILS */
         .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
         .text-tp { color: var(--success); } .text-sl { color: var(--danger); }
         .text-green { color: var(--success) !important; } .text-red { color: var(--danger) !important; }
@@ -175,7 +165,7 @@
         .popup-close { background:none; border:none; color:var(--text-sub); font-size:1.2rem; cursor:pointer; }
         .popup-title { margin:0; font-size:1.2rem; font-weight:bold; }
         
-        /* Admin Elements */
+        /* ADMIN */
         .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
         .adm-user-info { display: flex; align-items: center; gap: 10px; }
         .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
@@ -185,7 +175,7 @@
         .adm-tab-btn { flex: 1; padding: 15px; border: none; background: #151517; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; }
         .adm-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
 
-        /* Trade Details */
+        /* TRADE DETAIL */
         .td-hero { text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #333; }
         .td-asset { font-size: 1.8rem; font-weight: 800; color: white; display:block; }
         .td-pnl { font-size: 3rem; font-weight: 900; margin-top: 5px; display:block; }
@@ -540,8 +530,8 @@
                     <select id="newJDDType" style="margin-bottom:0;"><option value="eur">€</option><option value="percent">%</option></select>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button id="btn-save-journal" onclick="saveJournalInput()" class="btn-primary" style="padding:10px; flex:1;">Erstellen</button>
-                    <button id="btn-cancel-journal" onclick="cancelEdit()" class="btn-small hidden" style="flex:1; border-color:var(--border);">Abbrechen</button>
+                    <button id="btn-save-journal" onclick="window.saveJournalInput()" class="btn-primary" style="padding:10px; flex:1;">Erstellen</button>
+                    <button id="btn-cancel-journal" onclick="window.cancelEdit()" class="btn-small hidden" style="flex:1; border-color:var(--border);">Abbrechen</button>
                 </div>
             </div>
             <h4 style="margin-bottom:10px;">Existierende Journals</h4>
@@ -551,7 +541,7 @@
                 <p style="color:var(--text-sub); font-size:0.9rem;">Mitgliederverwaltung</p>
                 <div style="display:flex; gap:10px; margin-bottom:15px;">
                     <input id="admEmail" placeholder="Neues Mitglied (Email)" style="margin-bottom:0;">
-                    <button onclick="admAdd()" class="btn-primary" style="width:100px; padding:0;">Add</button>
+                    <button onclick="window.admAdd()" class="btn-primary" style="width:100px; padding:0;">Add</button>
                 </div>
                 <div id="admList" style="background:var(--cell-bg); border-radius:8px; padding:10px; border:1px solid var(--border);"></div>
             </div>
@@ -561,19 +551,22 @@
 </div>
 
 <script>
-    // DEFINE FUNCTIONS GLOBALLY FIRST
-    function toggleMenu() { 
+    // --- GLOBAL FUNCTIONS DEFINED FIRST TO PREVENT REFERENCE ERRORS ---
+    
+    window.toggleMenu = function() { 
         document.getElementById('navDrawer').classList.toggle('open'); 
         document.getElementById('menu-overlay').classList.toggle('open'); 
-    }
-    
-    // ERROR HANDLER
-    window.onerror = function(message, source, lineno, colno, error) {
-        console.error("Global Error:", message, "Line:", lineno);
     };
-    
-    // GLOBAL BUTTON FUNCTIONS
-    function prepareCreateView() { 
+
+    window.closePopup = function() { 
+        document.getElementById('popup-overlay').classList.remove('open');
+        document.querySelectorAll('.modal-base').forEach(el => { el.classList.add('hidden'); el.classList.remove('open'); }); 
+        // If we are in detail view context, clear it
+        if(typeof currentDetailTradeId !== 'undefined' && currentDetailTradeId) window.closeTradeDetail();
+    };
+
+    window.prepareCreateView = function() { 
+        console.log("Opening New Trade Modal"); // Debug
         document.getElementById('editId').value = ""; 
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
         document.getElementById('datetime').value = now.toISOString().slice(0,16); 
@@ -585,15 +578,49 @@
         document.getElementById('inpTP1').value = ""; 
         document.getElementById('inpTP2').value = ""; 
         document.getElementById('inpTP3').value = ""; 
-        if(activeJournal && document.getElementById('inpJournalSelect')) document.getElementById('inpJournalSelect').value = activeJournal; 
-        toggleFormFields(); 
+        if(typeof activeJournal !== 'undefined' && activeJournal && document.getElementById('inpJournalSelect')) document.getElementById('inpJournalSelect').value = activeJournal; 
+        window.toggleFormFields(); 
         document.getElementById('trade-form-modal').classList.remove('hidden'); 
         document.getElementById('trade-form-modal').classList.add('open'); 
         document.getElementById('popup-overlay').classList.add('open'); 
         document.getElementById('form-title').innerText="Neuer Trade";
-    }
+    };
 
-    function editTrade(id, closeNow) { 
+    window.toggleFormFields = function() { 
+        const s = document.getElementById('status').value; 
+        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); 
+    };
+
+    window.saveTrade = async function() { 
+        try {
+            const id = document.getElementById('editId').value; 
+            const asset = document.getElementById('assetInput').value.toUpperCase(); 
+            if(!asset) return alert("Asset fehlt!"); 
+            const data = { 
+                userId: auth.currentUser.uid, 
+                date: document.getElementById('datetime').value, 
+                asset: asset, 
+                journal: document.getElementById('inpJournalSelect').value, 
+                status: document.getElementById('status').value, 
+                pnl: parseFloat(document.getElementById('pnl').value) || 0, 
+                imgSetup: document.getElementById('imgSetup').value, 
+                imgResult: document.getElementById('imgResult').value, 
+                note: document.getElementById('note').value, 
+                entry: document.getElementById('inpEntry').value, 
+                sl: document.getElementById('inpSL').value, 
+                tp1: document.getElementById('inpTP1').value, 
+                tp2: document.getElementById('inpTP2').value, 
+                tp3: document.getElementById('inpTP3').value, 
+                adminFeedback: document.getElementById('inpAdminFeedback').value 
+            }; 
+            if(id) await db.collection('trades').doc(id).update(data); 
+            else await db.collection('trades').add(data); 
+            await loadData(); 
+            window.closePopup(); 
+        } catch(e) { console.error("Save Trade Error:", e); alert("Fehler beim Speichern: " + e.message); }
+    };
+
+    window.editTrade = function(id, closeNow) { 
         const t = trades.find(x => x.id === id); 
         if(!t) return;
         document.getElementById('editId').value = t.id; 
@@ -613,12 +640,13 @@
         document.getElementById('inpAdminFeedback').value = t.adminFeedback || ''; 
         document.getElementById('adm-feedback-input-area').classList.toggle('hidden', !isAdmin); 
         document.getElementById('form-title').innerText="Trade Bearbeiten";
-        toggleFormFields(); 
+        window.toggleFormFields(); 
         document.getElementById('trade-form-modal').classList.remove('hidden'); 
         document.getElementById('trade-form-modal').classList.add('open'); 
         document.getElementById('popup-overlay').classList.add('open'); 
-    }
+    };
 
+    // CONFIG & INIT
     const firebaseConfig = { apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ", authDomain: "trading-journal-acc.firebaseapp.com", projectId: "trading-journal-acc", storageBucket: "trading-journal-acc.firebasestorage.app", messagingSenderId: "68601000570", appId: "1:68601000570:web:87d3ebd5e86416403e41c3" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
@@ -664,16 +692,17 @@
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
+            // Safe merge save
             await db.collection('users').doc(user.uid).set({
                 email: email,
                 displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || ''
+                photoURL: user.photoURL || '',
             }, { merge: true });
 
             if(email === "leon.luca.lauterbach@gmail.com") {
                 isAdmin = true;
                 const admPanel = document.getElementById('admin-panel');
-                if(admPanel) { admPanel.classList.remove('hidden'); admLoad(); }
+                if(admPanel) { admPanel.classList.remove('hidden'); window.admLoad(); }
                 finishLogin(user);
             } else {
                 isAdmin = false;
@@ -701,17 +730,15 @@
             
             await loadData();
             loadChat('general');
-            loadDirectMessages(); 
+            window.loadDirectMessages(); 
         } catch(e) {
             console.error("Login Error:", e);
         }
     }
 
-    async function toggleFeedbackSetting(val) {
+    window.toggleFeedbackSetting = async function(val) {
         if(auth.currentUser) {
-            try {
-                await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
-            } catch(e) { console.error(e); }
+            await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
         }
     }
 
@@ -735,7 +762,7 @@
             renderDashboard(); 
             if(document.getElementById('view-Historie').classList.contains('active')) renderHistory();
             if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Data Load Error:", e); }
     }
 
     function populateSelectors() {
@@ -748,7 +775,7 @@
         if(activeJournal) createSel.value = activeJournal;
     }
 
-    function changeActiveJournal(val) {
+    window.changeActiveJournal = function(val) {
         activeJournal = val;
         const createSel = document.getElementById('inpJournalSelect');
         if(createSel) createSel.value = activeJournal;
@@ -806,7 +833,7 @@
                 const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
                 const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
                 
-                // CRITICAL FIX: Safe Calculation
+                // CRITICAL FIX: Safe Calculation of Today PnL
                 let warningHtml = '';
                 if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
                     let todayPnL = 0; 
@@ -816,7 +843,12 @@
                         todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
                     }
                     const limit = parseFloat(journal.maxDD); let threshold = limit;
-                    if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
+                    if(journal.ddType === 'percent') { 
+                        const allTimePnL = closedAll.reduce((a,b)=>a+b.pnl, 0);
+                        const totalBal = startCap + allTimePnL; 
+                        const currentBalance = Math.max(totalBal, 0); 
+                        threshold = currentBalance * (limit / 100); 
+                    }
                     if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
                 }
 
@@ -851,7 +883,7 @@
         return jTrades.sort((a,b)=>new Date(a.date)-new Date(b.date));
     }
     
-    // --- CHAT SYSTEM (WITH DM LOGIC) ---
+    // --- CHAT SYSTEM ---
     function loadChat(channel = 'general') {
         if (chatListener) chatListener();
         const chatBox = document.getElementById('chat-messages');
@@ -873,7 +905,7 @@
         }
     }
 
-    function switchChannel(channelId) {
+    window.switchChannel = function(channelId) {
         currentChatChannel = channelId;
         document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
         const activeEl = document.getElementById(channelId.startsWith('dm_') ? channelId : 'ch-' + channelId);
@@ -904,7 +936,7 @@
     }
     
     // --- DM / CHAT REQUEST SYSTEM ---
-    function openSearchModal() {
+    window.openSearchModal = function() {
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('user-search-modal').classList.remove('hidden');
         document.getElementById('user-search-modal').classList.add('open');
@@ -912,7 +944,7 @@
         document.getElementById('search-results').innerHTML = '';
     }
 
-    async function searchUsers(query) {
+    window.searchUsers = async function(query) {
         if(query.length < 3) return;
         query = query.toLowerCase();
         const snap = await db.collection('users').get();
@@ -931,7 +963,7 @@
         }).join('');
     }
 
-    async function sendChatRequest(targetUid, targetName) {
+    window.sendChatRequest = async function(targetUid, targetName) {
         const myUid = auth.currentUser.uid;
         const ids = [myUid, targetUid].sort();
         const chatId = `dm_${ids[0]}_${ids[1]}`;
@@ -944,11 +976,11 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert(`Anfrage an ${targetName} gesendet!`);
-        closePopup();
-        loadDirectMessages(); 
+        window.closePopup();
+        window.loadDirectMessages(); 
     }
 
-    function loadDirectMessages() {
+    window.loadDirectMessages = function() {
         if(!auth.currentUser) return;
         const myUid = auth.currentUser.uid;
         db.collection('chat_requests').where('users', 'array-contains', myUid).onSnapshot(snapshot => {
@@ -972,7 +1004,7 @@
         });
     }
 
-    async function answerRequest(docId, status) {
+    window.answerRequest = async function(docId, status) {
         if(status === 'rejected') {
             await db.collection('chat_requests').doc(docId).delete(); 
         } else {
@@ -1002,11 +1034,10 @@
         return `<div class="msg-wrapper ${isMe ? 'me' : 'other'}"><span class="msg-sender">${isMe ? 'Du' : msg.senderName}</span><div class="msg-bubble">${content}<span class="msg-time">${time}</span>${delBtn}</div></div>`;
     }
 
-    async function sendChatMessage() {
+    window.sendChatMessage = async function() {
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
-        // Fix: Simplified check to prevent failure if isAdmin undefined
         if(currentChatChannel === 'pro' && !isAdmin) return;
 
         await db.collection('chat').add({ 
@@ -1037,9 +1068,9 @@
             });
         }
     }
-    function dismissChatNotification(e) { e.stopPropagation(); const box = document.getElementById('chat-notify-box'); if(box) box.remove(); document.getElementById('btn-Chat').innerHTML = '💬 Chat'; if(lastMessageCount > 0) localStorage.setItem('chatCount', lastMessageCount); }
-    function setJournalFilter(journalId, timeframe) { if(timeframe === 'ZEITRAUM') { configuringJournalId = journalId; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('date-range-modal').classList.remove('hidden'); document.getElementById('date-range-modal').classList.add('open'); } else { journalFilters[journalId] = timeframe; renderDashboard(); } }
-    function applyCustomDate() { const start = document.getElementById('custom-start').value; const end = document.getElementById('custom-end').value; if(start && end && configuringJournalId) { journalFilters[configuringJournalId] = 'ZEITRAUM'; journalCustomDates[configuringJournalId] = { start, end }; renderDashboard(); closePopup(); } }
+    window.dismissChatNotification = function(e) { e.stopPropagation(); const box = document.getElementById('chat-notify-box'); if(box) box.remove(); document.getElementById('btn-Chat').innerHTML = '💬 Chat'; if(lastMessageCount > 0) localStorage.setItem('chatCount', lastMessageCount); }
+    window.setJournalFilter = function(journalId, timeframe) { if(timeframe === 'ZEITRAUM') { configuringJournalId = journalId; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('date-range-modal').classList.remove('hidden'); document.getElementById('date-range-modal').classList.add('open'); } else { journalFilters[journalId] = timeframe; renderDashboard(); } }
+    window.applyCustomDate = function() { const start = document.getElementById('custom-start').value; const end = document.getElementById('custom-end').value; if(start && end && configuringJournalId) { journalFilters[configuringJournalId] = 'ZEITRAUM'; journalCustomDates[configuringJournalId] = { start, end }; renderDashboard(); window.closePopup(); } }
     
     function renderStatistics() {
         if(!activeJournal) return;
@@ -1070,10 +1101,10 @@
         }
     }
     
-    function deleteChatMessage(id) { msgToDeleteId = id; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); }
-    async function confirmDeleteMessage() { if(msgToDeleteId) { await db.collection('chat').doc(msgToDeleteId).delete(); closePopup(); } }
-    function closeDeleteModal() { closePopup(); }
-    function shareTrade(id) {
+    window.deleteChatMessage = function(id) { msgToDeleteId = id; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); }
+    window.confirmDeleteMessage = async function() { if(msgToDeleteId) { await db.collection('chat').doc(msgToDeleteId).delete(); window.closePopup(); } }
+    window.closeDeleteModal = function() { window.closePopup(); }
+    window.shareTrade = function(id) {
         shareTradeId = id; shareType = null;
         const trade = trades.find(t => t.id === id);
         if(!trade) return;
@@ -1092,8 +1123,8 @@
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('share-modal').classList.remove('hidden'); document.getElementById('share-modal').classList.add('open'); 
     }
-    function closeShareModal() { closePopup(); }
-    function selectShareOption(type) {
+    window.closeShareModal = function() { window.closePopup(); }
+    window.selectShareOption = function(type) {
         const trade = trades.find(t => t.id === shareTradeId);
         if(type === 'setup' && !trade.imgSetup) return;
         if(type === 'result' && !trade.imgResult) return;
@@ -1101,7 +1132,7 @@
         document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected'));
         document.getElementById('opt-' + type).classList.add('selected');
     }
-    async function confirmShare() {
+    window.confirmShare = async function() {
         if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
         const trade = trades.find(t => t.id === shareTradeId);
         const tradeCopy = { ...trade }; delete tradeCopy.pnl; delete tradeCopy.userId; 
@@ -1124,9 +1155,9 @@
             channel: targetChannel,
             timestamp: firebase.firestore.FieldValue.serverTimestamp() 
         });
-        closePopup();
-        showView('Chat');
-        switchChannel(targetChannel);
+        window.closePopup();
+        window.showView('Chat');
+        window.switchChannel(targetChannel);
     }
     function renderTradingViewWidget() {
         const container = document.getElementById('tradingview_chart');
@@ -1141,7 +1172,7 @@
             });
         }
     }
-    function changeCalMonth(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
+    window.changeCalMonth = function(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
     function renderCalendar() {
         if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
         document.getElementById('cal-filter-hint').innerText = `Journal: ${activeJournal}`;
@@ -1162,7 +1193,7 @@
             grid.innerHTML += `<div class="${cellClass}" ${count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
         }
     }
-    function openDayDetail(dateStr) {
+    window.openDayDetail = function(dateStr) {
         const d = new Date(dateStr);
         document.getElementById('dv-date-title').innerText = d.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
         const dayTrades = trades.filter(t => {
@@ -1203,12 +1234,8 @@
              dayChart = new Chart(ctx, { type:'line', data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff453a', borderWidth: 2, fill: true, backgroundColor: sum >= 0 ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 69, 58, 0.1)', tension: 0.1, pointRadius: 0 }] }, options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#333'}}} } });
         }
     }
-    function closePopup() { 
-        document.getElementById('popup-overlay').classList.remove('open');
-        document.querySelectorAll('.modal-base').forEach(el => { el.classList.add('hidden'); el.classList.remove('open'); }); 
-        if(currentDetailTradeId) closeTradeDetail();
-    }
-    async function closeTradeDetail() {
+    
+    window.closeTradeDetail = async function() {
         document.getElementById('trade-detail-view').classList.remove('open');
         document.getElementById('trade-detail-view').classList.add('hidden');
         if(document.getElementById('day-detail-view').classList.contains('hidden') && !document.getElementById('admin-member-modal').classList.contains('open')) {
@@ -1223,9 +1250,9 @@
             currentDetailTradeId = null;
         }
     }
-    function copyText(val, btnId) { if(!val) return; navigator.clipboard.writeText(val).then(() => { const btn = document.getElementById(btnId); btn.innerText = '✓'; setTimeout(() => { btn.innerText = '📋'; }, 1500); }); }
+    window.copyText = function(val, btnId) { if(!val) return; navigator.clipboard.writeText(val).then(() => { const btn = document.getElementById(btnId); btn.innerText = '✓'; setTimeout(() => { btn.innerText = '📋'; }, 1500); }); }
     function formatChatTime(timestamp) { if (!timestamp) return ''; const date = timestamp.toDate(); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-    function showView(v) { 
+    window.showView = function(v) { 
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); 
         document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active'); 
         document.getElementById('view-title').innerText = v.toUpperCase(); 
@@ -1250,32 +1277,126 @@
         if(v === 'News') { const b=document.getElementById('news-box'); b.innerHTML=''; const s=document.createElement('script'); s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"; s.async=true; s.innerHTML=JSON.stringify({"colorTheme":document.body.classList.contains('light-mode')?'light':'dark',"width":"100%","height":"100%","locale":"de"}); b.appendChild(s); } 
         if(v === 'TradingView') setTimeout(renderTradingViewWidget, 50);
     }
-    function togglePrivacy() { privacyMode = !privacyMode; document.documentElement.style.setProperty('--blur', privacyMode ? '5px' : '0px'); }
-    function handleLogout() { auth.signOut().then(()=>location.reload()); }
-    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function toggleTheme(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
-    function calcLots() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
-    function updateContractSize() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
+    window.togglePrivacy = function() { privacyMode = !privacyMode; document.documentElement.style.setProperty('--blur', privacyMode ? '5px' : '0px'); }
+    window.handleLogout = function() { auth.signOut().then(()=>location.reload()); }
+    window.loginGoogle = function() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    window.toggleTheme = function(isDark) { if(isDark) { document.body.classList.remove('light-mode'); localStorage.setItem('tradeTheme', 'dark'); } else { document.body.classList.add('light-mode'); localStorage.setItem('tradeTheme', 'light'); } if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics(); }
+    window.calcLots = function() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } }
+    window.updateContractSize = function() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; }
     
     // Admin Utils
-    async function admLoad() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
-    async function admAdd() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; admLoad(); } }
-    async function admDel(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); admLoad(); } }
+    window.admLoad = async function() { try { const s = await db.collection('members').get(); const listEl = document.getElementById('admList'); listEl.innerHTML = ''; for(const doc of s.docs) { const mData = doc.data(); const mId = doc.id; let displayName = "User"; let photoURL = ""; const uQuery = await db.collection('users').where('email', '==', mData.email).get(); if(!uQuery.empty) { const uData = uQuery.docs[0].data(); displayName = uData.displayName; photoURL = uData.photoURL; } const imgHtml = photoURL ? `<img src="${photoURL}" class="adm-pic">` : `<div class="adm-pic" style="background:#333; display:flex; justify-content:center; align-items:center;">👤</div>`; listEl.innerHTML += `<div class="adm-row"><div class="adm-user-info">${imgHtml}<div class="adm-text"><span class="adm-name">${displayName}</span><span class="adm-email">${mData.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${mId}', '${mData.email}')" style="font-size:1rem; margin-right:5px;">👁️</button><button class="btn-icon btn-danger-hover" onclick="admDel('${mId}')" style="font-size:1rem;">✕</button></div></div>`; } } catch(e){ console.error(e); } }
+    window.admAdd = async function() { const e=document.getElementById('admEmail').value.toLowerCase().trim(); if(e) { await db.collection('members').add({email:e}); document.getElementById('admEmail').value=''; window.admLoad(); } }
+    window.admDel = async function(id) { if(confirm("Löschen?")) { await db.collection('members').doc(id).delete(); window.admLoad(); } }
     
-    async function saveJournalInput() { const name = document.getElementById('newJName').value.trim(); const cap = parseFloat(document.getElementById('newJCap').value)||0; const maxDD = document.getElementById('newJMaxDD').value; const ddType = document.getElementById('newJDDType').value; if(!name) return alert("Name fehlt!"); if(editingJournalId) { const oldJ = journals.find(j=>j.id===editingJournalId); await db.collection('journals').doc(editingJournalId).update({name, startCap:cap, maxDD, ddType}); if(name!==oldJ.name) { const batch=db.batch(); (await db.collection('trades').where('userId','==',auth.currentUser.uid).where('journal','==',oldJ.name).get()).docs.forEach(doc=>batch.update(doc.ref,{journal:name})); await batch.commit(); if(activeJournal===oldJ.name) activeJournal=name; } cancelEdit(); } else { await db.collection('journals').add({userId:auth.currentUser.uid, name, startCap:cap, maxDD, ddType, hidden:false}); document.getElementById('newJName').value=''; document.getElementById('newJCap').value=''; } await loadData(); renderSettingsList(); }
-    function prepareEditJournal(id) { const j = journals.find(x => x.id === id); if(!j) return; document.getElementById('journal-form-title').innerText = "Journal Bearbeiten"; document.getElementById('newJName').value = j.name; document.getElementById('newJCap').value = j.startCap || ''; document.getElementById('newJMaxDD').value = j.maxDD || ''; document.getElementById('newJDDType').value = j.ddType || 'eur'; document.getElementById('btn-save-journal').innerText = "Speichern"; document.getElementById('btn-cancel-journal').classList.remove('hidden'); editingJournalId = id; }
-    function cancelEdit() { document.getElementById('journal-form-title').innerText = "Neues Journal"; document.getElementById('newJName').value = ''; document.getElementById('newJCap').value = ''; document.getElementById('newJMaxDD').value = ''; document.getElementById('btn-save-journal').innerText = "Erstellen"; document.getElementById('btn-cancel-journal').classList.add('hidden'); editingJournalId = null; }
-    async function toggleJournalVisibility(id, currentHidden) { await db.collection('journals').doc(id).update({ hidden: !currentHidden }); await loadData(); renderSettingsList(); }
-    async function deleteJournal(id, name) { if(!confirm(`Warnung: Journal '${name}' und ALLE Trades löschen?`)) return; await db.collection('journals').doc(id).delete(); const batch = db.batch(); const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', name).get(); tQuery.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); if(activeJournal === name) activeJournal = null; await loadData(); renderSettingsList(); }
+    window.saveJournalInput = async function() { const name = document.getElementById('newJName').value.trim(); const cap = parseFloat(document.getElementById('newJCap').value)||0; const maxDD = document.getElementById('newJMaxDD').value; const ddType = document.getElementById('newJDDType').value; if(!name) return alert("Name fehlt!"); if(editingJournalId) { const oldJ = journals.find(j=>j.id===editingJournalId); await db.collection('journals').doc(editingJournalId).update({name, startCap:cap, maxDD, ddType}); if(name!==oldJ.name) { const batch=db.batch(); (await db.collection('trades').where('userId','==',auth.currentUser.uid).where('journal','==',oldJ.name).get()).docs.forEach(doc=>batch.update(doc.ref,{journal:name})); await batch.commit(); if(activeJournal===oldJ.name) activeJournal=name; } window.cancelEdit(); } else { await db.collection('journals').add({userId:auth.currentUser.uid, name, startCap:cap, maxDD, ddType, hidden:false}); document.getElementById('newJName').value=''; document.getElementById('newJCap').value=''; } await loadData(); renderSettingsList(); }
+    window.prepareEditJournal = function(id) { const j = journals.find(x => x.id === id); if(!j) return; document.getElementById('journal-form-title').innerText = "Journal Bearbeiten"; document.getElementById('newJName').value = j.name; document.getElementById('newJCap').value = j.startCap || ''; document.getElementById('newJMaxDD').value = j.maxDD || ''; document.getElementById('newJDDType').value = j.ddType || 'eur'; document.getElementById('btn-save-journal').innerText = "Speichern"; document.getElementById('btn-cancel-journal').classList.remove('hidden'); editingJournalId = id; }
+    window.cancelEdit = function() { document.getElementById('journal-form-title').innerText = "Neues Journal"; document.getElementById('newJName').value = ''; document.getElementById('newJCap').value = ''; document.getElementById('newJMaxDD').value = ''; document.getElementById('btn-save-journal').innerText = "Erstellen"; document.getElementById('btn-cancel-journal').classList.add('hidden'); editingJournalId = null; }
+    window.toggleJournalVisibility = async function(id, currentHidden) { await db.collection('journals').doc(id).update({ hidden: !currentHidden }); await loadData(); renderSettingsList(); }
+    window.deleteJournal = async function(id, name) { if(!confirm(`Warnung: Journal '${name}' und ALLE Trades löschen?`)) return; await db.collection('journals').doc(id).delete(); const batch = db.batch(); const tQuery = await db.collection('trades').where('userId', '==', auth.currentUser.uid).where('journal', '==', name).get(); tQuery.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); if(activeJournal === name) activeJournal = null; await loadData(); renderSettingsList(); }
     function renderSettingsList() { document.getElementById('settings-journal-list').innerHTML = journals.map(j => { const isHidden = j.hidden === true; const opacity = isHidden ? '0.5' : '1'; const eye = isHidden ? '🙈' : '👁️'; return `<div class="settings-list-item" style="opacity:${opacity}"><div><strong>${j.name}</strong> <small style="color:var(--text-sub)">${j.startCap ? j.startCap+'€' : ''}</small></div><div><button class="btn-small" onclick="toggleJournalVisibility('${j.id}', ${isHidden})">${eye}</button><button class="btn-small" onclick="prepareEditJournal('${j.id}')">✎</button><button class="btn-small btn-danger-hover" onclick="deleteJournal('${j.id}', '${j.name}')">🗑</button></div></div>`; }).join(''); }
     
-    async function submitAdminFeedback() {
+    window.submitAdminFeedback = async function() {
         const text = document.getElementById('adm-feedback-text').value;
         if(currentDetailTradeId && text) {
             await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: text, feedbackRead: false });
             alert("Feedback gesendet!"); closeTradeDetail();
         }
     }
+    
+    // Fix: Move openSignalDetail to global scope so onclick can find it
+    window.openSignalDetail = function(tradeDataEncoded, imgUrlEncoded) {
+        const t = JSON.parse(decodeURIComponent(tradeDataEncoded));
+        const imgUrl = decodeURIComponent(imgUrlEncoded);
+        currentDetailTradeId = t.id; 
+        document.getElementById('popup-overlay').classList.add('open');
+        const modal = document.getElementById('trade-detail-view');
+        modal.classList.remove('hidden'); modal.classList.add('open');
+        
+        const isTradeOwner = t.userId === auth.currentUser.uid;
+        const showAdminInput = isAdmin && !isTradeOwner;
+        const adminInputDiv = document.getElementById('adm-feedback-input-area');
+        if(adminInputDiv) {
+             if(showAdminInput) { adminInputDiv.classList.remove('hidden'); document.getElementById('adm-feedback-text').value = t.adminFeedback || ''; } 
+             else { adminInputDiv.classList.add('hidden'); }
+        }
+
+        let html = '';
+        if(t.adminFeedback && (!t.feedbackRead || isAdmin)) {
+            html += `<div class="feedback-message"><div style="display:flex; justify-content:space-between; align-items:start;"><span class="feedback-label">👨‍🏫 Coach Feedback</span></div><div style="margin-top:5px;">${t.adminFeedback}</div></div>`;
+        }
+
+        html += `<div class="td-hero"><span class="td-asset">${t.asset}</span><span class="td-pnl" style="color:${t.status==='Aktiv'?'#0a84ff':(t.pnl>=0?'#30d158':'#ff453a')}">${t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2)+'€'}</span></div><div class="td-grid"><div class="td-box"><div class="td-val-row"><span class="td-label">Entry</span><button id="btn-copy-entry" class="copy-icon" onclick="copyText('${t.entry || ''}', 'btn-copy-entry')">📋</button></div><span class="td-val">${t.entry || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">Stop Loss</span><button id="btn-copy-sl" class="copy-icon" onclick="copyText('${t.sl || ''}', 'btn-copy-sl')">📋</button></div><span class="td-val" style="color:#ff453a">${t.sl || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 1</span><button id="btn-copy-tp1" class="copy-icon" onclick="copyText('${t.tp1 || ''}', 'btn-copy-tp1')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp1 || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 2</span><button id="btn-copy-tp2" class="copy-icon" onclick="copyText('${t.tp2 || ''}', 'btn-copy-tp2')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp2 || '-'}</span></div><div class="td-box"><div class="td-val-row"><span class="td-label">TP 3</span><button id="btn-copy-tp3" class="copy-icon" onclick="copyText('${t.tp3 || ''}', 'btn-copy-tp3')">📋</button></div><span class="td-val" style="color:#30d158">${t.tp3 || '-'}</span></div><div class="td-box"><span class="td-label">Date</span><span class="td-val">${t.date.split('T')[0]}</span></div></div>`;
+        
+        if(t.note) { html += `<div class="td-note-box">"${t.note}"</div>`; }
+        if(t.imgSetup) { html += `<div class="img-box"><span class="td-label">Setup</span><img src="${t.imgSetup}" class="td-img" onclick="window.open('${t.imgSetup}','_blank')"></div>`; }
+        if(t.imgResult) { html += `<div class="img-box"><span class="td-label">Ergebnis</span><img src="${t.imgResult}" class="td-img" onclick="window.open('${t.imgResult}','_blank')"></div>`; }
+        document.getElementById('td-content').innerHTML = html;
+    };
+    
+    // Fix: openMemberDetail global
+    window.openMemberDetail = async function(id, email) {
+        let userDisplayName = "User";
+        try {
+            const userSnap = await db.collection('users').where('email', '==', email).get();
+            if(!userSnap.empty) { userDisplayName = userSnap.docs[0].data().displayName; }
+        } catch(e) {}
+        
+        document.getElementById('adm-detail-name').innerText = userDisplayName;
+        document.getElementById('adm-detail-email').innerText = email;
+        
+        const userSnap = await db.collection('users').where('email', '==', email).get();
+        if(userSnap.empty) { alert("User hat sich noch nie eingeloggt."); return; }
+        const targetUid = userSnap.docs[0].id;
+        targetedMemberUid = targetUid; 
+
+        // CHECK IF USER ALLOWS FEEDBACK
+        const uData = userSnap.docs[0].data();
+        if(uData.allowFeedback === false) {
+             document.getElementById('popup-overlay').classList.add('open');
+             document.getElementById('admin-member-modal').classList.remove('hidden');
+             document.getElementById('admin-member-modal').classList.add('open');
+             
+             document.getElementById('adm-content-stats').innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>🔒 Dieser User hat den Zugriff auf seine Trades deaktiviert.</div>";
+             document.getElementById('adm-content-trades').innerHTML = "";
+             document.getElementById('btn-adm-stats').style.display = 'none';
+             document.getElementById('btn-adm-trades').style.display = 'none';
+             document.getElementById('adm-journal-select').style.display = 'none';
+             return;
+        }
+
+        // RESET UI IF PREVIOUSLY BLOCKED
+        document.getElementById('btn-adm-stats').style.display = 'block';
+        document.getElementById('btn-adm-trades').style.display = 'block';
+        document.getElementById('adm-journal-select').style.display = 'block';
+        
+        const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
+        inspectedUserJournals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
+        
+        const tSnap = await db.collection('trades').where('userId', '==', targetUid).get();
+        inspectedUserTrades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
+
+        const sel = document.getElementById('adm-journal-select');
+        if(inspectedUserJournals.length === 0) { sel.innerHTML = '<option>Kein Journal</option>'; } 
+        else { sel.innerHTML = inspectedUserJournals.map(j => `<option value="${j.name}">${j.name}</option>`).join(''); }
+        
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('admin-member-modal').classList.remove('hidden');
+        document.getElementById('admin-member-modal').classList.add('open');
+        
+        document.getElementById('adm-content-stats').innerHTML = `
+             <div class="dv-stats-grid">
+                <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
+                <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
+                <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
+            </div>
+            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>`;
+
+        updateAdminMemberView();
+    };
+    
+    window.updateAdminMemberView = updateAdminMemberView;
+    window.switchAdminTab = switchAdminTab;
 </script>
 </body>
 </html>
