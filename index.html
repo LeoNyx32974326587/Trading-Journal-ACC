@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro7</title>
+    <title>TradeCloud Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -100,7 +100,7 @@
             .chat-messages { padding: 10px; }
         }
 
-        /* --- DASHBOARD & LISTS --- */
+        /* JOURNAL & LISTS */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
@@ -132,7 +132,7 @@
 
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
-        /* --- POPUPS --- */
+        /* POPUPS */
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
@@ -810,7 +810,6 @@
     }
 
     function filterTradesByTime(journal, timeframe) {
-        // Fix: Case insensitive comparison for journal name
         const jTrades = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Geschlossen');
         const now = new Date();
         let startDate = null; let endDate = null;
@@ -976,8 +975,15 @@
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
-        // Fix: Removed restrictions so chat works reliably
-        await db.collection('chat').add({ text: text, senderName: currentUserName, senderId: auth.currentUser.uid, type: 'text', channel: currentChatChannel, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        
+        await db.collection('chat').add({ 
+            text: text, 
+            senderName: currentUserName, 
+            senderId: auth.currentUser.uid, 
+            type: 'text', 
+            channel: currentChatChannel,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        });
         input.value = '';
     }
     
@@ -1342,7 +1348,6 @@
         document.getElementById('admin-member-modal').classList.remove('hidden');
         document.getElementById('admin-member-modal').classList.add('open');
         
-        // Reset container content
         document.getElementById('adm-content-stats').innerHTML = `
              <div class="dv-stats-grid">
                 <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
