@@ -85,8 +85,12 @@
         /* --- DASHBOARD & GENERAL --- */
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
-        #user-greeting-name { font-size: 1.2em; color: var(--accent); }
         
+        /* UPDATED GREETING SIZE */
+        #user-greeting-name { font-size: 1em; color: var(--accent); }
+        .greet-container h2 { margin: 0; font-size: 3.5rem; font-weight: 900; line-height: 1.1; letter-spacing: -1px; }
+
+        /* NOTIFICATIONS */
         #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
         .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
         .chat-notification { background: rgba(10, 132, 255, 0.2); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; }
@@ -226,6 +230,16 @@
         .hist-table tr:last-child td { border-bottom: none; }
         .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
 
+        /* ACCESS DENIED SCREEN */
+        .access-denied-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; text-align: center; color: var(--text-sub); }
+        .access-denied-icon { font-size: 4rem; margin-bottom: 15px; opacity: 0.5; }
+
+        /* FEEDBACK ADMIN ITEM */
+        .feedback-item { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+        .fb-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px; }
+        .fb-type { font-weight: bold; color: var(--accent); text-transform: uppercase; }
+        .fb-text { font-size: 0.95rem; line-height: 1.4; color: var(--text-main); }
+
         /* --- UTILS --- */
         .text-green { color: var(--success) !important; }
         .text-red { color: var(--danger) !important; }
@@ -359,27 +373,36 @@
             <h2 id="adm-detail-name" style="margin:0; font-size:1.5rem;">User</h2>
             <div id="adm-detail-email" style="color:var(--text-sub); font-size:0.9rem;">email@example.com</div>
         </div>
-        <div style="padding:0 20px 20px 20px;">
-            <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
-            <select id="adm-journal-select" onchange="updateAdminMemberView()"></select>
-        </div>
-        <div style="display:flex; border-bottom:1px solid #333;">
-            <button class="adm-tab-btn active" onclick="switchAdminTab('stats')" id="btn-adm-stats">📊 Statistik</button>
-            <button class="adm-tab-btn" onclick="switchAdminTab('trades')" id="btn-adm-trades">📜 Trade Liste</button>
-        </div>
-        <div id="adm-content-stats" style="padding:20px; overflow-y:auto;">
-             <div class="dv-stats-grid">
-                <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
-                <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
-                <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
+        
+        <div id="adm-content-area-wrapper">
+             <div style="padding:0 20px 20px 20px;">
+                <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
+                <select id="adm-journal-select" onchange="updateAdminMemberView()"></select>
             </div>
-            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>
+            <div style="display:flex; border-bottom:1px solid #333;">
+                <button class="adm-tab-btn active" onclick="switchAdminTab('stats')" id="btn-adm-stats">📊 Statistik</button>
+                <button class="adm-tab-btn" onclick="switchAdminTab('trades')" id="btn-adm-trades">📜 Trade Liste</button>
+            </div>
+            <div id="adm-content-stats" style="padding:20px; overflow-y:auto;">
+                 <div class="dv-stats-grid">
+                    <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
+                    <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
+                    <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
+                </div>
+                <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>
+            </div>
+            <div id="adm-content-trades" class="hidden" style="padding:0; overflow-y:auto; flex-grow:1;">
+                <table class="hist-table">
+                    <thead><tr><th>Date</th><th>Asset</th><th style="text-align:right;">PnL</th><th></th></tr></thead>
+                    <tbody id="adm-trade-list"></tbody>
+                </table>
+            </div>
         </div>
-        <div id="adm-content-trades" class="hidden" style="padding:0; overflow-y:auto; flex-grow:1;">
-            <table class="hist-table">
-                <thead><tr><th>Date</th><th>Asset</th><th style="text-align:right;">PnL</th><th></th></tr></thead>
-                <tbody id="adm-trade-list"></tbody>
-            </table>
+
+        <div id="adm-access-denied" class="hidden access-denied-container">
+            <div class="access-denied-icon">🔒</div>
+            <h3>Zugriff verweigert</h3>
+            <p>Das Mitglied hat die Einsicht in Trades und Statistiken deaktiviert.</p>
         </div>
     </div>
 
@@ -543,20 +566,28 @@
     
     <section id="view-Feedback" class="view-section">
         <div class="card">
-            <h3>📣 Feedback Senden</h3>
-            <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">
-                Hast du Vorschläge, Bugs gefunden oder brauchst du Support? Schreibe direkt an das Admin-Team.
-            </p>
-            <label>Art</label>
-            <select id="fb-type">
-                <option value="Allgemein">Allgemein</option>
-                <option value="Bug">Fehler / Bug</option>
-                <option value="Feature">Feature Wunsch</option>
-                <option value="Support">Support Anfrage</option>
-            </select>
-            <label>Nachricht</label>
-            <textarea id="fb-text" rows="5" placeholder="Deine Nachricht..."></textarea>
-            <button onclick="sendGeneralFeedback()" class="btn-primary" style="margin-top:15px;">Absenden</button>
+            <h3>📣 Feedback</h3>
+            
+            <div id="user-feedback-form">
+                <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">
+                    Hast du Vorschläge, Bugs gefunden oder brauchst du Support? Schreibe direkt an das Admin-Team.
+                </p>
+                <label>Art</label>
+                <select id="fb-type">
+                    <option value="Allgemein">Allgemein</option>
+                    <option value="Bug">Fehler / Bug</option>
+                    <option value="Feature">Feature Wunsch</option>
+                    <option value="Support">Support Anfrage</option>
+                </select>
+                <label>Nachricht</label>
+                <textarea id="fb-text" rows="5" placeholder="Deine Nachricht..."></textarea>
+                <button onclick="sendGeneralFeedback()" class="btn-primary" style="margin-top:15px;">Absenden</button>
+            </div>
+
+            <div id="admin-feedback-list" class="hidden">
+                 <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:10px;">Eingegangenes Feedback:</p>
+                 <div id="admin-feedback-container">Lade...</div>
+            </div>
         </div>
     </section>
 
@@ -788,6 +819,7 @@
         
         await loadData();
         loadContactsAndRequests();
+        setupGlobalNotifications();
     }
 
     async function loadData() {
@@ -905,10 +937,11 @@
         });
     }
 
-    function renderNotificationsArea() {
+    async function renderNotificationsArea() {
         const area = document.getElementById('dashboard-notification-area');
         area.innerHTML = '';
 
+        // 1. Chat Notification Logic
         const storedChatCount = parseInt(localStorage.getItem('chatCount') || '0');
         if (lastMessageCount > storedChatCount && !isChatActive) {
             area.innerHTML += `
@@ -919,7 +952,21 @@
                  <button class="chat-close-btn" onclick="dismissChatNotification(event)">✕</button>
             </div>`;
         }
+        
+        // 2. Feedback Notification (Admin Only)
+        if(isAdmin) {
+             const fbSnap = await db.collection('feedback_general').orderBy('timestamp', 'desc').limit(1).get();
+             if(!fbSnap.empty) {
+                 // Simple notification if any exists (could be refined to "unread" later)
+                 area.innerHTML += `
+                 <div class="feedback-notification" style="cursor:pointer;" onclick="showView('Feedback')">
+                    <div class="fn-header"><div class="fn-title">📣 Neues Feedback</div></div>
+                    <div class="fn-content">Ein Mitglied hat Feedback gesendet. Klicken zum Ansehen.</div>
+                 </div>`;
+             }
+        }
 
+        // 3. Trade Feedback Notifications
         const unreadFeedbackTrades = trades.filter(t => t.adminFeedback && !t.feedbackRead);
         if(unreadFeedbackTrades.length > 0) {
             unreadFeedbackTrades.forEach(t => {
@@ -950,6 +997,30 @@
         if(lastMessageCount > 0) {
              localStorage.setItem('chatCount', lastMessageCount);
         }
+    }
+
+    function setupGlobalNotifications() {
+        // Lightweight listener just for notifications
+        db.collection('chat').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
+            if(!snapshot.empty) {
+                // If we are not in chat, we assume any new message (detected by ID change or timestamp) bumps count
+                // For simplicity in this structure, we just increment local counter logic
+                // Real app would store 'lastReadTimestamp' in DB.
+                // Here we just reload the dashboard notification logic
+                if(document.getElementById('view-Übersicht').classList.contains('active')) {
+                     // Fetch total count approach or just trigger "New Message"
+                     // We simulate "New Message" by checking if document ID changed from last known
+                     const latestId = snapshot.docs[0].id;
+                     const lastKnownId = localStorage.getItem('lastMsgId');
+                     if(latestId !== lastKnownId && !isChatActive) {
+                         lastMessageCount = (parseInt(localStorage.getItem('chatCount') || '0') + 1); // Fake increment to trigger notify
+                         renderNotificationsArea();
+                         document.getElementById('btn-Chat').innerHTML = '💬 Chat <span style="color:red; font-size:0.8rem;">●</span>';
+                     }
+                     localStorage.setItem('lastMsgId', latestId);
+                }
+            }
+        });
     }
 
     function setJournalFilter(journalId, timeframe) {
@@ -998,8 +1069,6 @@
         }
 
         try {
-            // FIX: Using client-side filtering for case-insensitive search
-            // (Firestore doesn't support native case-insensitive search easily)
             const snap = await db.collection('users').limit(50).get(); 
             
             if(snap.empty) {
@@ -1034,7 +1103,6 @@
 
     async function sendContactRequestByUid(targetUid) {
         try {
-            // Check if relationship exists
             const existing = await db.collection('friendships')
                 .where('users', 'array-contains', auth.currentUser.uid).get();
             
@@ -1046,8 +1114,6 @@
 
             if(alreadyExists) return alert("Kontaktanfrage bereits gesendet oder Kontakt vorhanden.");
 
-            // ADMIN LOGIC: If I am admin, auto-accept
-            // NORMAL LOGIC: If I am normal, pending
             let status = 'pending';
             if (isAdmin) status = 'accepted'; 
 
@@ -1089,7 +1155,6 @@
                 const data = doc.data();
                 const otherUid = data.users.find(uid => uid !== auth.currentUser.uid);
                 
-                // Get User Info
                 let otherName = "Unbekannt";
                 let otherEmail = "";
                 try {
@@ -1100,7 +1165,6 @@
                     }
                 } catch(e) {}
 
-                // REQUESTS (Only if I am receiver AND status is pending)
                 if (data.status === 'pending' && data.receiverId === auth.currentUser.uid) {
                     reqArea.innerHTML += `
                         <div class="cl-item" style="background:rgba(187,134,252,0.1);">
@@ -1115,10 +1179,8 @@
                     `;
                 }
                 
-                // ACCEPTED CONTACTS (Or if I am Admin and added them)
                 else if (data.status === 'accepted') {
                     const initial = otherName.charAt(0).toUpperCase();
-                    // Check if the other person is the Admin
                     let displayHtml = `<div class="cl-name">${otherName}</div>`;
                     if(otherEmail === adminEmail) {
                         displayHtml = `<div class="cl-name">${otherName} <span class="coach-tag">Coach</span></div>`;
@@ -1158,7 +1220,6 @@
         document.getElementById('chat-room').classList.remove('hidden');
         document.getElementById('chat-room-title').innerText = title;
         
-        // Setup UI based on channel type
         const inputArea = document.getElementById('chat-input-area');
         const readOnlyMsg = document.getElementById('chat-read-only-msg');
         
@@ -1189,8 +1250,6 @@
         if(!currentChatChannel) return;
         if(unsubscribeChat) unsubscribeChat(); 
 
-        // FIX: Remove orderBy to prevent index error initially
-        // We will sort in Javascript instead
         let query = db.collection('chat')
             .where('channel', '==', currentChatChannel)
             .limit(50);
@@ -1199,7 +1258,6 @@
             unsubscribeChat = query.onSnapshot({ includeMetadataChanges: true }, snapshot => {
                 let messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 
-                // Sort client side by timestamp
                 messages.sort((a, b) => {
                     const tA = a.timestamp ? a.timestamp.toMillis() : Date.now();
                     const tB = b.timestamp ? b.timestamp.toMillis() : Date.now();
@@ -1217,10 +1275,7 @@
                     }
                 }
             }, error => {
-                console.error("Chat Error (Likely missing index):", error);
-                // Fallback for missing index: Client side sort (less efficient but works for low volume)
-                // If this happens, messages might appear out of order or not filtered perfectly without index
-                alert("Hinweis: Falls Chats nicht laden, bitte Admin kontaktieren (Firestore Index fehlt).");
+                console.error("Chat Error:", error);
             });
         } catch(e) {
             console.error(e);
@@ -1230,7 +1285,6 @@
     function renderMessage(msg) {
         const isMe = msg.senderId === auth.currentUser.uid;
         
-        // Handle pending timestamp
         let time = "Just now";
         if (msg.timestamp) {
             time = formatChatTime(msg.timestamp);
@@ -1292,7 +1346,23 @@
         input.value = '';
     }
     
-    // Feedback Senden
+    // ADMIN FEEDBACK LOGIC
+    async function loadAdminFeedback() {
+        const list = document.getElementById('admin-feedback-container');
+        list.innerHTML = 'Lade...';
+        const snap = await db.collection('feedback_general').orderBy('timestamp', 'desc').limit(20).get();
+        if(snap.empty) { list.innerHTML = 'Kein Feedback.'; return; }
+        
+        list.innerHTML = snap.docs.map(doc => {
+            const d = doc.data();
+            const date = d.timestamp ? d.timestamp.toDate().toLocaleString() : '-';
+            return `<div class="feedback-item">
+                <div class="fb-header"><span>${d.userName} (${date})</span><span class="fb-type">${d.type}</span></div>
+                <div class="fb-text">${d.text}</div>
+            </div>`;
+        }).join('');
+    }
+
     async function sendGeneralFeedback() {
         const type = document.getElementById('fb-type').value;
         const text = document.getElementById('fb-text').value;
@@ -1647,7 +1717,11 @@
         }
         
         if(!inspectedUserFeedbackAllowed) {
-            document.getElementById('adm-detail-name').innerHTML += ' <span style="font-size:0.8rem; color:var(--danger); border:1px solid var(--danger); padding:2px 5px; border-radius:4px;">No Feedback</span>';
+            document.getElementById('adm-content-area-wrapper').classList.add('hidden');
+            document.getElementById('adm-access-denied').classList.remove('hidden');
+        } else {
+             document.getElementById('adm-content-area-wrapper').classList.remove('hidden');
+             document.getElementById('adm-access-denied').classList.add('hidden');
         }
 
         const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
@@ -1664,10 +1738,12 @@
         document.getElementById('admin-member-modal').classList.remove('hidden');
         document.getElementById('admin-member-modal').classList.add('open');
         
-        updateAdminMemberView();
+        if(inspectedUserFeedbackAllowed) updateAdminMemberView();
     }
 
     function updateAdminMemberView() {
+        if(!inspectedUserFeedbackAllowed) return; // Stop if not allowed
+
         const selectedJ = document.getElementById('adm-journal-select').value;
         let filteredTrades = inspectedUserTrades;
         if(selectedJ && inspectedUserJournals.length > 0) {
@@ -1747,11 +1823,12 @@
             hasNewChatMessage = false;
             if(lastMessageCount > 0) localStorage.setItem('chatCount', lastMessageCount);
             
-            // Auto-Enter Chat Lobby if no channel selected
             if(!currentChatChannel) {
                 document.getElementById('chat-lobby').classList.remove('hidden');
                 document.getElementById('chat-room').classList.add('hidden');
             }
+        } else {
+             if(v === 'Feedback' && isAdmin) loadAdminFeedback();
         }
 
         if(v === 'Übersicht') renderDashboard(); 
