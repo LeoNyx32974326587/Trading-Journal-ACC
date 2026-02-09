@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro - Clean Chart</title>
+    <title>TradeCloud Pro - Clean Chart6</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -1376,41 +1376,40 @@
                 let foundAny = false;
 
                 // --- NEUE REGEX FÜR FIB TOOL & LABELS (TP1, TP2, TP3) ---
-                // Sucht nach "TP1" oder "TP 1", dann optionale Zeichen, dann Zahl (auch in Klammern)
+                // Sucht nach "TP1" oder "TP 1", ignoriert dann Müll, sucht dann Zahl
                 
-                // TP1
-                const tp1Match = cleanText.match(/(?:TP\s?1|Target\s*1)[^0-9\n]*?(\d+\.\d{2,5})/i);
+                // TP1 (Erlaubt Labels wie "TP1 (1.1234)" oder "TP 1 : 1.1234")
+                const tp1Match = cleanText.match(/(?:TP\s?1|Target\s*?1)[^\d]{0,30}(\d+[\.,]\d{2,5})/i);
                 if (tp1Match && tp1Match[1]) {
-                    document.getElementById('inpTP1').value = tp1Match[1];
+                    document.getElementById('inpTP1').value = tp1Match[1].replace(',', '.');
                     foundAny = true;
                 }
 
                 // TP2
-                const tp2Match = cleanText.match(/(?:TP\s?2|Target\s*2)[^0-9\n]*?(\d+\.\d{2,5})/i);
+                const tp2Match = cleanText.match(/(?:TP\s?2|Target\s*?2)[^\d]{0,30}(\d+[\.,]\d{2,5})/i);
                 if (tp2Match && tp2Match[1]) {
-                    document.getElementById('inpTP2').value = tp2Match[1];
+                    document.getElementById('inpTP2').value = tp2Match[1].replace(',', '.');
                     foundAny = true;
                 }
 
                 // TP3
-                const tp3Match = cleanText.match(/(?:TP\s?3|Target\s*3)[^0-9\n]*?(\d+\.\d{2,5})/i);
+                const tp3Match = cleanText.match(/(?:TP\s?3|Target\s*?3)[^\d]{0,30}(\d+[\.,]\d{2,5})/i);
                 if (tp3Match && tp3Match[1]) {
-                    document.getElementById('inpTP3').value = tp3Match[1];
+                    document.getElementById('inpTP3').value = tp3Match[1].replace(',', '.');
                     foundAny = true;
                 }
 
                 // Stop Loss (SL)
-                const slMatch = cleanText.match(/(?:SL|Stop|Loss)[^0-9\n]*?(\d+\.\d{2,5})/i);
+                const slMatch = cleanText.match(/(?:SL|Stop|Loss)[^\d]{0,30}(\d+[\.,]\d{2,5})/i);
                 if (slMatch && slMatch[1]) {
-                    document.getElementById('inpSL').value = slMatch[1];
+                    document.getElementById('inpSL').value = slMatch[1].replace(',', '.');
                     foundAny = true;
                 }
 
                 // Entry (Suchlogik: Sucht nach Preisangaben in der Nähe von "Price", "Entry" oder offene Zahlen)
-                // Da der Entry oft keine klare Beschriftung im Fib-Tool hat, nehmen wir "Entry" falls vorhanden
-                const entryMatch = cleanText.match(/(?:Entry|Price|Open)[^0-9\n]*?(\d+\.\d{2,5})/i);
+                const entryMatch = cleanText.match(/(?:Entry|Price|Open)[^\d]{0,30}(\d+[\.,]\d{2,5})/i);
                 if (entryMatch && entryMatch[1]) {
-                    document.getElementById('inpEntry').value = entryMatch[1];
+                    document.getElementById('inpEntry').value = entryMatch[1].replace(',', '.');
                     foundAny = true;
                 }
 
@@ -1426,7 +1425,7 @@
                     statusEl.style.color = 'var(--success)';
                 } else {
                     statusEl.innerText = '⚠️ Text gelesen, aber keine Labels (TP1/SL) erkannt.';
-                    // alert("Text wurde gelesen ("+ cleanText.substring(0, 50) + "...), aber keine Werte erkannt.\n\nDer Code sucht nach 'TP1', 'TP2', 'TP3', 'SL'.");
+                    alert("Text wurde gelesen:\n\n" + cleanText.substring(0, 300) + "\n\n...aber keine Werte erkannt. Versuche einen Screenshot mit klareren Labels.");
                 }
                 
                 setTimeout(() => statusEl.innerText = '', 5000);
