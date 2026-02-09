@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pr4</title>
+    <title>TradeCloud Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -76,6 +76,7 @@
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; }
         
+        /* Chat Messages */
         .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
@@ -138,6 +139,7 @@
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
+        /* FIX: Calendar Popup Styles */
         .trades-list-card { background: var(--cell-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-size: 0.8rem; }
         .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition:0.2s; }
@@ -565,6 +567,12 @@
         document.getElementById('menu-overlay').classList.toggle('open'); 
     }
     
+    // ERROR HANDLER
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("Global Error:", message, "Line:", lineno);
+    };
+    
+    // GLOBAL BUTTON FUNCTIONS
     function prepareCreateView() { 
         document.getElementById('editId').value = ""; 
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
@@ -659,8 +667,7 @@
             await db.collection('users').doc(user.uid).set({
                 email: email,
                 displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || '',
-                allowFeedback: true
+                photoURL: user.photoURL || ''
             }, { merge: true });
 
             if(email === "leon.luca.lauterbach@gmail.com") {
@@ -676,35 +683,41 @@
     });
 
     async function finishLogin(user) {
-        const firstName = user.email.split('@')[0].split('.')[0];
-        const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-        currentUserName = capitalizedName;
-        document.getElementById('user-greeting-name').innerText = capitalizedName;
-        
-        const uDoc = await db.collection('users').doc(user.uid).get();
-        const uData = uDoc.data();
-        if(uData && document.getElementById('feedback-toggle')) {
-            document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
-        }
+        try {
+            const firstName = user.email.split('@')[0].split('.')[0];
+            const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+            currentUserName = capitalizedName;
+            document.getElementById('user-greeting-name').innerText = capitalizedName;
+            
+            const uDoc = await db.collection('users').doc(user.uid).get();
+            const uData = uDoc.data();
+            if(uData && document.getElementById('feedback-toggle')) {
+                document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
+            }
 
-        document.getElementById('auth-overlay').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
-        document.getElementById('main-header').classList.remove('hidden');
-        
-        await loadData();
-        loadChat('general');
-        loadDirectMessages(); 
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            
+            await loadData();
+            loadChat('general');
+            loadDirectMessages(); 
+        } catch(e) {
+            console.error("Login Error:", e);
+        }
     }
 
     async function toggleFeedbackSetting(val) {
         if(auth.currentUser) {
-            await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
+            try {
+                await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
+            } catch(e) { console.error(e); }
         }
     }
 
     async function loadData() {
-        if(!auth.currentUser) return;
         try {
+            if(!auth.currentUser) return;
             const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
             journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
             if(journals.length === 0) {
@@ -749,79 +762,77 @@
         document.getElementById('menu-overlay').classList.remove('open');
     }
 
+    // --- DASHBOARD RENDERER ---
     function renderDashboard() {
-        const container = document.getElementById('dashboard-journals-list');
-        container.innerHTML = '';
-        Object.values(chartInstances).forEach(c => c.destroy());
-        chartInstances = {};
+        try {
+            const container = document.getElementById('dashboard-journals-list');
+            container.innerHTML = '';
+            Object.values(chartInstances).forEach(c => c.destroy());
+            chartInstances = {};
 
-        journals.forEach(journal => {
-            if(journal.hidden) return;
-            const timeframe = journalFilters[journal.id] || 'GESAMT';
-            let tradesInPeriod = filterTradesByTime(journal, timeframe);
-            const startCap = parseFloat(journal.startCap) || 0;
-            const closedAll = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
+            journals.forEach(journal => {
+                if(journal.hidden) return;
+                const timeframe = journalFilters[journal.id] || 'GESAMT';
+                let tradesInPeriod = filterTradesByTime(journal, timeframe);
+                const startCap = parseFloat(journal.startCap) || 0;
+                const closedAll = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-            let baseBalance = startCap;
-            if(timeframe !== 'GESAMT') {
-                const firstTradeInPeriod = tradesInPeriod[0];
-                if(firstTradeInPeriod) {
-                    const idx = closedAll.findIndex(t => t.id === firstTradeInPeriod.id);
-                    if(idx > 0) baseBalance += closedAll.slice(0, idx).reduce((a,b)=>a+b.pnl, 0);
+                let baseBalance = startCap;
+                if(timeframe !== 'GESAMT') {
+                    const firstTradeInPeriod = tradesInPeriod[0];
+                    if(firstTradeInPeriod) {
+                        const idx = closedAll.findIndex(t => t.id === firstTradeInPeriod.id);
+                        if(idx > 0) baseBalance += closedAll.slice(0, idx).reduce((a,b)=>a+b.pnl, 0);
+                    }
                 }
-            }
 
-            let totalPnL = tradesInPeriod.reduce((acc, t) => acc + t.pnl, 0);
-            let wins = tradesInPeriod.filter(t => t.pnl > 0).length;
-            const winrate = tradesInPeriod.length > 0 ? ((wins / tradesInPeriod.length) * 100).toFixed(0) : 0;
-            let runningBal = baseBalance;
-            const equityCurve = [baseBalance];
-            tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
+                let totalPnL = tradesInPeriod.reduce((acc, t) => acc + t.pnl, 0);
+                let wins = tradesInPeriod.filter(t => t.pnl > 0).length;
+                const winrate = tradesInPeriod.length > 0 ? ((wins / tradesInPeriod.length) * 100).toFixed(0) : 0;
+                let runningBal = baseBalance;
+                const equityCurve = [baseBalance];
+                tradesInPeriod.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
 
-            const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
-            const canvasId = `chart-${journal.id}`;
-            const open = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Aktiv');
-            let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
-            if(open.length > 0) {
-                openTradesHtml = open.map(t => {
-                    const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
-                    return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div></div>`;
-                }).join('');
-            }
-            const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
-            const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
-            
-            // FIXED PNL CALCULATION
-            let warningHtml = '';
-            if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
-                let todayPnL = 0;
-                const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-                const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
-                if(todayTrades.length > 0) {
-                    todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
+                const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
+                const canvasId = `chart-${journal.id}`;
+                const open = trades.filter(t => (t.journal || 'Main') === journal.name && t.status === 'Aktiv');
+                let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
+                if(open.length > 0) {
+                    openTradesHtml = open.map(t => {
+                        const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
+                        return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="editTrade('${t.id}', true)">Close</button></div></div>`;
+                    }).join('');
                 }
+                const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
+                const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
                 
-                const limit = parseFloat(journal.maxDD); let threshold = limit;
-                if(journal.ddType === 'percent') { 
-                    // Safe calculation for total balance to avoid NaN
-                    const allTimePnL = closedAll.reduce((a,b)=>a+b.pnl, 0);
-                    const totalBal = startCap + allTimePnL; 
-                    const currentBalance = Math.max(totalBal, 0); 
-                    threshold = currentBalance * (limit / 100); 
+                // CRITICAL FIX: Safe Calculation
+                let warningHtml = '';
+                if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
+                    let todayPnL = 0; 
+                    if(closedAll.length > 0) {
+                        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+                        const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
+                        todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
+                    }
+                    const limit = parseFloat(journal.maxDD); let threshold = limit;
+                    if(journal.ddType === 'percent') { const totalBal = startCap + closedAll.reduce((a,b)=>a+b.pnl,0); const currentBalance = Math.max(totalBal, 0); threshold = currentBalance * (limit / 100); }
+                    if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
                 }
-                if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
-            }
 
-            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
-            setTimeout(() => { 
-                const ctxEl = document.getElementById(canvasId);
-                if(ctxEl) {
-                    const ctx = ctxEl.getContext('2d'); 
-                    chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
-                }
-            }, 50);
-        });
-        renderNotificationsArea();
+                container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${timeframe})</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
+                setTimeout(() => { 
+                    const ctxEl = document.getElementById(canvasId);
+                    if(ctxEl) {
+                        const ctx = ctxEl.getContext('2d'); 
+                        chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
+                    }
+                }, 50);
+            });
+            renderNotificationsArea();
+        } catch(e) {
+            console.error("Dashboard Render Error:", e);
+        }
     }
 
     function filterTradesByTime(journal, timeframe) {
@@ -840,7 +851,7 @@
         return jTrades.sort((a,b)=>new Date(a.date)-new Date(b.date));
     }
     
-    // --- CHAT SYSTEM ---
+    // --- CHAT SYSTEM (WITH DM LOGIC) ---
     function loadChat(channel = 'general') {
         if (chatListener) chatListener();
         const chatBox = document.getElementById('chat-messages');
@@ -892,6 +903,7 @@
         loadChat(channelId);
     }
     
+    // --- DM / CHAT REQUEST SYSTEM ---
     function openSearchModal() {
         document.getElementById('popup-overlay').classList.add('open');
         document.getElementById('user-search-modal').classList.remove('hidden');
@@ -994,6 +1006,7 @@
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
         if (!text) return;
+        // Fix: Simplified check to prevent failure if isAdmin undefined
         if(currentChatChannel === 'pro' && !isAdmin) return;
 
         await db.collection('chat').add({ 
@@ -1007,6 +1020,7 @@
         input.value = '';
     }
     
+    // --- SHARED FUNCTIONS ---
     function renderNotificationsArea() {
         const area = document.getElementById('dashboard-notification-area');
         area.innerHTML = '';
