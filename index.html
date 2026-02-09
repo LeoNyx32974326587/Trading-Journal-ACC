@@ -573,6 +573,17 @@
                 </label>
             </div>
             
+            <div class="settings-list-item">
+                <div style="display:flex; flex-direction:column;">
+                    <span>Coach Feedback erlauben</span>
+                    <small style="color:var(--text-sub); font-size:0.75rem;">Wenn deaktiviert, kann der Admin deine Trades nicht sehen.</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="feedback-toggle" onchange="toggleFeedbackSetting(this.checked)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
             <h3 style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">📚 Journal Verwaltung</h3>
             <div style="background:var(--cell-bg); padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px;">
                 <h4 style="margin-top:0;" id="journal-form-title">Neues Journal</h4>
@@ -650,10 +661,12 @@
     auth.onAuthStateChanged(async (user) => {
         if(user) {
             const email = user.email.toLowerCase().trim();
+            // User Data Update (with Feedback default true)
             await db.collection('users').doc(user.uid).set({
                 email: email,
                 displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || ''
+                photoURL: user.photoURL || '',
+                allowFeedback: true 
             }, { merge: true });
 
             if(email === "leon.luca.lauterbach@gmail.com") {
@@ -681,12 +694,25 @@
         currentUserName = capitalizedName;
         document.getElementById('user-greeting-name').innerText = capitalizedName;
         
+        // Load Settings
+        const uDoc = await db.collection('users').doc(user.uid).get();
+        const uData = uDoc.data();
+        if(uData && document.getElementById('feedback-toggle')) {
+            document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
+        }
+
         document.getElementById('auth-overlay').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
         document.getElementById('main-header').classList.remove('hidden');
         
         await loadData();
         loadChat();
+    }
+
+    async function toggleFeedbackSetting(val) {
+        if(auth.currentUser) {
+            await db.collection('users').doc(auth.currentUser.uid).update({ allowFeedback: val });
+        }
     }
 
     async function loadData() {
@@ -1183,6 +1209,28 @@
         if(userSnap.empty) { alert("User hat sich noch nie eingeloggt."); return; }
         const targetUid = userSnap.docs[0].id;
 
+        // CHECK IF USER ALLOWS FEEDBACK
+        const uData = userSnap.docs[0].data();
+        if(uData.allowFeedback === false) {
+             document.getElementById('popup-overlay').classList.add('open');
+             document.getElementById('admin-member-modal').classList.remove('hidden');
+             document.getElementById('admin-member-modal').classList.add('open');
+             
+             // Hide content and show message
+             document.getElementById('adm-content-stats').innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>🔒 Dieser User hat den Zugriff auf seine Trades deaktiviert.</div>";
+             document.getElementById('adm-content-trades').innerHTML = "";
+             document.getElementById('btn-adm-stats').style.display = 'none';
+             document.getElementById('btn-adm-trades').style.display = 'none';
+             document.getElementById('adm-journal-select').style.display = 'none';
+             return;
+        }
+
+        // RESET UI IF PREVIOUSLY BLOCKED
+        document.getElementById('btn-adm-stats').style.display = 'block';
+        document.getElementById('btn-adm-trades').style.display = 'block';
+        document.getElementById('adm-journal-select').style.display = 'block';
+        
+        // NORMAL LOAD
         const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
         inspectedUserJournals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
         
@@ -1197,6 +1245,15 @@
         document.getElementById('admin-member-modal').classList.remove('hidden');
         document.getElementById('admin-member-modal').classList.add('open');
         
+        // Reset content div to default structure in case it was overwritten
+        document.getElementById('adm-content-stats').innerHTML = `
+             <div class="dv-stats-grid">
+                <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
+                <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
+                <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
+            </div>
+            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>`;
+
         updateAdminMemberView();
     }
 
