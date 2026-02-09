@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro</title>
+    <title>TradeCloud Pro8</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -18,7 +18,7 @@
             --text-main: #e0e0e0; --text-sub: #888;
             --accent: #bb86fc; --success: #00c853; --danger: #ff3d00; 
             --border: #2c2c2c; --blur: 0px; --popup-bg: #1a1a1a; 
-            --chat-me: #2a2a2a; --chat-other: #111; --sidebar-w: 250px;
+            --chat-me: #2a2a2a; --chat-other: #111; --sidebar-w: 260px;
         }
         body.light-mode {
             --bg-dark: #f0f2f5; --card-bg: #ffffff; --cell-bg: #e4e6eb; 
@@ -40,7 +40,6 @@
         #view-title { font-weight: 700; font-size: 1.2rem; }
         .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
         
-        /* Sidebar (Main Navigation) */
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 10px; padding-bottom: 50px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
         .nav-drawer.open { left: 0; }
         .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1.1rem; transition: 0.2s; border-bottom:1px solid rgba(255,255,255,0.03); }
@@ -59,32 +58,26 @@
         .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; }
         .btn-icon, .btn-small, .chart-btn { padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
         .btn-icon:hover, .btn-small:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); transform: translateY(-1px); }
+        .btn-danger-hover:hover { border-color: var(--danger); color: var(--danger); }
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
         
-        /* --- CHAT SYSTEM (SIDEBAR & CHANNELS) --- */
+        /* --- CHAT SYSTEM --- */
         .chat-layout { display: flex; height: calc(100vh - 140px); background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .chat-sidebar { width: var(--sidebar-w); background: var(--cell-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
         .chat-main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-dark); position:relative; overflow: hidden; }
+        
         .channel-item { padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; display:flex; justify-content: space-between; align-items: center; }
         .channel-item:hover { background: rgba(255,255,255,0.05); }
         .channel-item.active { background: rgba(187, 134, 252, 0.1); color: var(--accent); font-weight: bold; border-left: 4px solid var(--accent); }
         .channel-name { font-size: 0.95rem; }
         .channel-desc { font-size: 0.7rem; color: var(--text-sub); display: block; margin-top: 2px; }
+        .notification-badge { background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; margin-left: 5px; }
+        
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; }
         
-        /* Chat Mobile Fix */
-        @media (max-width: 700px) {
-            .chat-layout { flex-direction: column; }
-            .chat-sidebar { width: 100%; height: 70px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
-            .channel-item { min-width: 140px; flex-shrink: 0; justify-content: center; text-align: center; padding: 10px; border-bottom: none; border-left: none; }
-            .channel-item.active { border-bottom: 3px solid var(--accent); border-left: none; background: transparent; }
-            .channel-desc { display: none; }
-            .chat-messages { padding: 10px; }
-        }
-        
-        /* Message Bubbles */
+        /* Chat Messages */
         .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
@@ -100,6 +93,15 @@
         .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
         .ct-footer { margin-top: 8px; font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; }
+
+        @media (max-width: 700px) {
+            .chat-layout { flex-direction: column; }
+            .chat-sidebar { width: 100%; height: 70px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
+            .channel-item { min-width: 140px; flex-shrink: 0; justify-content: center; text-align: center; padding: 10px; border-bottom: none; border-left: none; }
+            .channel-item.active { border-bottom: 3px solid var(--accent); border-left: none; background: transparent; }
+            .channel-desc { display: none; }
+            .chat-messages { padding: 10px; }
+        }
 
         /* --- DASHBOARD & LISTS --- */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
@@ -133,11 +135,31 @@
 
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
-        /* --- POPUPS --- */
+        /* --- POPUPS & CALENDAR FIX --- */
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
         
+        /* Fix Calendar Popup Styles */
+        .trades-list-card { background: var(--cell-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-size: 0.8rem; }
+        .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition:0.2s; }
+        .trade-row:active { background: rgba(255,255,255,0.1); }
+        .trade-row:last-child { border-bottom: none; }
+        .tr-icon { width: 20px; font-size: 0.8rem; }
+        .tr-date-col { display: flex; flex-direction: column; width: 100px; }
+        .tr-date { font-size: 0.85rem; font-weight: 500; }
+        .tr-time { font-size: 0.75rem; color: #888; }
+        .tr-sym { flex-grow: 1; font-weight: 600; font-size: 0.9rem; }
+        .tr-pnl { font-weight: 700; font-size: 0.9rem; text-align: right; min-width: 70px; }
+        .tr-arrow { color: #888; margin-left: 10px; font-size: 0.9rem; }
+        .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .dv-stat-item { display: flex; flex-direction: column; }
+        .dv-stat-label { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 4px; }
+        .dv-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+        .closed-trades-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; margin-top: 10px; }
+
         .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -158,9 +180,6 @@
         .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
         .adm-user-info { display: flex; align-items: center; gap: 10px; }
         .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
-        .adm-text { display: flex; flex-direction: column; }
-        .adm-name { font-weight: 700; font-size: 0.9rem; }
-        .adm-email { font-size: 0.8rem; color: var(--text-sub); }
         .adm-tab-btn { flex: 1; padding: 15px; border: none; background: #151517; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; }
         .adm-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
 
@@ -185,7 +204,6 @@
         .sig-label { color: var(--text-sub); font-size: 0.75rem; }
         .sig-val { font-weight: bold; }
         .share-opt { padding: 15px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .share-opt:hover { background: rgba(255,255,255,0.05); }
         .share-opt.selected { border-color: var(--accent); background: rgba(187, 134, 252, 0.1); }
         .share-opt.disabled { opacity: 0.4; cursor: not-allowed; }
         
@@ -207,6 +225,11 @@
         .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-sub); }
         .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
         .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: var(--text-sub); }
+        
+        /* SEARCH RESULTS */
+        .search-res-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); background: var(--cell-bg); border-radius: 6px; margin-bottom: 5px; }
+        .search-res-name { font-weight: bold; display: block; }
+        .search-res-email { font-size: 0.8rem; color: var(--text-sub); }
     </style>
 </head>
 <body>
@@ -215,7 +238,7 @@
     
     <div id="day-detail-view" class="modal-base hidden">
         <div class="dv-header">
-            <div id="dv-date-title" style="font-weight:700; font-size:1.2rem; color:#ffffff;">Date</div>
+            <div id="dv-date-title" style="font-weight:700; font-size:1.2rem;">Date</div>
             <button onclick="closePopup()" class="popup-close">✕</button>
         </div>
         <div style="padding-bottom:20px; border-bottom:1px solid #2c2c2e; margin-bottom:20px;">
@@ -228,7 +251,12 @@
             <div class="dv-stat-item"><span class="dv-stat-label">Trades</span><span id="dv-count" class="dv-stat-val">-</span></div>
         </div>
         <div class="closed-trades-title">Closed Trades</div>
-        <div id="dv-list" class="trades-list-card"></div>
+        <div class="trades-list-card">
+             <div class="trade-row-header">
+                <div style="width:20px;"></div><div style="width:100px;">Open</div><div style="flex-grow:1;">Symbol</div><div style="min-width:70px; text-align:right;">PnL</div><div style="width:20px;"></div>
+            </div>
+            <div id="dv-list"></div>
+        </div>
     </div>
     
     <div id="trade-form-modal" class="modal-base hidden">
@@ -262,11 +290,16 @@
         </div>
     </div>
     
+    <div id="user-search-modal" class="modal-base hidden">
+        <div class="dv-header"><span class="popup-title">Neuer Chat</span><button class="popup-close" onclick="closePopup()">✕</button></div>
+        <input id="search-user-input" placeholder="Name oder Email eingeben..." oninput="searchUsers(this.value)">
+        <div id="search-results" style="max-height:300px; overflow-y:auto; margin-top:10px;"></div>
+    </div>
+    
     <div id="trade-detail-view" class="modal-base hidden">
         <div class="dv-header">
             <button onclick="closeTradeDetail()" style="background:none; border:none; color:#0a84ff; font-size:1rem; cursor:pointer; font-weight:600;">❮ Back</button>
-            <div style="font-weight:700; font-size:1.1rem; color:#ffffff;">Trade Details</div>
-            <div style="width:40px;"></div>
+            <div style="font-weight:700; font-size:1.1rem;">Trade Details</div><div style="width:40px;"></div>
         </div>
         <div id="td-content"></div>
         <div id="adm-feedback-input-area" class="hidden" style="padding:20px; border-top:1px solid #333; margin-top:20px; background:#151517;">
@@ -277,14 +310,10 @@
     </div>
 
     <div id="admin-member-modal" class="modal-base hidden" style="max-height:90vh; display:flex; flex-direction:column;">
-        <div class="dv-header">
-            <span class="popup-title">Mitglied Details</span>
-            <button class="popup-close" onclick="closePopup()">✕</button>
-        </div>
+        <div class="dv-header"><span class="popup-title">Mitglied Details</span><button class="popup-close" onclick="closePopup()">✕</button></div>
         <div id="adm-modal-header" style="text-align:center; margin-bottom:20px;">
             <h2 id="adm-detail-name" style="margin:0; font-size:1.5rem;">User</h2>
             <div id="adm-detail-email" style="color:var(--text-sub); font-size:0.9rem;">email@example.com</div>
-            <button id="btn-start-dm" class="btn-small" style="margin-top:10px; border-color:var(--accent); color:var(--accent); width:auto; margin:10px auto;" onclick="startDirectMessage()">💬 Nachricht senden</button>
         </div>
         <div style="padding:0 20px 20px 20px;">
             <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
@@ -354,10 +383,7 @@
 </div>
 
 <header id="main-header" class="hidden">
-    <div style="display:flex; align-items:center;">
-        <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
-        <div id="view-title">DASHBOARD</div>
-    </div>
+    <div style="display:flex; align-items:center;"><button class="menu-btn" onclick="toggleMenu()">&#9776;</button><div id="view-title">DASHBOARD</div></div>
     <button class="btn-icon" style="padding:8px; font-size:1.2rem; border:none; background:none;" onclick="togglePrivacy()">👁️</button>
 </header>
 
@@ -409,19 +435,21 @@
                 <div class="channel-item" id="ch-pro" onclick="switchChannel('pro')">
                     <div><div class="channel-name">💎 Pro Signale</div><span class="channel-desc">Nur Coach</span></div>
                 </div>
-                <div style="padding:10px 15px; font-size:0.7rem; color:var(--text-sub); font-weight:bold; letter-spacing:1px; margin-top:10px;">DIREKTNACHRICHTEN</div>
+                
+                <div style="padding:15px; display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <span style="font-size:0.7rem; color:var(--text-sub); font-weight:bold; letter-spacing:1px;">DIREKTNACHRICHTEN</span>
+                    <button class="btn-icon" style="padding:2px 8px; font-size:1rem;" onclick="openSearchModal()">+</button>
+                </div>
                 <div id="dm-list-area"></div>
             </div>
             
             <div class="chat-main">
                 <div class="jfc-header"><div class="jfc-title" id="chat-channel-title">📢 Allgemein</div></div>
                 <div id="chat-messages" class="chat-messages"></div>
-                
                 <div id="chat-input-area" class="chat-input-area">
                     <input type="text" id="chat-input" placeholder="Nachricht schreiben..." onkeypress="if(event.key==='Enter') sendChatMessage()">
                     <button onclick="sendChatMessage()" class="btn-primary" style="width:auto; padding:0 20px;">➤</button>
                 </div>
-                
                 <div id="chat-locked-msg" class="chat-locked-msg hidden">🔒 Nur Admins können hier schreiben.</div>
                 <div id="chat-signal-msg" class="chat-locked-msg hidden">🚀 Hier nur Trades teilen (Nutze den Share-Button im Journal)</div>
             </div>
@@ -530,7 +558,6 @@
 </div>
 
 <script>
-    // DEFINE TOGGLE MENU FIRST TO AVOID SIDEBAR ISSUES
     function toggleMenu() { 
         document.getElementById('navDrawer').classList.toggle('open'); 
         document.getElementById('menu-overlay').classList.toggle('open'); 
@@ -572,7 +599,6 @@
     let isFirstLoad = true;
     let currentChatChannel = 'general';
     let chatListener = null;
-    let targetedMemberUid = null;
 
     const isLight = localStorage.getItem('tradeTheme') === 'light';
     if(isLight) document.body.classList.add('light-mode');
@@ -594,7 +620,6 @@
                 if(admPanel) { admPanel.classList.remove('hidden'); admLoad(); }
                 finishLogin(user);
             } else {
-                // ALLOW ALL GOOGLE USERS FOR NOW TO FIX LOGIN ISSUE
                 isAdmin = false;
                 finishLogin(user);
             }
@@ -619,6 +644,7 @@
         
         await loadData();
         loadChat('general');
+        loadDirectMessages(); // Neue Funktion
     }
 
     async function toggleFeedbackSetting(val) {
@@ -636,7 +662,11 @@
             const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
             journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
         }
-        if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
+        // FIX: Ensure Active Journal is valid
+        if(!activeJournal || !journals.find(j => j.name === activeJournal)) {
+             activeJournal = journals[0].name;
+        }
+        
         const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
         trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
         populateSelectors();
@@ -658,6 +688,7 @@
         activeJournal = val;
         const createSel = document.getElementById('inpJournalSelect');
         if(createSel) createSel.value = activeJournal;
+        
         const activeId = document.querySelector('.view-section.active').id;
         if(activeId === 'view-Kalender') renderCalendar();
         if(activeId === 'view-Historie') renderHistory();
@@ -733,7 +764,7 @@
         return jTrades.sort((a,b)=>new Date(a.date)-new Date(b.date));
     }
     
-    // --- CHAT SYSTEM ---
+    // --- CHAT SYSTEM (WITH DM LOGIC) ---
     function loadChat(channel = 'general') {
         if (chatListener) chatListener();
         const chatBox = document.getElementById('chat-messages');
@@ -780,22 +811,94 @@
         }
         loadChat(channelId);
     }
-
-    async function startDirectMessage() {
-        if(!targetedMemberUid) return;
-        const myUid = auth.currentUser.uid;
-        const ids = [myUid, targetedMemberUid].sort();
-        const dmChannelId = `dm_${ids[0]}_${ids[1]}`;
-        const name = document.getElementById('adm-detail-name').innerText;
-        const list = document.getElementById('dm-list-area');
-        if(!document.getElementById(dmChannelId)) {
-             list.innerHTML += `<div class="channel-item" id="${dmChannelId}" onclick="switchChannel('${dmChannelId}')"><div><div class="channel-name">📩 ${name}</div></div></div>`;
-        }
-        closePopup();
-        showView('Chat');
-        switchChannel(dmChannelId);
+    
+    // --- DM / CHAT REQUEST SYSTEM ---
+    function openSearchModal() {
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('user-search-modal').classList.remove('hidden');
+        document.getElementById('user-search-modal').classList.add('open');
+        document.getElementById('search-user-input').value = '';
+        document.getElementById('search-results').innerHTML = '';
     }
 
+    async function searchUsers(query) {
+        if(query.length < 3) return;
+        query = query.toLowerCase();
+        // Simple client-side search (ideal would be backend search index)
+        const snap = await db.collection('users').get(); // Only fetches once per session efficiently
+        const results = snap.docs.filter(doc => {
+            const d = doc.data();
+            return d.email.includes(query) && doc.id !== auth.currentUser.uid;
+        }).slice(0, 5);
+        
+        const list = document.getElementById('search-results');
+        list.innerHTML = results.map(doc => {
+            const d = doc.data();
+            return `<div class="search-res-item">
+                <div><span class="search-res-name">${d.displayName}</span><span class="search-res-email">${d.email}</span></div>
+                <button class="btn-small" onclick="sendChatRequest('${doc.id}', '${d.displayName}')">Anfragen</button>
+            </div>`;
+        }).join('');
+    }
+
+    async function sendChatRequest(targetUid, targetName) {
+        const myUid = auth.currentUser.uid;
+        const chatId = `dm_${[myUid, targetUid].sort().join('_')}`;
+        
+        // Create Request Doc
+        await db.collection('chat_requests').doc(chatId).set({
+            users: [myUid, targetUid],
+            status: 'pending',
+            senderId: myUid,
+            senderName: currentUserName,
+            targetName: targetName,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(`Anfrage an ${targetName} gesendet!`);
+        closePopup();
+        loadDirectMessages();
+    }
+
+    function loadDirectMessages() {
+        if(!auth.currentUser) return;
+        const myUid = auth.currentUser.uid;
+        
+        db.collection('chat_requests').where('users', 'array-contains', myUid).onSnapshot(snapshot => {
+            const list = document.getElementById('dm-list-area');
+            list.innerHTML = '';
+            
+            snapshot.docs.forEach(doc => {
+                const d = doc.data();
+                const chatId = doc.id;
+                const isSender = d.senderId === myUid;
+                const otherName = isSender ? d.targetName : d.senderName;
+                
+                if(d.status === 'accepted') {
+                     list.innerHTML += `<div class="channel-item" id="${chatId}" onclick="switchChannel('${chatId}')"><div><div class="channel-name">📩 ${otherName}</div></div></div>`;
+                } else if(d.status === 'pending') {
+                    if(!isSender) {
+                        // Received Request
+                        list.innerHTML += `<div class="channel-item" style="background:rgba(187,134,252,0.1);">
+                            <div style="flex-grow:1;"><div class="channel-name">Anfrage: ${otherName}</div></div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-icon" style="color:var(--success);" onclick="answerRequest('${chatId}', 'accepted')">✓</button>
+                                <button class="btn-icon" style="color:var(--danger);" onclick="answerRequest('${chatId}', 'rejected')">✕</button>
+                            </div>
+                        </div>`;
+                    } else {
+                        // Sent Request
+                        list.innerHTML += `<div class="channel-item" style="opacity:0.6;"><div><div class="channel-name">Wartet auf ${otherName}...</div></div></div>`;
+                    }
+                }
+            });
+        });
+    }
+
+    async function answerRequest(docId, status) {
+        await db.collection('chat_requests').doc(docId).update({ status: status });
+    }
+
+    // --- MESSAGING ---
     function renderMessage(msg) {
         const isMe = msg.senderId === auth.currentUser.uid;
         const time = formatChatTime(msg.timestamp);
@@ -1066,6 +1169,91 @@
             await db.collection('trades').doc(currentDetailTradeId).update({ adminFeedback: text, feedbackRead: false });
             alert("Feedback gesendet!"); closeTradeDetail();
         }
+    }
+    
+    function prepareCreateView() { 
+        document.getElementById('editId').value = ""; 
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
+        document.getElementById('datetime').value = now.toISOString().slice(0,16); 
+        document.getElementById('assetInput').value = ""; 
+        document.getElementById('pnl').value = ""; 
+        document.getElementById('note').value = ""; 
+        document.getElementById('inpEntry').value = ""; 
+        document.getElementById('inpSL').value = ""; 
+        document.getElementById('inpTP1').value = ""; 
+        document.getElementById('inpTP2').value = ""; 
+        document.getElementById('inpTP3').value = ""; 
+        if(activeJournal) document.getElementById('inpJournalSelect').value = activeJournal; 
+        toggleFormFields(); 
+        document.getElementById('trade-form-modal').classList.remove('hidden'); 
+        document.getElementById('trade-form-modal').classList.add('open'); 
+        document.getElementById('popup-overlay').classList.add('open'); 
+        document.getElementById('form-title').innerText="Neuer Trade";
+    }
+
+    function editTrade(id, closeNow) { 
+        const t = trades.find(x => x.id === id); 
+        document.getElementById('editId').value = t.id; 
+        document.getElementById('datetime').value = t.date; 
+        document.getElementById('assetInput').value = t.asset; 
+        document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); 
+        document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; 
+        document.getElementById('pnl').value = t.pnl; 
+        document.getElementById('imgSetup').value = t.imgSetup || ''; 
+        document.getElementById('imgResult').value = t.imgResult || ''; 
+        document.getElementById('note').value = t.note || ''; 
+        document.getElementById('inpEntry').value = t.entry || ''; 
+        document.getElementById('inpSL').value = t.sl || ''; 
+        document.getElementById('inpTP1').value = t.tp1 || ''; 
+        document.getElementById('inpTP2').value = t.tp2 || ''; 
+        document.getElementById('inpTP3').value = t.tp3 || ''; 
+        document.getElementById('inpAdminFeedback').value = t.adminFeedback || ''; 
+        document.getElementById('adm-feedback-input-area').classList.toggle('hidden', !isAdmin); 
+        document.getElementById('form-title').innerText="Trade Bearbeiten";
+        toggleFormFields(); 
+        document.getElementById('trade-form-modal').classList.remove('hidden'); 
+        document.getElementById('trade-form-modal').classList.add('open'); 
+        document.getElementById('popup-overlay').classList.add('open'); 
+    }
+
+    async function saveTrade() { 
+        const id = document.getElementById('editId').value; 
+        const asset = document.getElementById('assetInput').value.toUpperCase(); 
+        if(!asset) return alert("Asset fehlt!"); 
+        const data = { 
+            userId: auth.currentUser.uid, 
+            date: document.getElementById('datetime').value, 
+            asset: asset, 
+            journal: document.getElementById('inpJournalSelect').value, 
+            status: document.getElementById('status').value, 
+            pnl: parseFloat(document.getElementById('pnl').value) || 0, 
+            imgSetup: document.getElementById('imgSetup').value, 
+            imgResult: document.getElementById('imgResult').value, 
+            note: document.getElementById('note').value, 
+            entry: document.getElementById('inpEntry').value, 
+            sl: document.getElementById('inpSL').value, 
+            tp1: document.getElementById('inpTP1').value, 
+            tp2: document.getElementById('inpTP2').value, 
+            tp3: document.getElementById('inpTP3').value, 
+            adminFeedback: document.getElementById('inpAdminFeedback').value 
+        }; 
+        if(id) await db.collection('trades').doc(id).update(data); 
+        else await db.collection('trades').add(data); 
+        await loadData(); 
+        closePopup(); 
+    }
+
+    async function delTrade(id) { 
+        if(confirm("Löschen?")) { 
+            await db.collection('trades').doc(id).delete(); 
+            await loadData(); 
+            showView('Historie'); 
+        } 
+    }
+
+    function toggleFormFields() { 
+        const s = document.getElementById('status').value; 
+        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); 
     }
 </script>
 </body>
