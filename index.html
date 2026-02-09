@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeCloud Pro4</title>
+    <title>TradeCloud Pro</title>
     
+    <script>window.onerror=function(m,u,l){console.log("System Status: "+m);return false;};</script>
+
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -37,7 +39,6 @@
         header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-dark); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .menu-btn { cursor: pointer; font-size: 2rem; color: var(--text-main); background: none; border: none; padding: 0; margin-right: 15px; }
         #view-title { font-weight: 700; font-size: 1.2rem; }
-        .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
         
         .nav-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 10px; padding-bottom: 50px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
         .nav-drawer.open { left: 0; }
@@ -60,7 +61,7 @@
         .btn-danger-hover:hover { border-color: var(--danger); color: var(--danger); }
         input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
 
-        /* JOURNAL DASHBOARD (Original Design) */
+        /* JOURNAL DASHBOARD */
         .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
         .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
@@ -74,22 +75,10 @@
         .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; display: flex; flex-direction: column; min-height: 120px; }
         .ot-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .ot-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); margin-left: 8px; vertical-align: middle; }
         .card-filters { display: flex; gap: 5px; padding: 10px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .filter-pill { padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-sub); border: 1px solid transparent; background: transparent; transition: 0.2s; white-space: nowrap; text-transform: uppercase; }
         .filter-pill:hover { background: rgba(255,255,255,0.05); }
         .filter-pill.active { background: rgba(187, 134, 252, 0.15); color: var(--accent); border-color: var(--accent); }
-        .loss-warning { background: rgba(255, 61, 0, 0.15); border-left: 4px solid var(--danger); color: var(--danger); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; margin: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
-        
-        #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
-        .fn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .fn-title { color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .fn-content { font-size: 0.95rem; margin-bottom: 12px; line-height: 1.4; color: #eee; font-style: italic; }
-        .fn-actions { display: flex; gap: 10px; justify-content: flex-end; }
-        .msg-notification { background: rgba(0, 200, 83, 0.1); border: 1px solid var(--success); color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; }
-        .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 1.2rem; cursor: pointer; padding: 5px; margin-left: 10px; }
-
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
 
         /* CHAT */
@@ -105,7 +94,7 @@
         .chat-input-area { padding: 15px; background: var(--cell-bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-locked-msg { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-sub); font-size: 0.8rem; font-style: italic; border-top: 1px solid var(--border); margin-top: auto; }
         
-        .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; }
+        .msg-wrapper { max-width: 85%; display: flex; flex-direction: column; position: relative; margin-bottom: 5px; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
         .msg-sender { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 4px; margin-left: 4px; }
@@ -117,15 +106,15 @@
         .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .ct-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
         .ct-footer { margin-top: 8px; font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; }
-
-        /* BIG CHAT BUTTON & DELETE */
-        #chat-send-btn { padding: 0 30px; font-size: 1.8rem; width: auto; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 12px; }
+        
+        /* IMPROVED DELETE & SEND BUTTONS */
         .chat-del-btn { position: absolute; top: -10px; width: 30px; height: 30px; border-radius: 50%; border:1px solid var(--danger); background: rgba(255,61,0,0.1); color: var(--danger); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size:16px; opacity:0; transition:0.2s; }
         .msg-wrapper:hover .chat-del-btn { opacity: 1; top: -15px; }
         .msg-wrapper.me .chat-del-btn { left: -40px; }
         .msg-wrapper.other .chat-del-btn { right: -40px; }
         .chat-dm-del-btn { background: none; border: none; color: var(--text-sub); font-size: 1rem; padding: 5px; cursor: pointer; }
         .chat-dm-del-btn:hover { color: var(--danger); }
+        #chat-send-btn { padding: 0 30px; font-size: 1.8rem; width: auto; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 12px; }
 
         @media (max-width: 700px) {
             .chat-layout { flex-direction: column; }
@@ -140,7 +129,6 @@
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         #popup-overlay.open { display: flex; opacity: 1; }
         .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
-        
         .trades-list-card { background: var(--cell-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         .trade-row-header { display: flex; padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-size: 0.8rem; }
         .trade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition:0.2s; }
@@ -160,33 +148,7 @@
         .dv-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
         .closed-trades-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; margin-top: 10px; }
 
-        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent); }
-        input:checked + .slider:before { transform: translateX(26px); }
-
-        /* UTILS */
-        .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .text-tp { color: var(--success); } .text-sl { color: var(--danger); }
-        .text-green { color: var(--success) !important; } .text-red { color: var(--danger) !important; }
-        .input-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .popup-close { background:none; border:none; color:var(--text-sub); font-size:1.2rem; cursor:pointer; }
-        .popup-title { margin:0; font-size:1.2rem; font-weight:bold; }
-        
-        /* ADMIN */
-        .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .adm-user-info { display: flex; align-items: center; gap: 10px; }
-        .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
-        .adm-text { display: flex; flex-direction: column; }
-        .adm-name { font-weight: 700; font-size: 0.9rem; }
-        .adm-email { font-size: 0.8rem; color: var(--text-sub); }
-        .adm-tab-btn { flex: 1; padding: 15px; border: none; background: #151517; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; }
-        .adm-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
-
-        /* TRADE DETAIL */
+        /* TRADE DETAIL HERO */
         .td-hero { text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #333; }
         .td-asset { font-size: 1.8rem; font-weight: 800; color: white; display:block; }
         .td-pnl { font-size: 3rem; font-weight: 900; margin-top: 5px; display:block; }
@@ -201,6 +163,30 @@
         .feedback-label { display: block; color: var(--accent); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
         .img-box { background: #151517; padding:15px; border-radius:12px; border:1px solid #2c2c2e; margin-top:10px; }
         .td-img { width: 100%; border-radius: 8px; border: 1px solid #333; cursor: pointer; margin-top:5px; }
+
+        /* MISC */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .text-tp { color: var(--success); } .text-sl { color: var(--danger); }
+        .text-green { color: var(--success) !important; } .text-red { color: var(--danger) !important; }
+        .input-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .popup-close { background:none; border:none; color:var(--text-sub); font-size:1.2rem; cursor:pointer; }
+        .popup-title { margin:0; font-size:1.2rem; font-weight:bold; }
+        
+        .adm-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--cell-bg); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .adm-user-info { display: flex; align-items: center; gap: 10px; }
+        .adm-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+        .adm-text { display: flex; flex-direction: column; }
+        .adm-name { font-weight: 700; font-size: 0.9rem; }
+        .adm-email { font-size: 0.8rem; color: var(--text-sub); }
+        .adm-tab-btn { flex: 1; padding: 15px; border: none; background: #151517; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; }
+        .adm-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(187, 134, 252, 0.05); }
 
         .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.85rem; margin-top: 8px; pointer-events: none; }
         .signal-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid var(--border); }
@@ -217,9 +203,8 @@
         .hist-table th { text-align: left; padding: 15px 10px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-weight: 600; }
         .hist-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-main); }
         .hist-table tr:hover { background: rgba(255,255,255,0.03); }
-        .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
-        
-        /* CALENDAR */
+        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; margin-bottom:15px; }
+        .msg-notification { background: rgba(0, 200, 83, 0.1); border: 1px solid var(--success); color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; margin-bottom:15px; }
         .cal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; position: relative; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
@@ -228,12 +213,10 @@
         .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-sub); }
         .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
         .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: var(--text-sub); }
-        
-        /* SEARCH RESULTS */
         .search-res-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); background: var(--cell-bg); border-radius: 6px; margin-bottom: 5px; }
         .search-res-name { font-weight: bold; display: block; }
         .search-res-email { font-size: 0.8rem; color: var(--text-sub); }
-        
+
         /* AUTH OVERLAY */
         #auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 2000; }
     </style>
@@ -250,1109 +233,621 @@
 <div id="popup-overlay" onclick="if(event.target === this) window.closePopup()">
     
     <div id="day-detail-view" class="modal-base hidden">
-        <div class="dv-header"><div id="dv-date-title" style="font-weight:700; font-size:1.2rem;">Date</div><button onclick="window.closePopup()" class="popup-close">✕</button></div>
-        <div style="padding-bottom:20px; border-bottom:1px solid #2c2c2e; margin-bottom:20px;"><div style="height:180px;"><canvas id="dayChart"></canvas></div></div>
-        <div class="dv-stats-grid">
-            <div class="dv-stat-item"><span class="dv-stat-label">PnL</span><span id="dv-pnl" class="dv-stat-val sensitive">-</span></div>
-            <div class="dv-stat-item"><span class="dv-stat-label">Win rate</span><span id="dv-winrate" class="dv-stat-val">-</span></div>
-            <div class="dv-stat-item"><span class="dv-stat-label">Profit factor</span><span id="dv-pf" class="dv-stat-val">-</span></div>
-            <div class="dv-stat-item"><span class="dv-stat-label">Trades</span><span id="dv-count" class="dv-stat-val">-</span></div>
+        <div class="jfc-header"><span id="dv-date-title" style="font-weight:bold;">Datum</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
+        <div style="height:150px; margin: 15px 0;"><canvas id="dayChart"></canvas></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div class="stat-box"><span class="stat-label">PnL</span><span id="dv-pnl" class="stat-value">-</span></div>
+            <div class="stat-box"><span class="stat-label">Trades</span><span id="dv-count" class="stat-value">-</span></div>
         </div>
-        <div class="closed-trades-title">Closed Trades</div>
-        <div class="trades-list-card"><div id="dv-list"></div></div>
+        <div id="dv-list"></div>
     </div>
-    
+
+    <div id="trade-detail-view" class="modal-base hidden">
+        <div class="jfc-header"><button onclick="window.closeTradeDetail()" style="background:none; border:none; color:var(--accent);">❮ Zurück</button><span style="font-weight:bold;">Details</span></div>
+        <div id="td-content"></div>
+        <div id="adm-feedback-area" class="hidden" style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+            <label class="td-label" style="color:var(--accent);">Coach Feedback</label>
+            <textarea id="adm-feedback-text" rows="3"></textarea>
+            <button onclick="window.submitFeedback()" class="btn-primary" style="margin-top:10px;">Senden</button>
+        </div>
+    </div>
+
     <div id="trade-form-modal" class="modal-base hidden">
-        <div class="dv-header"><span class="popup-title" id="form-title">Neuer Trade</span><button class="popup-close" onclick="window.closePopup()">✕</button></div>
-        <div style="padding:10px;">
+        <div class="jfc-header"><span id="form-title" style="font-weight:bold;">Trade</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
+        <div style="padding-top:15px;">
             <input type="hidden" id="editId">
-            <label>Journal</label><select id="inpJournalSelect"></select>
-            <label>Status</label><select id="status" onchange="window.toggleFormFields()"><option value="Aktiv">Laufend (Offen)</option><option value="Geschlossen">Geschlossen</option></select>
-            <label>Asset</label><input type="text" id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
+            <label class="td-label">Journal</label><select id="inpJournalSelect"></select>
+            <label class="td-label">Status</label><select id="status" onchange="window.toggleFormFields()"><option value="Aktiv">Offen</option><option value="Geschlossen">Geschlossen</option></select>
+            <label class="td-label">Asset</label><input id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
             <label>Datum</label><input type="datetime-local" id="datetime">
-            <div class="input-row-2"><div><label>Entry</label><input type="number" id="inpEntry" step="any"></div><div><label>Stop Loss</label><input type="number" id="inpSL" step="any"></div></div>
-            <div class="input-row-3"><div><label>TP 1</label><input type="number" id="inpTP1" step="any"></div><div><label>TP 2</label><input type="number" id="inpTP2" step="any"></div><div><label>TP 3</label><input type="number" id="inpTP3" step="any"></div></div>
-            <label>Setup (Bild Link)</label><input type="url" id="imgSetup" placeholder="https://...">
-            <label>Notiz</label><textarea id="note" rows="2"></textarea>
-            <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"><label>Result (Bild Link)</label><input type="url" id="imgResult"></div>
-            <div id="admin-feedback-container" class="hidden" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;"><label style="color:var(--accent);">👨‍🏫 Coach Feedback (Admin)</label><textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent);" placeholder="Tipp für den User..."></textarea></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div><label>Entry</label><input type="number" id="inpEntry" step="any"></div><div><label>Stop Loss</label><input type="number" id="inpSL" step="any"></div></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"><div><label>TP 1</label><input type="number" id="inpTP1"></div><div><label>TP 2</label><input type="number" id="inpTP2"></div><div><label>TP 3</label><input type="number" id="inpTP3"></div></div>
+            <div id="closedFields" class="hidden"><label class="td-label" style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"></div>
+            <label class="td-label">Notiz</label><textarea id="note"></textarea>
+            <label class="td-label">Bilder (URLs)</label><input id="imgSetup" placeholder="Setup URL"><input id="imgResult" placeholder="Result URL">
             <button onclick="window.saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
         </div>
     </div>
     
     <div id="share-channel-modal" class="modal-base hidden">
-        <div class="dv-header"><span class="popup-title">Wohin senden?</span><button class="popup-close" onclick="window.closePopup()">✕</button></div>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <div class="share-opt" onclick="window.selectShareChannelTarget('general')">📢 Allgemein</div>
-            <div class="share-opt" onclick="window.selectShareChannelTarget('signals')">🚀 Signale</div>
-            <div id="btn-share-pro" class="share-opt hidden" onclick="window.selectShareChannelTarget('pro')">💎 Pro Signale</div>
+        <div class="jfc-header"><span style="font-weight:bold;">Teilen</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+            <button class="btn-primary" onclick="window.selectShareChannel('general')">📢 Allgemein</button>
+            <button class="btn-primary" onclick="window.selectShareChannel('signals')">🚀 Signale</button>
+            <button id="btn-share-pro" class="btn-primary hidden" onclick="window.selectShareChannel('pro')">💎 Pro Signale</button>
         </div>
     </div>
 
     <div id="share-modal" class="modal-base hidden">
-        <div class="dv-header"><span class="popup-title">Was teilen?</span><button class="popup-close" onclick="window.closeShareModal()">✕</button></div>
-        <p style="font-size:0.8rem; color:var(--text-sub); text-align:center; margin:0;">Wähle, was du teilen möchtest</p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <div id="opt-setup" class="share-opt" onclick="window.selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
-            <div id="opt-result" class="share-opt" onclick="window.selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
+        <div class="jfc-header"><span style="font-weight:bold;">Inhalt wählen</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+            <button class="btn-primary" onclick="window.confirmShare('setup')">📷 Setup Chart</button>
+            <button class="btn-primary" onclick="window.confirmShare('result')">🏁 Ergebnis Chart</button>
         </div>
-        <div id="signal-inputs" class="signal-input-grid hidden">
-            <input type="number" id="sig-entry" placeholder="Entry"><input type="number" id="sig-sl" placeholder="SL">
-            <input type="number" id="sig-tp1" placeholder="TP 1"><input type="number" id="sig-tp2" placeholder="TP 2"><input type="number" id="sig-tp3" placeholder="TP 3" style="grid-column:span 2;">
-        </div>
-        <button onclick="window.confirmShare()" class="btn-primary" style="margin-top:10px;">Senden</button>
     </div>
 
-    <div id="trade-detail-view" class="modal-base hidden">
-        <div class="dv-header"><button onclick="window.closeTradeDetail()" style="background:none; border:none; color:#0a84ff; font-size:1rem; cursor:pointer; font-weight:600;">❮ Back</button><div style="font-weight:700; font-size:1.1rem;">Trade Details</div><div style="width:40px;"></div></div>
-        <div id="td-content"></div>
-        <div id="adm-feedback-input-area" class="hidden" style="padding:20px; border-top:1px solid #333; margin-top:20px; background:#151517;">
-            <label style="color:var(--accent); font-weight:bold; display:block; margin-bottom:8px;">👨‍🏫 Feedback senden:</label>
-            <textarea id="adm-feedback-text" rows="3" style="width:100%; background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:8px;"></textarea>
-            <button onclick="window.submitAdminFeedback()" class="btn-primary" style="margin-top:10px; padding:10px;">Senden</button>
+    <div id="admin-member-modal" class="modal-base hidden">
+        <div class="jfc-header"><span style="font-weight:bold;">Details</span><button onclick="window.closePopup()" class="btn-icon">✕</button></div>
+        <div style="text-align:center; margin:15px 0;">
+            <h3 id="adm-user-name" style="margin:0;">Name</h3>
+            <span id="adm-user-email" style="color:var(--text-sub); font-size:0.8rem;">email</span>
+            <button id="btn-adm-dm" class="btn-small" style="margin-top:10px; border-color:var(--accent); color:var(--accent);">💬 Nachricht</button>
         </div>
-    </div>
-    
-    <div id="user-search-modal" class="modal-base hidden">
-        <div class="dv-header"><span class="popup-title">Neuer Chat</span><button class="popup-close" onclick="window.closePopup()">✕</button></div>
-        <input id="search-user-input" placeholder="Name oder Email eingeben..." oninput="window.searchUsers(this.value)">
-        <div id="search-results" style="max-height:300px; overflow-y:auto; margin-top:10px;"></div>
-    </div>
-
-    <div id="admin-member-modal" class="modal-base hidden" style="max-height:90vh; display:flex; flex-direction:column;">
-        <div class="dv-header"><span class="popup-title">Mitglied Details</span><button class="popup-close" onclick="window.closePopup()">✕</button></div>
-        <div id="adm-modal-header" style="text-align:center; margin-bottom:20px;">
-            <h2 id="adm-detail-name" style="margin:0; font-size:1.5rem;">User</h2>
-            <div id="adm-detail-email" style="color:var(--text-sub); font-size:0.9rem;">email@example.com</div>
-            <button id="btn-start-dm" class="btn-small" style="margin-top:10px; border-color:var(--accent); color:var(--accent); width:auto; margin:10px auto;">💬 Nachricht senden</button>
+        <div id="adm-content-stats"></div>
+        <div style="max-height:300px; overflow-y:auto; margin-top:15px;">
+            <table class="hist-table"><tbody id="adm-trade-list"></tbody></table>
         </div>
-        <div style="padding:0 20px 20px 20px;">
-            <label style="display:block; color:var(--text-sub); margin-bottom:5px; font-size:0.8rem; font-weight:bold;">JOURNAL WÄHLEN</label>
-            <select id="adm-journal-select" onchange="window.updateAdminMemberView()"></select>
-        </div>
-        <div style="display:flex; border-bottom:1px solid #333;">
-            <button class="adm-tab-btn active" onclick="window.switchAdminTab('stats')" id="btn-adm-stats">📊 Statistik</button>
-            <button class="adm-tab-btn" onclick="window.switchAdminTab('trades')" id="btn-adm-trades">📜 Trade Liste</button>
-        </div>
-        <div id="adm-content-stats" style="padding:20px; overflow-y:auto;">
-             <div class="dv-stats-grid"><div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div><div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div><div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div></div>
-            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>
-        </div>
-        <div id="adm-content-trades" class="hidden" style="padding:0; overflow-y:auto; flex-grow:1;"><table class="hist-table"><thead><tr><th>Date</th><th>Asset</th><th style="text-align:right;">PnL</th><th></th></tr></thead><tbody id="adm-trade-list"></tbody></table></div>
     </div>
     
     <div id="delete-modal" class="modal-base hidden" style="text-align:center;">
-        <h3 style="margin:0 0 10px 0;">Wirklich löschen?</h3>
-        <div style="display:flex; gap:10px;"><button onclick="window.confirmDeleteMessage()" class="btn-primary" style="background:var(--danger); flex:1;">Löschen</button><button onclick="window.closeDeleteModal()" class="btn-small" style="flex:1;">Abbrechen</button></div>
+        <h3>Wirklich löschen?</h3>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+            <button onclick="window.confirmDelete()" class="btn-primary" style="background:var(--danger); width:auto;">Löschen</button>
+            <button onclick="window.closePopup()" class="btn-icon" style="width:auto;">Abbruch</button>
+        </div>
     </div>
 </div>
 
 <header id="main-header" class="hidden">
     <div style="display:flex; align-items:center;">
-        <button class="menu-btn" onclick="window.toggleMenu()">&#9776;</button>
+        <button class="menu-btn" onclick="window.toggleMenu()">☰</button>
         <div style="margin-left:15px;">
             <div id="view-title">DASHBOARD</div>
             <div id="greeting-name" style="font-size:0.75rem; color:var(--accent);">Hallo Trader</div>
         </div>
     </div>
-    <button class="btn-icon" style="padding:8px; font-size:1.2rem; border:none; background:none;" onclick="window.togglePrivacy()">👁️</button>
+    <button class="btn-icon" onclick="window.togglePrivacy()">👁️</button>
 </header>
 
 <div id="menu-overlay" onclick="window.toggleMenu()"></div>
-
 <nav class="nav-drawer" id="navDrawer">
-    <div style="text-align:right; padding:10px 20px;"><button class="btn-icon" onclick="window.toggleMenu()" style="border:none;background:none;font-size:1.5rem;color:var(--text-sub);">✕</button></div>
-    <button onclick="window.showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
+    <button onclick="window.showView('Übersicht')" class="nav-active" id="nav-Übersicht">🏠 Dashboard</button>
     <button onclick="window.prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
-    <button onclick="window.showView('Chat')" id="btn-Chat">💬 Chat</button>
-    <button onclick="window.showView('TradingView')" id="btn-TradingView">📈 Chart</button>
+    <button onclick="window.showView('Chat')" id="nav-Chat">💬 Chat</button>
+    <button onclick="window.showView('Chart')" id="nav-Chart">📈 Chart</button>
     <div class="nav-separator"></div>
-    <div class="nav-selector-container"><label class="nav-selector-label">AKTUELLES JOURNAL ⌄</label><select id="navJournalSelect" onchange="window.changeActiveJournal(this.value)"></select></div>
+    <div class="nav-selector-container">
+        <label class="nav-selector-label">JOURNAL</label>
+        <select id="navJournalSelect" onchange="window.changeActiveJournal(this.value)"></select>
+    </div>
     <div class="nav-separator"></div>
-    <button onclick="window.showView('Kalender')" id="btn-Kalender">📅 Kalender</button>
-    <button onclick="window.showView('Statistik')" id="btn-Statistik">📈 Statistik</button>
-    <button onclick="window.showView('Historie')" id="btn-Historie">📜 Journal</button>
+    <button onclick="window.showView('Kalender')" id="nav-Kalender">📅 Kalender</button>
+    <button onclick="window.showView('Statistik')" id="nav-Statistik">📊 Statistik</button>
+    <button onclick="window.showView('Historie')" id="nav-Historie">📜 Historie</button>
     <div class="nav-separator"></div>
-    <button onclick="window.showView('Lot Rechner')" id="btn-Lot Rechner">📊 Lot Rechner</button>
-    <button onclick="window.showView('News')" id="btn-News">📰 News</button>
-    <div class="nav-separator"></div>
-    <button onclick="window.showView('Einstellungen')" id="btn-Einstellungen">⚙️ Einstellungen</button>
-    <button onclick="window.handleLogout()" style="color: var(--danger); margin-top:20px;">🚪 Logout</button>
+    <button onclick="window.showView('Settings')" id="nav-Einstellungen">⚙️ Einstellungen</button>
+    <button onclick="window.logout()" style="color:var(--danger); margin-top:auto; margin-bottom:20px;">🚪 Logout</button>
 </nav>
 
 <div id="app-content" class="container hidden">
     
     <section id="view-Übersicht" class="view-section active">
-        <div class="greet-container" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 style="margin:0;">Hallo <span id="user-greeting-name">Trader</span> 👋</h2>
-            <button onclick="window.prepareCreateView()" class="btn-primary" style="width:auto; padding: 10px 20px; margin:0; font-size:0.8rem;">+ NEUER TRADE</button>
-        </div>
         <div id="dashboard-notification-area"></div>
-        <div id="dashboard-journals-list"></div>
+        <div id="dashboard-content"></div>
     </section>
-    
+
     <section id="view-Chat" class="view-section">
         <div class="chat-layout">
             <div class="chat-sidebar">
-                <div class="channel-item active" id="ch-general" onclick="window.switchChannel('general')"><div><div class="channel-name">📢 Allgemein</div><span class="channel-desc">Community Talk</span></div></div>
-                <div class="channel-item" id="ch-signals" onclick="window.switchChannel('signals')"><div><div class="channel-name">🚀 Signale</div><span class="channel-desc">Nur Trades (Alle)</span></div></div>
-                <div class="channel-item" id="ch-pro" onclick="window.switchChannel('pro')"><div><div class="channel-name">💎 Pro Signale</div><span class="channel-desc">Nur Coach</span></div></div>
-                <div style="padding:15px; display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:0.7rem; color:var(--text-sub); font-weight:bold; letter-spacing:1px;">DIREKTNACHRICHTEN</span><button class="btn-icon" style="padding:2px 8px; font-size:1rem;" onclick="window.openSearchModal()">+</button></div>
-                <div id="dm-list-area"></div>
+                <div class="channel-item active" id="ch-general" onclick="window.switchChannel('general')"><span>📢 Allgemein</span></div>
+                <div class="channel-item" id="ch-signals" onclick="window.switchChannel('signals')"><span>🚀 Signale</span></div>
+                <div class="channel-item" id="ch-pro" onclick="window.switchChannel('pro')"><span>💎 Pro</span></div>
+                <div id="dm-list"></div>
             </div>
             <div class="chat-main">
-                <div class="jfc-header"><div class="jfc-title" id="chat-channel-title">📢 Allgemein</div></div>
+                <div class="jfc-header"><span id="chat-title" style="font-weight:bold;">Allgemein</span></div>
                 <div id="chat-messages" class="chat-messages"></div>
                 <div id="chat-input-area" class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Nachricht schreiben..." onkeypress="if(event.key==='Enter') window.sendChatMessage()">
-                    <button id="chat-send-btn" onclick="window.sendChatMessage()" class="btn-primary">➤</button>
+                    <input id="chat-input" placeholder="Nachricht..." onkeypress="if(event.key==='Enter') window.sendMsg()">
+                    <button id="chat-send-btn" onclick="window.sendMsg()" class="btn-primary">➤</button>
                 </div>
-                <div id="chat-locked-msg" class="chat-locked-msg hidden">🔒 Nur Admins können hier schreiben.</div>
-                <div id="chat-signal-msg" class="chat-locked-msg hidden">🚀 Hier nur Trades teilen (Nutze den Share-Button im Journal)</div>
             </div>
         </div>
-    </section>
-
-    <section id="view-TradingView" class="view-section" style="height: calc(100vh - 70px);">
-         <div id="tradingview_chart" style="height:100%; width:100%; border-radius: 12px; overflow: hidden;"></div>
     </section>
 
     <section id="view-Kalender" class="view-section">
         <div class="card">
             <div class="cal-header-row">
-                <div><h2 id="cal-month-title" style="margin:0;">-</h2><small id="cal-filter-hint" style="color:var(--accent); font-size:0.8rem;">-</small></div>
-                <div><button class="chart-btn" onclick="window.changeCalMonth(-1)">❮</button><button class="chart-btn" onclick="window.changeCalMonth(1)">❯</button></div>
+                <h2 id="cal-month-title" style="margin:0;">-</h2>
+                <div><button class="btn-icon" onclick="window.changeMonth(-1)">❮</button><button class="btn-icon" onclick="window.changeMonth(1)">❯</button></div>
             </div>
-            <div class="calendar-grid">
-                <div style="text-align:center;color:#666;font-size:0.7rem;">So</div><div style="text-align:center;color:#666;font-size:0.7rem;">Mo</div><div style="text-align:center;color:#666;font-size:0.7rem;">Di</div><div style="text-align:center;color:#666;font-size:0.7rem;">Mi</div><div style="text-align:center;color:#666;font-size:0.7rem;">Do</div><div style="text-align:center;color:#666;font-size:0.7rem;">Fr</div><div style="text-align:center;color:#666;font-size:0.7rem;">Sa</div>
-            </div>
-            <div id="cal-days-grid" class="calendar-grid" style="margin-top:5px;"></div>
+            <div class="calendar-grid" id="cal-grid"></div>
         </div>
     </section>
-
+    
     <section id="view-Statistik" class="view-section">
         <div class="stats-grid-view">
-            <div class="card chart-card"><h4 style="margin:0 0 15px 0;">Asset Performance</h4><div style="height:240px; position:relative;"><canvas id="assetChart"></canvas></div></div>
-            <div class="card chart-card"><h4 style="margin:0 0 15px 0;">Wochentags Performance</h4><div style="height:240px; position:relative;"><canvas id="weekdayChart"></canvas></div></div>
-            <div class="card chart-card full-width"><h4 style="margin:0 0 15px 0;">Stündliche Performance</h4><div style="height:240px; position:relative;"><canvas id="hourChart"></canvas></div></div>
+            <div class="card chart-card"><h4>Assets</h4><div style="height:220px;"><canvas id="assetChart"></canvas></div></div>
+            <div class="card chart-card"><h4>Wochentage</h4><div style="height:220px;"><canvas id="weekdayChart"></canvas></div></div>
         </div>
     </section>
 
     <section id="view-Historie" class="view-section">
         <div class="card" style="overflow-x:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center;"><h3 id="hist-title">Trade Historie</h3></div>
             <table class="hist-table">
-                <thead><tr><th style="min-width:90px;">Date/Time</th><th>Asset</th><th style="text-align:right;">PnL</th><th style="text-align:right;">Actions</th></tr></thead>
-                <tbody id="tradeBody"></tbody>
+                <thead><tr><th>Datum</th><th>Asset</th><th style="text-align:right;">PnL</th><th style="text-align:right;">Aktion</th></tr></thead>
+                <tbody id="history-body"></tbody>
             </table>
         </div>
     </section>
 
-    <section id="view-Lot-Rechner" class="view-section">
+    <section id="view-Settings" class="view-section">
         <div class="card">
-            <h3>Lot Rechner</h3>
-            <div class="input-row-2">
-                <select id="cType" onchange="window.updateContractSize()" style="margin-bottom:0;"><option value="100000">Forex</option><option value="1">Indizes</option><option value="100">Gold</option><option value="custom">Custom</option></select>
-                <input type="number" id="cContract" value="100000" placeholder="Kontrakt" style="margin-bottom:0;">
+            <h3>App</h3>
+            <div class="settings-list-item"><span>Dark Mode</span><label class="switch"><input type="checkbox" id="theme-toggle" onchange="window.toggleTheme(this.checked)"><span class="slider round"></span></label></div>
+            <div class="settings-list-item"><span>Coach Feedback</span><label class="switch"><input type="checkbox" id="feedback-toggle" onchange="window.saveSettings()"><span class="slider round"></span></label></div>
+            
+            <h3>Journals</h3>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input id="new-journal-name" placeholder="Name">
+                <button onclick="window.addJournal()" class="btn-primary" style="width:auto;">+</button>
             </div>
-            <div class="input-row-2" style="margin-top:15px;">
-                <input type="number" id="cBal" placeholder="Konto">
-                <input type="number" id="cRisk" placeholder="Risk %">
-            </div>
-            <div class="input-row-2">
-                <input type="number" id="cEnt" placeholder="Entry">
-                <input type="number" id="cSl" placeholder="SL">
-            </div>
-            <button onclick="window.calcLots()" class="btn-primary">Berechnen</button>
-            <div id="cRes" style="text-align:center; font-size:1.5rem; margin-top:15px; color:var(--success);">0.00 Lot</div>
-        </div>
-    </section>
-    
-    <section id="view-News" class="view-section"><div class="card" style="height:600px; padding:0;"><div id="news-box" style="height:100%;"></div></div></section>
-    
-    <section id="view-Einstellungen" class="view-section">
-        <div class="card">
-            <h3>App Einstellungen</h3>
-            <div class="settings-list-item">
-                <span>Dark Mode</span>
-                <label class="switch"><input type="checkbox" id="theme-toggle" onchange="window.toggleTheme(this.checked)"><span class="slider round"></span></label>
-            </div>
-            <div class="settings-list-item">
-                <div style="display:flex; flex-direction:column;">
-                    <span>Coach Feedback erlauben</span>
-                    <small style="color:var(--text-sub); font-size:0.75rem;">Wenn deaktiviert, kann der Admin deine Trades nicht sehen.</small>
-                </div>
-                <label class="switch"><input type="checkbox" id="feedback-toggle" onchange="window.toggleFeedbackSetting(this.checked)"><span class="slider round"></span></label>
-            </div>
-            <h3 style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">📚 Journal Verwaltung</h3>
-            <div style="background:var(--cell-bg); padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px;">
-                <h4 style="margin-top:0;" id="journal-form-title">Neues Journal</h4>
-                <input id="newJName" placeholder="Name">
-                <input id="newJCap" type="number" placeholder="Kapital (€)">
-                <div class="input-row-2">
-                    <input id="newJMaxDD" type="number" placeholder="Max. Verlust">
-                    <select id="newJDDType" style="margin-bottom:0;"><option value="eur">€</option><option value="percent">%</option></select>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button id="btn-save-journal" onclick="window.saveJournalInput()" class="btn-primary" style="padding:10px; flex:1;">Erstellen</button>
-                    <button id="btn-cancel-journal" onclick="window.cancelEdit()" class="btn-small hidden" style="flex:1; border-color:var(--border);">Abbrechen</button>
-                </div>
-            </div>
-            <h4 style="margin-bottom:10px;">Existierende Journals</h4>
             <div id="settings-journal-list"></div>
-            <div id="admin-panel" class="hidden" style="margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
-                <h3 style="color:var(--accent); display:flex; align-items:center;"><span style="margin-right:10px;">🛡️</span> Admin Bereich</h3>
-                <p style="color:var(--text-sub); font-size:0.9rem;">Mitgliederverwaltung</p>
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input id="admEmail" placeholder="Neues Mitglied (Email)" style="margin-bottom:0;">
-                    <button onclick="window.admAdd()" class="btn-primary" style="width:100px; padding:0;">Add</button>
-                </div>
-                <div id="admList" style="background:var(--cell-bg); border-radius:8px; padding:10px; border:1px solid var(--border);"></div>
+
+            <div id="admin-panel" class="hidden" style="margin-top:30px;">
+                <h3 style="color:var(--accent);">Admin Area</h3>
+                <div id="admin-user-list"></div>
             </div>
         </div>
     </section>
-
+    
+    <section id="view-Chart" class="view-section" style="height:calc(100vh - 80px);">
+        <div id="tv-chart-container" style="height:100%;"></div>
+    </section>
 </div>
 
 <script>
-    // --- GLOBAL FUNCTIONS (ATTACHED TO WINDOW) ---
-    
-    window.toggleMenu = function() { 
-        document.getElementById('navDrawer').classList.toggle('open'); 
-        document.getElementById('menu-overlay').classList.toggle('open'); 
-    };
+const firebaseConfig = { apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ", authDomain: "trading-journal-acc.firebaseapp.com", projectId: "trading-journal-acc", storageBucket: "trading-journal-acc.firebasestorage.app", messagingSenderId: "68601000570", appId: "1:68601000570:web:87d3ebd5e86416403e41c3" };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-    window.closePopup = function() { 
-        document.getElementById('popup-overlay').classList.remove('open');
-        document.querySelectorAll('.modal-base').forEach(el => { el.classList.add('hidden'); el.classList.remove('open'); }); 
-        if(typeof currentDetailTradeId !== 'undefined' && currentDetailTradeId) window.closeTradeDetail();
-    };
+let currentUser = null;
+let isAdmin = false;
+let journals = [], trades = [];
+let activeJournal = "Main";
+let currentChannel = "general";
+let calDate = new Date();
+let chartInstances = {};
+let deleteTargetId = null, shareTargetId = null, shareTargetChannel = null;
+let detailTradeId = null, privacyMode = false, assetChartInstance = null, weekdayChartInstance = null;
+let chatListener = null;
 
-    window.prepareCreateView = function() { 
-        document.getElementById('editId').value = ""; 
-        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
-        document.getElementById('datetime').value = now.toISOString().slice(0,16); 
-        document.getElementById('assetInput').value = ""; 
-        document.getElementById('pnl').value = ""; 
-        document.getElementById('note').value = ""; 
-        document.getElementById('inpEntry').value = ""; 
-        document.getElementById('inpSL').value = ""; 
-        document.getElementById('inpTP1').value = ""; 
-        document.getElementById('inpTP2').value = ""; 
-        document.getElementById('inpTP3').value = ""; 
-        if(typeof activeJournal !== 'undefined' && activeJournal && document.getElementById('inpJournalSelect')) document.getElementById('inpJournalSelect').value = activeJournal; 
-        window.toggleFormFields(); 
-        document.getElementById('trade-form-modal').classList.remove('hidden'); 
-        document.getElementById('trade-form-modal').classList.add('open'); 
-        document.getElementById('popup-overlay').classList.add('open'); 
-        document.getElementById('form-title').innerText="Neuer Trade";
-    };
+// --- AUTH & LOAD ---
+window.loginGoogle = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+window.logout = () => auth.signOut().then(() => location.reload());
 
-    window.toggleFormFields = function() { 
-        const s = document.getElementById('status').value; 
-        document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); 
-    };
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('app-content').classList.remove('hidden');
+        document.getElementById('main-header').classList.remove('hidden');
+        
+        const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+        document.getElementById('greeting-name').innerText = "Hallo " + name.charAt(0).toUpperCase() + name.slice(1);
 
-    window.saveTrade = async function() { 
-        try {
-            const id = document.getElementById('editId').value; 
-            const asset = document.getElementById('assetInput').value.toUpperCase(); 
-            if(!asset) return alert("Asset fehlt!"); 
-            // Fallback to first journal if none selected or invalid
-            let targetJournal = document.getElementById('inpJournalSelect').value;
-            if(!targetJournal && journals.length > 0) targetJournal = journals[0].name;
-
-            const data = { 
-                userId: auth.currentUser.uid, 
-                date: document.getElementById('datetime').value, 
-                asset: asset, 
-                journal: targetJournal, // Use robust target
-                status: document.getElementById('status').value, 
-                pnl: parseFloat(document.getElementById('pnl').value) || 0, 
-                imgSetup: document.getElementById('imgSetup').value, 
-                imgResult: document.getElementById('imgResult').value, 
-                note: document.getElementById('note').value, 
-                entry: document.getElementById('inpEntry').value, 
-                sl: document.getElementById('inpSL').value, 
-                tp1: document.getElementById('inpTP1').value, 
-                tp2: document.getElementById('inpTP2').value, 
-                tp3: document.getElementById('inpTP3').value, 
-                adminFeedback: document.getElementById('inpAdminFeedback').value 
-            }; 
-            if(id) await db.collection('trades').doc(id).update(data); 
-            else await db.collection('trades').add(data); 
-            await loadData(); 
-            window.closePopup(); 
-        } catch(e) { console.error("Save Trade Error:", e); alert("Fehler beim Speichern: " + e.message); }
-    };
-
-    window.editTrade = function(id, closeNow) { 
-        const t = trades.find(x => x.id === id); 
-        if(!t) return;
-        document.getElementById('editId').value = t.id; 
-        document.getElementById('datetime').value = t.date; 
-        document.getElementById('assetInput').value = t.asset; 
-        document.getElementById('inpJournalSelect').value = t.journal || (journals[0] ? journals[0].name : 'Main'); 
-        document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; 
-        document.getElementById('pnl').value = t.pnl; 
-        document.getElementById('imgSetup').value = t.imgSetup || ''; 
-        document.getElementById('imgResult').value = t.imgResult || ''; 
-        document.getElementById('note').value = t.note || ''; 
-        document.getElementById('inpEntry').value = t.entry || ''; 
-        document.getElementById('inpSL').value = t.sl || ''; 
-        document.getElementById('inpTP1').value = t.tp1 || ''; 
-        document.getElementById('inpTP2').value = t.tp2 || ''; 
-        document.getElementById('inpTP3').value = t.tp3 || ''; 
-        document.getElementById('inpAdminFeedback').value = t.adminFeedback || ''; 
-        document.getElementById('adm-feedback-input-area').classList.toggle('hidden', !isAdmin); 
-        document.getElementById('form-title').innerText="Trade Bearbeiten"; 
-        window.toggleFormFields(); 
-        document.getElementById('trade-form-modal').classList.remove('hidden'); 
-        document.getElementById('trade-form-modal').classList.add('open'); 
-        document.getElementById('popup-overlay').classList.add('open'); 
-    };
-    
-    // NEW: Delete Trade Function
-    window.deleteTrade = async function(id) {
-        deleteTargetId = id;
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('delete-modal').classList.remove('hidden'); 
-        document.getElementById('delete-modal').classList.add('open');
-    };
-    
-    window.confirmDeleteMessage = async function() {
-        if(deleteTargetId) {
-            try { await db.collection('trades').doc(deleteTargetId).delete(); await loadData(); } catch(e) { alert(e.message); }
-            window.closePopup();
-        } else if (msgToDeleteId) {
-             await db.collection('chat').doc(msgToDeleteId).delete(); window.closePopup();
+        if (user.email === "leon.luca.lauterbach@gmail.com") {
+            isAdmin = true;
+            document.getElementById('admin-panel').classList.remove('hidden');
+            document.getElementById('btn-share-pro').classList.remove('hidden');
+            loadAdminUsers();
         }
+
+        const uDoc = await db.collection('users').doc(user.uid).get();
+        if (uDoc.exists) document.getElementById('feedback-toggle').checked = uDoc.data().allowFeedback !== false;
+        
+        await loadData();
+        loadChat(currentChannel);
+        loadDMs();
     }
+});
 
-    // CONFIG & INIT
-    const firebaseConfig = { apiKey: "AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ", authDomain: "trading-journal-acc.firebaseapp.com", projectId: "trading-journal-acc", storageBucket: "trading-journal-acc.firebasestorage.app", messagingSenderId: "68601000570", appId: "1:68601000570:web:87d3ebd5e86416403e41c3" };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();
+async function loadData() {
+    const jSnap = await db.collection('journals').where('userId', '==', currentUser.uid).get();
+    journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    if (journals.length === 0) {
+        await db.collection('journals').add({userId: currentUser.uid, name: "Main", startCap: 0});
+        journals = [{name: "Main", startCap: 0, id: "temp"}];
+    }
+    
+    const opts = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
+    document.getElementById('navJournalSelect').innerHTML = opts;
+    document.getElementById('inpJournalSelect').innerHTML = opts;
+    
+    const tSnap = await db.collection('trades').where('userId', '==', currentUser.uid).get();
+    trades = tSnap.docs.map(d => { let t = d.data(); t.id = d.id; if (!t.journal) t.journal = "Main"; return t; });
 
-    let trades = [], journals = []; 
-    let chartInstances = {}, dayChart = null, assetChartInstance = null, weekdayChartInstance = null, hourChartInstance = null, adminChartInstance = null;
-    let calDate = new Date();
-    let privacyMode = false, activeJournal = null, editingJournalId = null, currentUserName = "User", isAdmin = false;
-    let journalFilters = {}, journalCustomDates = {}, shareTradeId = null, shareType = null, msgToDeleteId = null, configuringJournalId = null;
-    let selectedShareChannel = null;
-    let inspectedUserTrades = [], inspectedUserJournals = [], currentDetailTradeId = null;
-    let isChatActive = false, lastMessageCount = 0, currentChatChannel = 'general', chatListener = null, targetedMemberUid = null;
-    let isChatFirstLoad = true;
+    refreshUI();
+}
 
-    const isLight = localStorage.getItem('tradeTheme') === 'light';
-    if(isLight) document.body.classList.add('light-mode');
-    document.getElementById('theme-toggle').checked = !isLight;
+function refreshUI() {
+    activeJournal = document.getElementById('navJournalSelect').value || journals[0].name;
+    document.getElementById('inpJournalSelect').value = activeJournal;
+    const activeTrades = trades.filter(t => t.journal.toLowerCase() === activeJournal.toLowerCase());
+    
+    renderDashboard(activeTrades);
+    renderHistory(activeTrades);
+    renderCalendar(activeTrades);
+    if(document.getElementById('view-Statistik').classList.contains('active')) renderStats(activeTrades);
+    
+    document.getElementById('settings-journal-list').innerHTML = journals.map(j => 
+        `<div class="settings-list-item"><span>${j.name}</span><button class="btn-icon" style="color:var(--danger);" onclick="window.deleteJournal('${j.id}')">🗑</button></div>`
+    ).join('');
+}
 
-    auth.onAuthStateChanged(async (user) => {
-        if(user) {
-            await db.collection('users').doc(user.uid).set({
-                email: user.email.toLowerCase().trim(),
-                displayName: user.displayName || 'Trader',
-                photoURL: user.photoURL || '',
-                allowFeedback: true
-            }, { merge: true });
+// --- DASHBOARD ---
+function renderDashboard(jTrades) {
+    const closed = jTrades.filter(t => t.status === 'Geschlossen');
+    const open = jTrades.filter(t => t.status === 'Aktiv');
+    const pnl = closed.reduce((a, b) => a + (parseFloat(b.pnl) || 0), 0);
+    const winrate = closed.length ? ((closed.filter(t => t.pnl > 0).length / closed.length) * 100).toFixed(0) : 0;
+    
+    const openHtml = open.length ? open.map(t => `<div class="ot-list-item"><span><b>${t.asset}</b></span><button class="btn-small" onclick="window.editTrade('${t.id}', true)">Close</button></div>`).join('') : '<div style="padding:10px; color:#666;">Keine offenen Trades</div>';
 
-            if(email === "leon.luca.lauterbach@gmail.com") {
-                isAdmin = true;
-                const admPanel = document.getElementById('admin-panel');
-                if(admPanel) { admPanel.classList.remove('hidden'); window.admLoad(); }
-                document.getElementById('btn-share-pro').classList.remove('hidden'); // Show Pro Channel share for admin
-                finishLogin(user);
-            } else {
-                isAdmin = false;
-                finishLogin(user);
-            }
+    let bal = 0; const curve = closed.sort((a,b) => new Date(a.date)-new Date(b.date)).map(t => { bal+=t.pnl; return bal; });
+
+    document.getElementById('dashboard-content').innerHTML = `
+        <div class="journal-full-card">
+            <div class="jfc-header"><span class="jfc-title">${activeJournal}</span></div>
+            <div class="jfc-body-grid">
+                <div class="jfc-chart-area"><canvas id="dashChart"></canvas></div>
+                <div class="jfc-sidebar">
+                    <div class="stat-box"><span class="stat-label">PnL</span><span class="stat-value sensitive" style="color:${pnl>=0?'var(--success)':'var(--danger)'}">${pnl.toFixed(2)}€</span></div>
+                    <div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div>
+                    <div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div>${openHtml}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        if(chartInstances['dashChart']) chartInstances['dashChart'].destroy();
+        const ctx = document.getElementById('dashChart');
+        if(ctx) {
+            chartInstances['dashChart'] = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: { labels: curve.map(x=>''), datasets: [{ data: curve, borderColor: '#0a84ff', borderWidth: 2, tension: 0.2, pointRadius:0, fill:true, backgroundColor:'rgba(10,132,255,0.1)' }] },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}}} }
+            });
         }
+    }, 50);
+}
+
+// --- HISTORY ---
+function renderHistory(jTrades) {
+    const sorted = [...jTrades].sort((a,b) => new Date(b.date) - new Date(a.date));
+    document.getElementById('history-body').innerHTML = sorted.map(t => {
+        const pnlDisplay = t.status === 'Aktiv' ? 'OPEN' : t.pnl.toFixed(2);
+        const color = t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)');
+        return `<tr>
+            <td><b>${t.date.slice(5,10)}</b><br><span style="font-size:0.7rem; color:#666;">${t.date.slice(11,16)}</span></td>
+            <td>${t.asset}</td>
+            <td class="sensitive" style="text-align:right; font-weight:bold; color:${color}">${pnlDisplay}</td>
+            <td style="text-align:right; white-space:nowrap;">
+                <button class="btn-icon" onclick="window.openDetails('${encodeURIComponent(JSON.stringify(t))}')">ℹ️</button>
+                <button class="btn-icon" onclick="window.startShare('${t.id}')">🚀</button>
+                <button class="btn-icon" onclick="window.editTrade('${t.id}')">✎</button>
+                <button class="btn-icon btn-danger-hover" onclick="window.askDelete('${t.id}')">🗑</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// --- CALENDAR ---
+function renderCalendar(jTrades) {
+    const y = calDate.getFullYear(), m = calDate.getMonth();
+    document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    
+    for(let i=0; i<firstDay; i++) grid.innerHTML += '<div></div>';
+    
+    for(let d=1; d<=daysInMonth; d++) {
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayTrades = jTrades.filter(t => t.date.startsWith(dateStr) && t.status === 'Geschlossen');
+        let pnl = 0; dayTrades.forEach(t => pnl += t.pnl);
+        
+        let cls = 'cal-cell';
+        if(dayTrades.length > 0) cls += pnl >= 0 ? ' win' : ' loss';
+        
+        grid.innerHTML += `
+            <div class="${cls}" onclick="window.openDay('${dateStr}')">
+                <span class="cal-date">${d}</span>
+                ${dayTrades.length ? `<span class="cal-pnl sensitive" style="color:${pnl>=0?'var(--success)':'var(--danger)'}">${pnl.toFixed(0)}</span>` : ''}
+                ${dayTrades.length ? `<span class="cal-trades">${dayTrades.length} Trades</span>` : ''}
+            </div>
+        `;
+    }
+}
+
+// --- DETAILS & POPUPS ---
+window.openDetails = function(dataStr) {
+    const t = JSON.parse(decodeURIComponent(dataStr));
+    detailTradeId = t.id;
+    const heroColor = t.status === 'Aktiv' ? 'var(--accent)' : (t.pnl >= 0 ? 'var(--success)' : 'var(--danger)');
+    
+    const fbArea = document.getElementById('adm-feedback-area');
+    if(isAdmin) { fbArea.classList.remove('hidden'); document.getElementById('adm-feedback-text').value = t.adminFeedback || ''; }
+    else if (t.adminFeedback) { fbArea.classList.remove('hidden'); fbArea.innerHTML = `<div style="background:rgba(187,134,252,0.1); padding:10px; border-radius:8px; color:#fff;"><b>Coach:</b> ${t.adminFeedback}</div>`; }
+    else { fbArea.classList.add('hidden'); }
+
+    document.getElementById('td-content').innerHTML = `
+        <div class="td-hero">
+            <span class="td-asset">${t.asset}</span>
+            <span class="td-pnl sensitive" style="color:${heroColor}">${t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2)+'€'}</span>
+        </div>
+        <div class="td-grid">
+            <div class="td-box"><span class="td-label">Entry</span><span class="td-val">${t.entry||'-'}</span></div>
+            <div class="td-box"><span class="td-label">SL</span><span class="td-val" style="color:var(--danger)">${t.sl||'-'}</span></div>
+            <div class="td-box"><span class="td-label">TP 1</span><span class="td-val" style="color:var(--success)">${t.tp1||'-'}</span></div>
+            <div class="td-box"><span class="td-label">TP 2</span><span class="td-val" style="color:var(--success)">${t.tp2||'-'}</span></div>
+            <div class="td-box"><span class="td-label">TP 3</span><span class="td-val" style="color:var(--success)">${t.tp3||'-'}</span></div>
+            <div class="td-box"><span class="td-label">Date</span><span class="td-val">${t.date.slice(0,10)}</span></div>
+        </div>
+        ${t.note ? `<div class="td-note-box">${t.note}</div>` : ''}
+        ${t.imgSetup ? `<div class="img-box"><span class="td-label">Setup</span><img src="${t.imgSetup}" class="td-img" onclick="window.open('${t.imgSetup}')"></div>` : ''}
+        ${t.imgResult ? `<div class="img-box"><span class="td-label">Result</span><img src="${t.imgResult}" class="td-img" onclick="window.open('${t.imgResult}')"></div>` : ''}
+    `;
+    
+    document.getElementById('popup-overlay').classList.add('open');
+    document.getElementById('trade-detail-view').classList.remove('hidden');
+    document.getElementById('trade-detail-view').classList.add('open');
+};
+
+window.openDay = function(dateStr) {
+    const dayTrades = trades.filter(t => t.date.startsWith(dateStr) && (t.journal === activeJournal));
+    document.getElementById('dv-date-title').innerText = dateStr;
+    
+    let sum = 0; dayTrades.forEach(t => sum += t.pnl);
+    document.getElementById('dv-pnl').innerText = sum.toFixed(2) + '€';
+    document.getElementById('dv-count').innerText = dayTrades.length;
+    
+    let run = 0; const data = dayTrades.map(t => { run+=t.pnl; return run; });
+    if(chartInstances['day']) chartInstances['day'].destroy();
+    const ctx = document.getElementById('dayChart');
+    chartInstances['day'] = new Chart(ctx.getContext('2d'), {
+        type: 'line', data: { labels: data.map(x=>''), datasets: [{data:data, borderColor: '#fff', tension:0.1}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}} }
     });
 
-    async function finishLogin(user) {
-        try {
-            const firstName = user.email.split('@')[0].split('.')[0];
-            currentUserName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-            document.getElementById('user-greeting-name').innerText = "Hallo " + currentUserName;
-            
-            const uDoc = await db.collection('users').doc(user.uid).get();
-            const uData = uDoc.data();
-            if(uData && document.getElementById('feedback-toggle')) {
-                document.getElementById('feedback-toggle').checked = (uData.allowFeedback !== false);
+    document.getElementById('dv-list').innerHTML = dayTrades.map(t => 
+        `<div class="trade-row" onclick="window.openDetails('${encodeURIComponent(JSON.stringify(t))}')">
+            <div class="tr-sym">${t.asset}</div>
+            <div class="tr-pnl sensitive" style="color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</div>
+            <div>›</div>
+        </div>`
+    ).join('');
+
+    document.getElementById('popup-overlay').classList.add('open');
+    document.getElementById('day-detail-view').classList.remove('hidden');
+    document.getElementById('day-detail-view').classList.add('open');
+};
+
+// --- CHAT ---
+function loadChat(channel) {
+    db.collection('chat').where('channel', '==', channel).limit(50).onSnapshot(snap => {
+        const msgs = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds||0) - (b.timestamp?.seconds||0));
+        document.getElementById('chat-messages').innerHTML = msgs.map(m => {
+            const isMe = m.senderId === currentUser.uid;
+            let content = `<div class="msg-text">${m.text || ''}</div>`;
+            if(m.type === 'trade') {
+                const t = m.tradeData;
+                content = `<div class="chat-trade-card" onclick="window.openDetails('${encodeURIComponent(JSON.stringify(t))}')">
+                    <div class="ct-header"><span>${t.asset}</span><span style="color:${t.status==='Aktiv'?'#0a84ff':'#888'}">${t.status}</span></div>
+                    ${m.sharedImage ? `<img src="${m.sharedImage}" class="ct-img">` : ''}
+                </div>`;
             }
-
-            document.getElementById('auth-overlay').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('main-header').classList.remove('hidden');
-            
-            await loadData();
-            loadChat('general');
-            window.loadDirectMessages(); 
-        } catch(e) { console.error("Login Error:", e); }
-    }
-
-    window.toggleFeedbackSetting = async function(val) {
-        if(auth.currentUser) {
-            await db.collection('users').doc(auth.currentUser.uid).set({ allowFeedback: val }, { merge: true });
-        }
-    }
-
-    async function loadData() {
-        try {
-            if(!auth.currentUser) return;
-            const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
-            journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
-            if(journals.length === 0) {
-                await db.collection('journals').add({userId: auth.currentUser.uid, name: 'Main', startCap: 0, hidden: false});
-                const newSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
-                journals = newSnap.docs.map(d => ({id: d.id, ...d.data()}));
-            }
-            if(!activeJournal || !journals.find(j => j.name === activeJournal)) {
-                 activeJournal = journals.length > 0 ? journals[0].name : 'Main';
-            }
-            
-            const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
-            trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
-            
-            trades.forEach(t => { if(!t.journal) t.journal = 'Main'; });
-
-            window.populateSelectors();
-            window.renderDashboard();
-            if(document.getElementById('view-Historie').classList.contains('active')) window.renderHistory();
-            if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
-        } catch(e) { console.error("Data Load Error:", e); }
-    }
-
-    window.populateSelectors = function() {
-        if(journals.length === 0) return;
-        const html = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
-        document.getElementById('navJournalSelect').innerHTML = html;
-        document.getElementById('inpJournalSelect').innerHTML = html;
-        if(activeJournal) {
-            document.getElementById('navJournalSelect').value = activeJournal;
-            document.getElementById('inpJournalSelect').value = activeJournal;
-        }
-    }
-
-    window.changeActiveJournal = function(val) {
-        activeJournal = val;
-        document.getElementById('inpJournalSelect').value = activeJournal;
-        const activeId = document.querySelector('.view-section.active').id;
-        if(activeId === 'view-Kalender') renderCalendar();
-        if(activeId === 'view-Historie') renderHistory();
-        if(activeId === 'view-Statistik') renderStatistics();
-        if(activeId === 'view-Übersicht') renderDashboard();
-        if(activeId === 'view-TradingView') setTimeout(renderTradingViewWidget, 50);
-        document.getElementById('navDrawer').classList.remove('open');
-        document.getElementById('menu-overlay').classList.remove('open');
-    }
-
-    // --- DASHBOARD RENDERER ---
-    window.renderDashboard = function() {
-        try {
-            const container = document.getElementById('dashboard-journals-list');
-            container.innerHTML = '';
-            Object.values(chartInstances).forEach(c => c.destroy());
-            chartInstances = {};
-
-            journals.forEach(journal => {
-                if(journal.hidden) return;
-                const timeframe = journalFilters[journal.id] || 'GESAMT';
-                let tradesInPeriod = filterTradesByTime(journal, timeframe);
-                const startCap = parseFloat(journal.startCap) || 0;
-                const closedAll = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date));
-
-                let baseBalance = startCap;
-                if(timeframe !== 'GESAMT') {
-                    const firstTradeInPeriod = tradesInPeriod[0];
-                    if(firstTradeInPeriod) {
-                        const idx = closedAll.findIndex(t => t.id === firstTradeInPeriod.id);
-                        if(idx > 0) baseBalance += closedAll.slice(0, idx).reduce((a,b)=>a+b.pnl, 0);
-                    }
-                }
-
-                let totalPnL = tradesInPeriod.reduce((acc, t) => acc + t.pnl, 0);
-                let wins = tradesInPeriod.filter(t => t.pnl > 0).length;
-                const winrate = closedAll.length > 0 ? ((wins / closedAll.length) * 100).toFixed(0) : 0;
-                let runningBal = baseBalance;
-                const equityCurve = [baseBalance];
-                closedAll.forEach(t => { runningBal += t.pnl; equityCurve.push(runningBal); });
-
-                const pnlColor = totalPnL >= 0 ? 'var(--success)' : 'var(--danger)';
-                const canvasId = `chart-${journal.id}`;
-                const open = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Aktiv');
-                let openTradesHtml = '<p style="color:var(--text-sub); font-style:italic; font-size:0.8rem; text-align:center; padding-top:20px;">Keine offenen Trades.</p>';
-                if(open.length > 0) {
-                    openTradesHtml = open.map(t => {
-                        const thumb = t.imgSetup ? `<a href="${t.imgSetup}" target="_blank" style="margin-left:8px;"><img src="${t.imgSetup}" class="ot-thumb" title="Setup"></a>` : '';
-                        return `<div class="ot-list-item"><div style="display:flex; align-items:center;"><span style="font-weight:bold; color:var(--accent);">${t.asset}</span>${thumb}</div><div style="display:flex;align-items:center;"><button class="btn-small" onclick="window.editTrade('${t.id}', true)">Close</button></div></div>`;
-                    }).join('');
-                }
-                const filters = ['HEUTE', 'GESTERN', 'WOCHE', 'MONAT', 'JAHR', 'GESAMT', 'ZEITRAUM'];
-                const filterHtml = filters.map(f => `<button class="filter-pill ${timeframe===f?'active':''}" onclick="window.setJournalFilter('${journal.id}', '${f}')">${f}</button>`).join('');
-                
-                let warningHtml = '';
-                if(journal.maxDD && parseFloat(journal.maxDD) > 0) {
-                    let todayPnL = 0; 
-                    if(closedAll.length > 0) {
-                        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-                        const todayTrades = closedAll.filter(t => new Date(t.date) >= todayStart);
-                        todayPnL = todayTrades.reduce((a,b)=>a+b.pnl, 0);
-                    }
-                    const limit = parseFloat(journal.maxDD); let threshold = limit;
-                    if(journal.ddType === 'percent') { 
-                        const allTimePnL = closedAll.reduce((a,b)=>a+b.pnl, 0);
-                        const totalBal = startCap + allTimePnL; 
-                        const currentBalance = Math.max(totalBal, 0); 
-                        threshold = currentBalance * (limit / 100); 
-                    }
-                    if(todayPnL < -threshold) warningHtml = `<div class="loss-warning"><span>⚠️</span><span>TAGESVERLUST ÜBERSCHRITTEN</span></div>`;
-                }
-
-                container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${filterHtml}</div>${warningHtml}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (GESAMT)</span><span class="stat-value sensitive" style="color:${pnlColor}">${totalPnL.toFixed(2)}€</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${winrate}%</span></div></div><div class="open-trades-box"><div class="ot-title">OFFENE TRADES</div><div style="flex-grow:1;">${openTradesHtml}</div></div></div></div></div>`;
-                setTimeout(() => { 
-                    const ctxEl = document.getElementById(canvasId);
-                    if(ctxEl) {
-                        const ctx = ctxEl.getContext('2d'); 
-                        chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equityCurve.map(x => ''), datasets: [{ data: equityCurve, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, backgroundColor: 'rgba(10, 132, 255, 0.05)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); 
-                    }
-                }, 50);
-            });
-            renderNotificationsArea();
-        } catch(e) {
-            console.error("Dashboard Render Error:", e);
-        }
-    }
-
-    function filterTradesByTime(journal, timeframe) {
-        const jTrades = trades.filter(t => (t.journal || 'Main').toLowerCase() === journal.name.toLowerCase() && t.status === 'Geschlossen');
-        const now = new Date();
-        let startDate = null; let endDate = null;
-        if(timeframe === 'HEUTE') { startDate = new Date(); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setHours(23,59,59,999); }
-        else if(timeframe === 'GESTERN') { startDate = new Date(); startDate.setDate(startDate.getDate()-1); startDate.setHours(0,0,0,0); endDate = new Date(); endDate.setDate(endDate.getDate()-1); endDate.setHours(23,59,59,999); }
-        else if(timeframe === 'WOCHE') { startDate = new Date(now.getTime() - 7*24*60*60*1000); }
-        else if(timeframe === 'MONAT') { startDate = new Date(now.getTime() - 30*24*60*60*1000); }
-        else if(timeframe === 'JAHR') { startDate = new Date(now.getTime() - 365*24*60*60*1000); }
-        else if(timeframe === 'ZEITRAUM') { const custom = journalCustomDates[journal.id]; if(custom) { startDate = new Date(custom.start); startDate.setHours(0,0,0,0); endDate = new Date(custom.end); endDate.setHours(23,59,59,999); } }
-        if(startDate) {
-            return jTrades.filter(t => { const d = new Date(t.date); if(endDate) return d >= startDate && d <= endDate; return d >= startDate; }).sort((a,b)=>new Date(a.date)-new Date(b.date));
-        }
-        return jTrades.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    }
-    
-    // --- UPDATED JOURNAL HISTORY FUNCTION ---
-    window.renderHistory = function() {
-        const tbody = document.getElementById('tradeBody');
-        tbody.innerHTML = '';
-        const filtered = trades.filter(t => (t.journal === activeJournal) || (!t.journal && activeJournal === 'Main'));
-        filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
-        
-        tbody.innerHTML = filtered.map(t => {
-            const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
-            const tradeDataString = encodeURIComponent(JSON.stringify(t));
-            const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-            
-            return `<tr>
-                <td><span style="font-weight:bold;">${t.date.split('T')[0]}</span><span class="time-sub">${t.date.split('T')[1]}</span></td>
-                <td>${t.asset}</td>
-                <td class="${pnlClass}" style="text-align:right;">${t.status === 'Aktiv' ? 'OPEN' : t.pnl.toFixed(2)}</td>
-                <td style="text-align:right; white-space:nowrap;">
-                    <button class="btn-icon" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button>
-                    <button class="btn-icon" onclick="window.shareTrade('${t.id}')">🚀</button>
-                    <button class="btn-icon" onclick="window.editTrade('${t.id}')">✎</button>
-                    <button class="btn-icon btn-danger-hover" onclick="window.deleteTrade('${t.id}')">🗑</button>
-                </td>
-            </tr>`;
-        }).join('');
-    };
-
-    // --- CHAT SYSTEM ---
-    function loadChat(channel = 'general') {
-        if (chatListener) chatListener();
-        const chatBox = document.getElementById('chat-messages');
-        chatBox.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">Lade Nachrichten...</div>';
-        isChatFirstLoad = true;
-
-        try {
-            chatListener = db.collection('chat')
-                .where('channel', '==', channel)
-                .onSnapshot({ includeMetadataChanges: true }, snapshot => {
-                    let messages = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                    messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)); 
-                    
-                    chatBox.innerHTML = messages.map(msg => renderMessage(msg)).join('');
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    
-                    // NEW NOTIFICATION LOGIC
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === 'added' && !isChatFirstLoad) {
-                            const msg = change.doc.data();
-                            if (msg.senderId !== auth.currentUser.uid && !document.getElementById('view-Chat').classList.contains('active')) {
-                                showDashboardNotification(msg);
-                            }
-                        }
-                    });
-                    
-                    isChatFirstLoad = false;
-                });
-        } catch(e) { console.error("Chat Error:", e); }
-    }
-
-    function showDashboardNotification(msg) {
-        const area = document.getElementById('dashboard-notification-area');
-        if (document.getElementById(`notify-${msg.timestamp?.seconds}`)) return;
-        
-        const div = document.createElement('div');
-        div.className = 'msg-notification';
-        div.id = `notify-${msg.timestamp?.seconds}`;
-        div.innerHTML = `
-            <div style="flex-grow:1;" onclick="window.showView('Chat'); window.switchChannel('${msg.channel}')">
-                <span style="font-size:0.75rem; color:var(--success); text-transform:uppercase; display:block; margin-bottom:4px;">Neues von ${msg.senderName}</span>
-                <span style="font-weight:normal;">${msg.text.substring(0, 50)}...</span>
-            </div>
-            <button class="chat-close-btn" onclick="this.parentElement.remove()">✕</button>
-        `;
-        area.prepend(div);
-        setTimeout(() => { if(div) div.remove(); }, 10000);
-    }
-
-    window.switchChannel = function(channelId) {
-        currentChatChannel = channelId;
-        document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
-        const activeEl = document.getElementById(channelId.startsWith('dm_') ? channelId : 'ch-' + channelId);
-        if(activeEl) activeEl.classList.add('active');
-        let title = "📢 Allgemein";
-        if(channelId === 'signals') title = "🚀 Signale";
-        if(channelId === 'pro') title = "💎 Pro Signale (Coach)";
-        if(channelId.startsWith('dm_')) title = "📩 Direktnachricht";
-        document.getElementById('chat-channel-title').innerText = title;
-        const inputArea = document.getElementById('chat-input-area');
-        const lockedMsg = document.getElementById('chat-locked-msg');
-        const signalMsg = document.getElementById('chat-signal-msg');
-        inputArea.classList.remove('hidden');
-        lockedMsg.classList.add('hidden');
-        signalMsg.classList.add('hidden');
-        if (channelId === 'pro' && !isAdmin) {
-            inputArea.classList.add('hidden');
-            lockedMsg.classList.remove('hidden');
-        } else if (channelId === 'signals') {
-            inputArea.classList.add('hidden');
-            signalMsg.classList.remove('hidden');
-        }
-        loadChat(channelId);
-    }
-    
-    // --- DM / CHAT REQUEST SYSTEM ---
-    window.openSearchModal = function() {
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('user-search-modal').classList.remove('hidden');
-        document.getElementById('user-search-modal').classList.add('open');
-        document.getElementById('search-user-input').value = '';
-        document.getElementById('search-results').innerHTML = '';
-    }
-
-    window.searchUsers = async function(query) {
-        if(query.length < 3) return;
-        query = query.toLowerCase();
-        const snap = await db.collection('users').get();
-        const results = snap.docs.filter(doc => {
-            const d = doc.data();
-            return d.email && d.email.includes(query) && doc.id !== auth.currentUser.uid;
-        }).slice(0, 5);
-        const list = document.getElementById('search-results');
-        list.innerHTML = results.map(doc => {
-            const d = doc.data();
-            return `<div class="search-res-item">
-                <div><span class="search-res-name">${d.displayName}</span><span class="search-res-email">${d.email}</span></div>
-                <button class="btn-small" onclick="window.sendChatRequest('${doc.id}', '${d.displayName}')">Anfragen</button>
+            return `<div class="msg-wrapper ${isMe ? 'me' : 'other'}">
+                <span class="msg-sender">${isMe ? 'Du' : m.senderName}</span>
+                <div class="msg-bubble">
+                    ${content}
+                    ${(isMe || isAdmin) ? `<button class="chat-del-btn" onclick="window.deleteMsg('${m.id}')">🗑</button>` : ''}
+                </div>
             </div>`;
         }).join('');
-    }
+        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+    });
+}
 
-    window.sendChatRequest = async function(targetUid, targetName) {
-        const myUid = auth.currentUser.uid;
-        const ids = [myUid, targetUid].sort();
-        const chatId = `dm_${ids[0]}_${ids[1]}`;
-        await db.collection('chat_requests').doc(chatId).set({
-            users: [myUid, targetUid],
-            status: 'pending',
-            senderId: myUid,
-            senderName: currentUserName,
-            targetName: targetName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(`Anfrage an ${targetName} gesendet!`);
-        window.closePopup();
-        window.loadDirectMessages(); 
-    }
+window.sendMsg = function() {
+    const txt = document.getElementById('chat-input').value;
+    if(!txt) return;
+    db.collection('chat').add({ text: txt, senderId: currentUser.uid, senderName: currentUser.displayName || 'User', channel: currentChannel, type: 'text', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+    document.getElementById('chat-input').value = '';
+};
 
-    window.loadDirectMessages = function() {
-        if(!auth.currentUser) return;
-        const myUid = auth.currentUser.uid;
-        db.collection('chat_requests').where('users', 'array-contains', myUid).onSnapshot(snapshot => {
-            const list = document.getElementById('dm-list-area');
-            list.innerHTML = '';
-            snapshot.docs.forEach(doc => {
-                const d = doc.data();
-                const chatId = doc.id;
-                const isSender = d.senderId === myUid;
-                const otherName = isSender ? d.targetName : d.senderName;
-                if(d.status === 'accepted') {
-                     // Add Delete Button Logic Here
-                     list.innerHTML += `<div class="channel-item" id="${chatId}" onclick="window.switchChannel('${chatId}')">
-                        <div style="flex-grow:1;"><div class="channel-name">📩 ${otherName}</div></div>
-                        <button class="chat-dm-del-btn" onclick="window.deleteDM('${chatId}', event)">✕</button>
-                     </div>`;
-                } else if(d.status === 'pending') {
-                    if(!isSender) {
-                        list.innerHTML += `<div class="channel-item" style="background:rgba(187,134,252,0.1); flex-direction:column; align-items:start;">
-                            <div style="font-size:0.7rem; color:var(--accent);">Anfrage von:</div>
-                            <div style="font-weight:bold; margin-bottom:5px;">${otherName}</div>
-                            <div style="display:flex; gap:10px; width:100%;">
-                                <button class="btn-small" style="flex:1; border-color:var(--success); color:var(--success);" onclick="window.answerRequest('${chatId}', 'accepted')">✓</button>
-                                <button class="btn-small" style="flex:1; border-color:var(--danger); color:var(--danger);" onclick="window.answerRequest('${chatId}', 'rejected')">✕</button>
-                            </div>
-                        </div>`;
-                    } else {
-                        list.innerHTML += `<div class="channel-item" style="opacity:0.6;"><div><div class="channel-name" style="font-style:italic;">Wartet auf ${otherName}...</div></div></div>`;
-                    }
-                }
-            });
-        });
-    }
+window.deleteMsg = (id) => { if(confirm("Löschen?")) db.collection('chat').doc(id).delete(); };
 
-    window.answerRequest = async function(docId, status) {
-        if(status === 'rejected') {
-            await db.collection('chat_requests').doc(docId).delete(); 
-        } else {
-            await db.collection('chat_requests').doc(docId).update({ status: status });
-        }
-    }
+window.switchChannel = (ch) => {
+    currentChannel = ch;
+    document.querySelectorAll('.channel-item').forEach(e => e.classList.remove('active'));
+    document.getElementById(ch.startsWith('dm') ? ch : 'ch-'+ch).classList.add('active');
+    document.getElementById('chat-title').innerText = ch.startsWith('dm') ? 'Direktnachricht' : (ch==='general'?'Allgemein':(ch==='signals'?'Signale':'Pro'));
     
-    window.deleteDM = async function(chatId, event) {
-        event.stopPropagation();
-        if(confirm("Möchtest du diesen Chat wirklich löschen?")) {
-            await db.collection('chat_requests').doc(chatId).delete();
-            if(currentChatChannel === chatId) window.switchChannel('general');
-        }
-    }
+    const locked = document.getElementById('chat-locked-msg');
+    const input = document.getElementById('chat-input-area');
+    if(ch === 'pro' && !isAdmin) { locked.classList.remove('hidden'); input.classList.add('hidden'); }
+    else { locked.classList.add('hidden'); input.classList.remove('hidden'); }
+    loadChat(ch);
+};
 
-    function renderMessage(msg) {
-        const isMe = msg.senderId === auth.currentUser.uid;
-        const time = formatChatTime(msg.timestamp);
-        let content = `<div class="msg-text">${msg.text || ''}</div>`;
-        let delBtn = isAdmin ? `<button class="chat-del-btn" onclick="window.deleteChatMessage('${msg.id}')">🗑</button>` : '';
-        if (msg.type === 'trade' && msg.tradeData) {
-            const t = msg.tradeData;
-            const statusLabel = t.status === 'Aktiv' ? 'OPEN' : 'CLOSED';
-            const color = t.status === 'Aktiv' ? '#0a84ff' : '#8e8e93';
-            const thumb = msg.sharedImage ? `<img src="${msg.sharedImage}" class="ct-img">` : '';
-            // Encode safely for onclick
-            const tradeStr = encodeURIComponent(JSON.stringify(t));
-            const imgStr = encodeURIComponent(msg.sharedImage || '');
-            content = `<div class="chat-trade-card" onclick="window.openSignalDetail('${tradeStr}', '${imgStr}')"><div class="ct-header"><span>${t.asset}</span><span style="color:${color}">${statusLabel}</span></div><div style="font-size:0.85rem; color:var(--text-sub);">${t.status === 'Aktiv' ? 'Signal 📡' : 'Result 🏁'}</div>${thumb}<div class="ct-footer"><span>${t.date.split('T')[0]}</span> <span>Klicken für Details</span></div></div>`;
-        }
-        return `<div class="msg-wrapper ${isMe ? 'me' : 'other'}"><span class="msg-sender">${isMe ? 'Du' : msg.senderName}</span><div class="msg-bubble">${content}<span class="msg-time">${time}</span>${delBtn}</div></div>`;
-    }
+// --- SHARE ---
+window.startShare = (id) => {
+    shareTargetId = id;
+    document.getElementById('popup-overlay').classList.add('open');
+    document.getElementById('share-channel-modal').classList.remove('hidden');
+    document.getElementById('share-channel-modal').classList.add('open');
+};
 
-    window.sendChatMessage = async function() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-        if(auth.currentUser) {
-             await db.collection('chat').add({ 
-                text: text, 
-                senderName: currentUserName, 
-                senderId: auth.currentUser.uid, 
-                type: 'text', 
-                channel: currentChatChannel,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            input.value = '';
-        } else {
-            alert("Nicht eingeloggt!");
-        }
-    }
-    
-    window.deleteChatMessage = function(id) { msgToDeleteId = id; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); }
-    window.confirmDeleteMessage = async function() { if(msgToDeleteId) { await db.collection('chat').doc(msgToDeleteId).delete(); window.closePopup(); } }
-    window.closeDeleteModal = function() { window.closePopup(); }
-    window.shareTrade = function(id) {
-        shareTradeId = id; shareType = null;
-        const trade = trades.find(t => t.id === id);
-        if(!trade) return;
-        document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected', 'disabled'));
-        if(!trade.imgSetup) document.getElementById('opt-setup').classList.add('disabled');
-        if(!trade.imgResult) document.getElementById('opt-result').classList.add('disabled');
-        const sigDiv = document.getElementById('signal-inputs');
-        if(trade.status === 'Aktiv') {
-            sigDiv.classList.remove('hidden');
-            document.getElementById('sig-entry').value = trade.entry || '';
-            document.getElementById('sig-sl').value = trade.sl || '';
-            document.getElementById('sig-tp1').value = trade.tp1 || '';
-            document.getElementById('sig-tp2').value = trade.tp2 || '';
-            document.getElementById('sig-tp3').value = trade.tp3 || '';
-        } else { sigDiv.classList.add('hidden'); }
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('share-channel-modal').classList.remove('hidden'); 
-        document.getElementById('share-channel-modal').classList.add('open');
-    }
-    
-    window.selectShareChannelTarget = function(channel) {
-        selectedShareChannel = channel;
-        document.getElementById('share-channel-modal').classList.remove('open');
-        document.getElementById('share-channel-modal').classList.add('hidden');
-        document.getElementById('share-modal').classList.remove('hidden'); 
-        document.getElementById('share-modal').classList.add('open');
-    }
+window.selectShareChannel = (ch) => {
+    shareTargetChannel = ch;
+    document.getElementById('share-channel-modal').classList.remove('open');
+    document.getElementById('share-channel-modal').classList.add('hidden');
+    document.getElementById('share-modal').classList.remove('hidden');
+    document.getElementById('share-modal').classList.add('open');
+};
 
-    window.closeShareModal = function() { window.closePopup(); }
-    window.selectShareOption = function(type) {
-        const trade = trades.find(t => t.id === shareTradeId);
-        if(type === 'setup' && !trade.imgSetup) return;
-        if(type === 'result' && !trade.imgResult) return;
-        shareType = type;
-        document.querySelectorAll('.share-opt').forEach(el => el.classList.remove('selected'));
-        document.getElementById('opt-' + type).classList.add('selected');
-    }
-    window.confirmShare = async function() {
-        if(!shareTradeId || !shareType) return alert("Bitte wähle aus, was du teilen möchtest.");
-        if(!selectedShareChannel) selectedShareChannel = 'general'; // Fallback
-        
-        const trade = trades.find(t => t.id === shareTradeId);
-        const tradeCopy = { ...trade }; delete tradeCopy.pnl; delete tradeCopy.userId; 
-        if(trade.status === 'Aktiv') {
-            tradeCopy.entry = document.getElementById('sig-entry').value;
-            tradeCopy.sl = document.getElementById('sig-sl').value;
-            tradeCopy.tp1 = document.getElementById('sig-tp1').value;
-            tradeCopy.tp2 = document.getElementById('sig-tp2').value;
-            tradeCopy.tp3 = document.getElementById('sig-tp3').value;
-        }
-        const sharedImage = shareType === 'setup' ? trade.imgSetup : trade.imgResult;
-        
-        await db.collection('chat').add({ 
-            senderName: currentUserName, 
-            senderId: auth.currentUser.uid, 
-            type: 'trade', 
-            tradeData: tradeCopy, 
-            sharedImage: sharedImage, 
-            channel: selectedShareChannel,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+window.confirmShare = (type) => {
+    const t = trades.find(x => x.id === shareTargetId);
+    if(t) {
+        db.collection('chat').add({
+            type: 'trade', tradeData: t, sharedImage: type === 'setup' ? t.imgSetup : t.imgResult,
+            senderId: currentUser.uid, senderName: currentUser.displayName || 'User',
+            channel: shareTargetChannel, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.closePopup();
         window.showView('Chat');
-        window.switchChannel(selectedShareChannel);
+        window.switchChannel(shareTargetChannel);
     }
-    function renderTradingViewWidget() {
-        const container = document.getElementById('tradingview_chart');
-        if(!container) return;
-        container.innerHTML = '';
-        if (typeof TradingView !== 'undefined') {
-             new TradingView.widget({
-                "autosize": true, "symbol": "FX:EURUSD", "interval": "D", "timezone": "Etc/UTC",
-                "theme": document.body.classList.contains('light-mode') ? "light" : "dark",
-                "style": "1", "locale": "de_DE", "enable_publishing": false, "allow_symbol_change": true,
-                "hide_side_toolbar": false, "save_image": false, "container_id": "tradingview_chart"
-            });
-        }
-    }
-    window.changeCalMonth = function(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
-    function renderCalendar() {
-        if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
-        document.getElementById('cal-filter-hint').innerText = `Journal: ${activeJournal}`;
-        const y = calDate.getFullYear(), m = calDate.getMonth();
-        document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-        const grid = document.getElementById('cal-days-grid'); grid.innerHTML = "";
-        const filtered = trades.filter(t => (t.journal || 'Main').toLowerCase() === activeJournal.toLowerCase());
-        const firstDay = new Date(y, m, 1).getDay(), lastDay = new Date(y, m + 1, 0).getDate();
-        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell" style="opacity:0; cursor:default;"></div>`;
-        for(let d=1; d<=lastDay; d++) {
-            const dateStr = new Date(y, m, d).toDateString();
-            const dayTrades = filtered.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
-            let sum = 0, count = dayTrades.length; dayTrades.forEach(t => sum += t.pnl);
-            let cellClass = 'cal-cell';
-            if(count > 0) { if(sum > 0) cellClass += ' win'; else if(sum < 0) cellClass += ' loss'; }
-            let html = `<div class="cal-date">${d}</div>`;
-            if(count > 0) { html += `<div class="cal-pnl sensitive ${sum>=0?'text-green':'text-red'}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`; }
-            grid.innerHTML += `<div class="${cellClass}" ${count > 0 ? `onclick="window.openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
-        }
-    }
-    window.openDayDetail = function(dateStr) {
-        const d = new Date(dateStr);
-        document.getElementById('dv-date-title').innerText = d.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-        const dayTrades = trades.filter(t => {
-            if((t.journal || 'Main').toLowerCase() !== activeJournal.toLowerCase()) return false;
-            return t.status === 'Geschlossen' && new Date(t.date).toDateString() === d.toDateString();
-        }).sort((a,b)=> new Date(a.date)-new Date(b.date));
-        
-        let sum=0; dayTrades.forEach(t=>sum+=t.pnl);
-        const wins = dayTrades.filter(t=>t.pnl>0).length;
-        const grossLoss = Math.abs(dayTrades.filter(t=>t.pnl<0).reduce((a,b)=>a+b.pnl,0));
-        const pf = grossLoss===0 ? (wins>0?99:0) : (dayTrades.filter(t=>t.pnl>0).reduce((a,b)=>a+b.pnl,0)/grossLoss);
-        
-        document.getElementById('dv-pnl').innerText = (sum<0?'-':'+') + '€' + Math.abs(sum).toFixed(2);
-        document.getElementById('dv-pnl').className = `dv-stat-val sensitive ${sum>=0?'text-green':'text-red'}`;
-        document.getElementById('dv-winrate').innerText = dayTrades.length ? ((wins/dayTrades.length)*100).toFixed(0)+'%' : '0%';
-        document.getElementById('dv-pf').innerText = pf.toFixed(2);
-        document.getElementById('dv-count').innerText = dayTrades.length;
+};
 
-        document.getElementById('dv-list').innerHTML = dayTrades.map(t => {
-            const tradeDataString = encodeURIComponent(JSON.stringify(t));
-            const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-            const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
-            return `<div class="trade-row" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">
-                <div class="tr-date-col"><span class="tr-date">${d.getDate()}.${d.getMonth()+1}</span></div>
-                <div class="tr-sym">${t.asset}</div>
-                <div class="tr-pnl sensitive ${pnlClass}">${t.pnl.toFixed(2)}</div>
-                <div class="tr-arrow">›</div>
-            </div>`;
-        }).join('');
+// --- SETTINGS & ADMIN ---
+window.saveSettings = async function() {
+    await db.collection('users').doc(currentUser.uid).set({
+        allowFeedback: document.getElementById('feedback-toggle').checked
+    }, {merge: true});
+};
 
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('day-detail-view').classList.remove('hidden');
-        document.getElementById('day-detail-view').classList.add('open');
-        
-        const ctxEl = document.getElementById('dayChart');
-        if(ctxEl) {
-             const ctx = ctxEl.getContext('2d'); 
-             if(dayChart) dayChart.destroy();
-             let r=0; const data = dayTrades.map(t=>{r+=t.pnl; return r;});
-             dayChart = new Chart(ctx, { type:'line', data:{ labels:dayTrades.map(t=>''), datasets:[{ data, borderColor: sum >= 0 ? '#00c853' : '#ff453a', borderWidth: 2, fill: true, backgroundColor: sum >= 0 ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 69, 58, 0.1)', tension: 0.1, pointRadius: 0 }] }, options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#333'}}} } });
-        }
-    }
+window.toggleTheme = function(isDark) {
+    document.body.classList.toggle('light-mode', !isDark);
+    localStorage.setItem('tradeTheme', isDark ? 'dark' : 'light');
+};
+
+window.togglePrivacy = function() {
+    privacyMode = !privacyMode;
+    document.documentElement.style.setProperty('--blur', privacyMode ? '5px' : '0px');
+};
+
+async function loadAdminUsers() {
+    const snap = await db.collection('users').get();
+    document.getElementById('admin-user-list').innerHTML = snap.docs.map(d => {
+        const u = d.data();
+        return `<div class="adm-row">
+            <div class="adm-user-info"><div class="adm-pic" style="background:#333;display:flex;justify-content:center;align-items:center;">👤</div>
+            <div class="adm-text"><span class="adm-name">${u.displayName||'User'}</span><span class="adm-email">${u.email}</span></div></div>
+            <button class="btn-icon" onclick="window.openMember('${d.id}', '${u.email}', '${u.displayName}')">👁️</button>
+        </div>`;
+    }).join('');
+}
+
+window.openMember = async function(uid, email, name) {
+    document.getElementById('adm-user-name').innerText = name || 'User';
+    document.getElementById('adm-user-email').innerText = email;
     
-    // Fix: openMemberDetail global and ADMIN DM LOGIC
-    window.openMemberDetail = async function(id, email) {
-        let userDisplayName = "User";
-        try {
-            const userSnap = await db.collection('users').where('email', '==', email).get();
-            if(!userSnap.empty) { userDisplayName = userSnap.docs[0].data().displayName; }
-        } catch(e) {}
-        
-        document.getElementById('adm-detail-name').innerText = userDisplayName;
-        document.getElementById('adm-detail-email').innerText = email;
-        
-        const userSnap = await db.collection('users').where('email', '==', email).get();
-        if(userSnap.empty) { alert("User hat sich noch nie eingeloggt."); return; }
-        const targetUid = userSnap.docs[0].id;
-        targetedMemberUid = targetUid; 
-        
-        const btn = document.getElementById('btn-start-dm');
-        btn.onclick = async function() { 
-            const myUid = auth.currentUser.uid;
-            const ids = [myUid, targetUid].sort();
-            const chatId = `dm_${ids[0]}_${ids[1]}`;
-            await db.collection('chat_requests').doc(chatId).set({
-                users: [myUid, targetUid],
-                status: 'accepted',
-                senderId: myUid,
-                senderName: currentUserName,
-                targetName: userDisplayName,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
-            window.closePopup();
-            window.showView('Chat');
-            window.loadDirectMessages();
-            setTimeout(() => window.switchChannel(chatId), 500); 
-        };
-
-        const uData = userSnap.docs[0].data();
-        if(uData.allowFeedback === false) {
-             document.getElementById('popup-overlay').classList.add('open');
-             document.getElementById('admin-member-modal').classList.remove('hidden');
-             document.getElementById('admin-member-modal').classList.add('open');
-             
-             document.getElementById('adm-content-stats').innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>🔒 Dieser User hat den Zugriff auf seine Trades deaktiviert.</div>";
-             document.getElementById('adm-content-trades').innerHTML = "";
-             document.getElementById('btn-adm-stats').style.display = 'none';
-             document.getElementById('btn-adm-trades').style.display = 'none';
-             document.getElementById('adm-journal-select').style.display = 'none';
-             return;
-        }
-
-        document.getElementById('btn-adm-stats').style.display = 'block';
-        document.getElementById('btn-adm-trades').style.display = 'block';
-        document.getElementById('adm-journal-select').style.display = 'block';
-        
-        const jSnap = await db.collection('journals').where('userId', '==', targetUid).get();
-        inspectedUserJournals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
-        
-        const tSnap = await db.collection('trades').where('userId', '==', targetUid).get();
-        inspectedUserTrades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
-
-        const sel = document.getElementById('adm-journal-select');
-        if(inspectedUserJournals.length === 0) { sel.innerHTML = '<option>Kein Journal</option>'; } 
-        else { sel.innerHTML = inspectedUserJournals.map(j => `<option value="${j.name}">${j.name}</option>`).join(''); }
-        
-        document.getElementById('popup-overlay').classList.add('open');
-        document.getElementById('admin-member-modal').classList.remove('hidden');
-        document.getElementById('admin-member-modal').classList.add('open');
-        
-        document.getElementById('adm-content-stats').innerHTML = `
-             <div class="dv-stats-grid">
-                <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
-                <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
-                <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
-            </div>
-            <div style="height:200px; margin-top:20px;"><canvas id="admChart"></canvas></div>`;
-
-        window.updateAdminMemberView();
+    document.getElementById('btn-adm-dm').onclick = async () => {
+         const chatId = `dm_${[currentUser.uid, uid].sort().join('_')}`;
+         await db.collection('chat_requests').doc(chatId).set({ users: [currentUser.uid, uid], status: 'accepted' }, {merge:true});
+         window.closePopup();
+         window.showView('Chat');
+         loadDMs();
+         setTimeout(()=>window.switchChannel(chatId), 500);
     };
+
+    const tSnap = await db.collection('trades').where('userId', '==', uid).get();
+    const uTrades = tSnap.docs.map(d => ({id:d.id, ...d.data()}));
     
-    window.updateAdminMemberView = function() {
-        const selectedJ = document.getElementById('adm-journal-select').value;
-        let filteredTrades = inspectedUserTrades;
-        if(selectedJ && inspectedUserJournals.length > 0) {
-             const target = selectedJ && selectedJ !== 'Kein Journal' ? selectedJ : inspectedUserJournals[0].name;
-             filteredTrades = inspectedUserTrades.filter(t => (t.journal || 'Main') === target);
-        }
-        
-        const closed = filteredTrades.filter(t => t.status === 'Geschlossen');
-        const sum = closed.reduce((a,b) => a + b.pnl, 0);
-        const wins = closed.filter(t => t.pnl > 0).length;
-        const winrate = closed.length ? ((wins/closed.length)*100).toFixed(0) : 0;
-        
-        const pnlEl = document.getElementById('adm-stat-pnl');
-        if(pnlEl) {
-            pnlEl.innerText = sum.toFixed(2) + ' €';
-            pnlEl.style.color = sum >= 0 ? 'var(--success)' : 'var(--danger)';
-        }
-        const winEl = document.getElementById('adm-stat-win');
-        if(winEl) winEl.innerText = winrate + '%';
-        const cntEl = document.getElementById('adm-stat-count');
-        if(cntEl) cntEl.innerText = closed.length;
-        
-        let bal = 0; const data = closed.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t => { bal += t.pnl; return bal; });
-        const ctxEl = document.getElementById('admChart');
-        if(ctxEl) {
-            const ctx = ctxEl.getContext('2d');
-            if(adminChartInstance) adminChartInstance.destroy();
-            adminChartInstance = new Chart(ctx, { type: 'line', data: { labels: data.map(x=>''), datasets: [{ data: data, borderColor: '#bb86fc', borderWidth: 2, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#333' } } } } });
-        }
-        
-        const listEl = document.getElementById('adm-trade-list');
-        if(listEl) {
-            listEl.innerHTML = filteredTrades.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t => {
-                const tradeDataString = encodeURIComponent(JSON.stringify(t));
-                const imgUrlString = encodeURIComponent(t.imgSetup || t.imgResult || '');
-                return `<tr style="font-size:0.8rem;"><td>${t.date.split('T')[0]}</td><td>${t.asset}</td><td style="text-align:right; color:${t.pnl>=0?'var(--success)':'var(--danger)'}">${t.pnl.toFixed(2)}</td><td style="text-align:right;"><button class="btn-icon" style="padding:4px 8px; font-size:1rem;" onclick="window.openSignalDetail('${tradeDataString}', '${imgUrlString}')">ℹ️</button></td></tr>`;
-            }).join('');
-        }
-    };
+    let pnl = 0; uTrades.forEach(t => { if(t.status==='Geschlossen') pnl += t.pnl; });
+    document.getElementById('adm-content-stats').innerHTML = `<div class="stat-box"><span class="stat-value">${pnl.toFixed(2)}€</span><span class="stat-label">Total PnL</span></div>`;
+    document.getElementById('adm-trade-list').innerHTML = uTrades.map(t => `<tr><td>${t.date.slice(0,10)}</td><td>${t.asset}</td><td>${t.pnl}</td></tr>`).join('');
+
+    document.getElementById('popup-overlay').classList.add('open');
+    document.getElementById('admin-member-modal').classList.remove('hidden');
+    document.getElementById('admin-member-modal').classList.add('open');
+};
+
+function loadDMs() {
+    db.collection('chat_requests').where('users', 'array-contains', currentUser.uid).onSnapshot(snap => {
+        document.getElementById('dm-list').innerHTML = snap.docs.map(d => `<div class="channel-item" id="${d.id}" onclick="window.switchChannel('${d.id}')"><span>📩 Chat</span></div>`).join('');
+    });
+}
+
+// --- HELPERS & INIT ---
+document.getElementById('theme-toggle').checked = localStorage.getItem('tradeTheme') !== 'light';
+window.toggleTheme(document.getElementById('theme-toggle').checked);
+
+window.toggleMenu = function() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); };
+window.closePopup = function() { document.getElementById('popup-overlay').classList.remove('open'); document.querySelectorAll('.modal-base').forEach(el => { el.classList.add('hidden'); el.classList.remove('open'); }); if(detailTradeId) window.closeTradeDetail(); };
+window.closeTradeDetail = function() { document.getElementById('trade-detail-view').classList.remove('open'); document.getElementById('trade-detail-view').classList.add('hidden'); };
+window.showView = function(viewId) { 
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active')); 
+    document.getElementById('view-' + viewId).classList.add('active'); 
+    document.getElementById('view-title').innerText = viewId.toUpperCase();
+    document.querySelectorAll('.nav-drawer button').forEach(b => b.classList.remove('nav-active'));
+    document.getElementById('nav-'+viewId).classList.add('nav-active');
     
-    window.switchAdminTab = function(tab) {
-        document.getElementById('btn-adm-stats').classList.toggle('active', tab==='stats');
-        document.getElementById('btn-adm-trades').classList.toggle('active', tab==='trades');
-        if(tab === 'stats') { 
-            document.getElementById('adm-content-stats').classList.remove('hidden'); 
-            document.getElementById('adm-content-trades').classList.add('hidden'); 
-        } else { 
-            document.getElementById('adm-content-stats').classList.add('hidden'); 
-            document.getElementById('adm-content-trades').classList.remove('hidden'); 
-        }
-    };
+    if(viewId === 'Übersicht') refreshUI();
+    if(viewId === 'Statistik') renderStats(trades.filter(t => t.journal === activeJournal));
+    if(viewId === 'Chat') document.getElementById('nav-Chat').innerHTML = '💬 Chat';
+    
+    toggleMenu(); 
+};
+
+window.prepareCreateView = function() { 
+    document.getElementById('editId').value = ""; document.getElementById('assetInput').value = ""; document.getElementById('pnl').value = ""; document.getElementById('note').value = ""; document.getElementById('inpEntry').value = ""; document.getElementById('inpSL').value = ""; document.getElementById('inpTP1').value = ""; document.getElementById('inpTP2').value = ""; document.getElementById('inpTP3').value = ""; 
+    document.getElementById('datetime').value = new Date().toISOString().slice(0,16); 
+    document.getElementById('inpJournalSelect').value = activeJournal; 
+    window.toggleFormFields(); 
+    document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open'); 
+    document.getElementById('popup-overlay').classList.add('open'); document.getElementById('form-title').innerText="Neuer Trade";
+};
+window.toggleFormFields = function() { const s = document.getElementById('status').value; document.getElementById('closedFields').classList.toggle('hidden', s === 'Aktiv'); };
+window.saveTrade = async function() { 
+    try {
+        const id = document.getElementById('editId').value; 
+        const asset = document.getElementById('assetInput').value.toUpperCase(); 
+        if(!asset) return alert("Asset fehlt!"); 
+        const data = { userId: currentUser.uid, date: document.getElementById('datetime').value, asset: asset, journal: document.getElementById('inpJournalSelect').value, status: document.getElementById('status').value, pnl: parseFloat(document.getElementById('pnl').value) || 0, imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value, note: document.getElementById('note').value, entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value, tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value }; 
+        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data); 
+        await loadData(); window.closePopup(); 
+    } catch(e) { console.error(e); alert("Fehler beim Speichern"); }
+};
+window.editTrade = function(id, closeNow) { 
+    const t = trades.find(x => x.id === id); if(!t) return;
+    document.getElementById('editId').value = t.id; document.getElementById('datetime').value = t.date; document.getElementById('assetInput').value = t.asset; document.getElementById('inpJournalSelect').value = t.journal || activeJournal; 
+    document.getElementById('status').value = closeNow ? 'Geschlossen' : t.status; document.getElementById('pnl').value = t.pnl; document.getElementById('imgSetup').value = t.imgSetup || ''; document.getElementById('imgResult').value = t.imgResult || ''; document.getElementById('note').value = t.note || ''; document.getElementById('inpEntry').value = t.entry || ''; document.getElementById('inpSL').value = t.sl || ''; document.getElementById('inpTP1').value = t.tp1 || ''; document.getElementById('inpTP2').value = t.tp2 || ''; document.getElementById('inpTP3').value = t.tp3 || ''; 
+    document.getElementById('form-title').innerText="Bearbeiten"; window.toggleFormFields(); 
+    document.getElementById('trade-form-modal').classList.remove('hidden'); document.getElementById('trade-form-modal').classList.add('open'); document.getElementById('popup-overlay').classList.add('open'); 
+};
+window.askDelete = function(id) { deleteTargetId = id; document.getElementById('popup-overlay').classList.add('open'); document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('delete-modal').classList.add('open'); };
+window.confirmDelete = async function() { if(deleteTargetId) await db.collection('trades').doc(deleteTargetId).delete(); window.closePopup(); loadData(); };
+window.calcLots = function() { const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value); if(bal && r && ent && sl) { const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000); document.getElementById('cRes').innerHTML = `<div style="font-size:2rem;">${Math.max(lot,0.01).toFixed(2)} Lot</div><div style="font-size:0.9rem; color:#888;">Risk: ${riskAmt.toFixed(2)}€</div>`; } };
+window.updateContractSize = function() { const val = document.getElementById('cType').value; if(val !== 'custom') document.getElementById('cContract').value = val; };
+
+function renderStats(jTrades) {
+    if(assetChartInstance) assetChartInstance.destroy();
+    if(weekdayChartInstance) weekdayChartInstance.destroy();
+    
+    const assetMap = {}; jTrades.forEach(t => { if(t.status==='Geschlossen') assetMap[t.asset] = (assetMap[t.asset]||0) + t.pnl; });
+    const assets = Object.keys(assetMap);
+    assetChartInstance = new Chart(document.getElementById('assetChart'), { type: 'bar', data: { labels: assets, datasets: [{ label: 'PnL', data: assets.map(a=>assetMap[a]), backgroundColor: '#bb86fc' }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#222'}}} } });
+
+    const dayMap = [0,0,0,0,0,0,0]; jTrades.forEach(t => { if(t.status==='Geschlossen') dayMap[new Date(t.date).getDay()] += t.pnl; });
+    weekdayChartInstance = new Chart(document.getElementById('weekdayChart'), { type: 'bar', data: { labels: ['So','Mo','Di','Mi','Do','Fr','Sa'], datasets: [{ label: 'PnL', data: dayMap, backgroundColor: '#00c853' }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#222'}}} } });
+}
 </script>
 </body>
 </html>
