@@ -8,337 +8,54 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
     <style>
-        /* --- ORIGINAL THEMES & COLORS --- */
-        :root { 
-            --bg-dark: #050505; 
-            --card-bg: #121212; 
-            --cell-bg: #1e1e1e;
-            --text-main: #e0e0e0; 
-            --text-sub: #888;
-            --accent: #bb86fc; 
-            --success: #00c853; 
-            --danger: #ff3d00; 
-            --border: #2c2c2c; 
-            --blur: 0px;
-            --popup-bg: #1a1a1a; 
-            
-            /* WHATSAPP STYLE COLORS (DARK) */
-            --wa-bg: #0b141a;
-            --wa-header: #202c33;
-            --wa-bubble-in: #202c33;
-            --wa-bubble-out: #005c4b;
-            --wa-input-bg: #2a3942;
-            --wa-tick: #53bdeb;
-        }
-        body.light-mode {
-            --bg-dark: #f0f2f5; --card-bg: #ffffff; --cell-bg: #e4e6eb; 
-            --text-main: #1c1e21; --text-sub: #65676b;
-            --accent: #6200ee; --border: #ddd;
-            --popup-bg: #ffffff;
-            --wa-bg: #efe7dd; --wa-header: #f0f2f5; --wa-bubble-in: #ffffff;
-            --wa-bubble-out: #dcf8c6; --wa-input-bg: #ffffff;
-        }
-
-        /* --- GLOBAL --- */
+        :root { --bg-dark: #050505; --card-bg: #121212; --cell-bg: #1e1e1e; --text-main: #e0e0e0; --text-sub: #888; --accent: #bb86fc; --success: #00c853; --danger: #ff3d00; --border: #2c2c2c; --blur: 0px; --popup-bg: #1a1a1a; --wa-bg: #0b141a; --wa-header: #202c33; --wa-bubble-in: #202c33; --wa-bubble-out: #005c4b; --wa-input-bg: #2a3942; --wa-tick: #53bdeb; }
+        body.light-mode { --bg-dark: #f0f2f5; --card-bg: #ffffff; --cell-bg: #e4e6eb; --text-main: #1c1e21; --text-sub: #65676b; --accent: #6200ee; --border: #ddd; --popup-bg: #ffffff; --wa-bg: #efe7dd; --wa-header: #f0f2f5; --wa-bubble-in: #ffffff; --wa-bubble-out: #dcf8c6; --wa-input-bg: #ffffff; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-dark); margin: 0; color: var(--text-main); padding-bottom: 80px; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none !important; }
-        .view-section { display: none; animation: fadeIn 0.3s; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* --- HEADER --- */
+        .view-section { display: none; animation: fadeIn 0.3s; } .view-section.active { display: block; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-dark); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .menu-btn { cursor: pointer; font-size: 2rem; color: var(--text-main); background: none; border: none; padding: 0; margin-right: 15px; }
-        #view-title { font-weight: 700; font-size: 1.2rem; }
-        .sensitive { filter: blur(var(--blur)); transition: filter 0.3s; }
-
-        /* --- TOGGLE SWITCH --- */
-        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent); }
-        input:checked + .slider:before { transform: translateX(26px); }
-
-        /* --- NAV DRAWER --- */
-        #menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; display: none; backdrop-filter: blur(2px); }
-        #menu-overlay.open { display: block; }
-        .nav-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 10px; padding-bottom: 50px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
-        .nav-drawer.open { left: 0; }
-        .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1.1rem; transition: 0.2s; border-bottom:1px solid rgba(255,255,255,0.03); }
-        .nav-drawer button:hover { background: rgba(255,255,255,0.05); }
-        .nav-active { border-left: 4px solid var(--accent); background: rgba(187, 134, 252, 0.1) !important; color:var(--accent) !important; font-weight:bold; }
-        .nav-separator { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 20px; display:block; }
-        .nav-selector-container { padding: 15px 25px; }
-        .nav-selector-label { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; display: block; font-weight: bold; letter-spacing: 1px; }
-        #navJournalSelect { width: 100%; padding: 12px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; cursor: pointer; font-size:1rem; }
-
-        /* --- DASHBOARD & GENERAL --- */
-        .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
-        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
-        #user-greeting-name { font-size: 1em; color: var(--accent); }
-        .greet-container h2 { margin: 0; font-size: 3.5rem; font-weight: 900; line-height: 1.1; letter-spacing: -1px; }
-        
-        #dashboard-notification-area { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .feedback-notification { background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(187,134,252,0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
-        .chat-notification { background: rgba(10, 132, 255, 0.2); border: 1px solid #0a84ff; color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; animation: fadeIn 0.5s; display: flex; align-items: center; justify-content: space-between; font-weight: bold; }
-
-        .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; animation: fadeIn 0.4s; display: flex; flex-direction: column; position: relative; }
-        .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .jfc-title { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; }
-        .jfc-body-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; }
-        .jfc-chart-area { position: relative; height: 300px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid var(--border); padding: 10px; }
-        .jfc-sidebar { display: flex; flex-direction: column; gap: 15px; }
-        .jfc-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
-        .stat-label { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 1.1rem; font-weight: 800; }
-        .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; display: flex; flex-direction: column; min-height: 120px; }
-        .ot-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .loss-warning { background: rgba(255, 61, 0, 0.15); border-left: 4px solid var(--danger); color: var(--danger); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; margin: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
-        .ot-thumb { width: 30px; height: 20px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); margin-left: 8px; vertical-align: middle; }
-        .card-filters { display: flex; gap: 5px; padding: 10px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .filter-pill { padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-sub); border: 1px solid transparent; background: transparent; transition: 0.2s; white-space: nowrap; text-transform: uppercase; }
-        .filter-pill.active { background: rgba(187, 134, 252, 0.15); color: var(--accent); border-color: var(--accent); }
-
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; } .switch input { opacity: 0; width: 0; height: 0; } .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--accent); } input:checked + .slider:before { transform: translateX(26px); }
+        .nav-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--card-bg); border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 10px; padding-bottom: 50px; overflow-y: auto; display: flex; flex-direction: column; } .nav-drawer.open { left: 0; } .nav-drawer button { display: block; width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1.1rem; border-bottom:1px solid rgba(255,255,255,0.03); } .nav-active { border-left: 4px solid var(--accent); background: rgba(187, 134, 252, 0.1) !important; color:var(--accent) !important; font-weight:bold; }
+        #menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; display: none; backdrop-filter: blur(2px); } #menu-overlay.open { display: block; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 15px; } .card { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .journal-full-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 30px; overflow: hidden; display: flex; flex-direction: column; } .jfc-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; } .jfc-body-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; } .jfc-chart-area { position: relative; height: 300px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid var(--border); padding: 10px; } .jfc-sidebar { display: flex; flex-direction: column; gap: 15px; } .stat-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px 10px; text-align: center; } .open-trades-box { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; flex-grow: 1; padding: 15px; } .ot-list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         @media (max-width: 768px) { .jfc-body-grid { grid-template-columns: 1fr; } .jfc-chart-area { height: 220px; } }
-
-        /* --- POPUPS & MODALS --- */
-        #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
-        #popup-overlay.open { display: flex; opacity: 1; }
-        .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; transition: all 0.3s; }
-        
-        #day-detail-view, #admin-member-modal, #trade-detail-view, #trade-form-modal, #add-contact-modal { background: #000000 !important; color: #ffffff !important; border: 1px solid #333; z-index: 1000; }
-        
-        .dv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .dv-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .dv-stat-item { display: flex; flex-direction: column; }
-        .dv-stat-label { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 4px; }
-        .dv-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
-        .closed-trades-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; margin-top: 10px; color: #ffffff !important; }
-        
-        /* TRADE DETAIL NEW STYLE (LIST) */
-        .td-hero { text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #333; }
-        .td-asset { font-size: 1.8rem; font-weight: 800; color: white; display:block; }
-        .td-pnl { font-size: 3rem; font-weight: 900; margin-top: 5px; display:block; }
-        
-        .td-value-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .td-row { display: flex; justify-content: space-between; align-items: center; background: #151517; padding: 12px 15px; border-radius: 8px; border: 1px solid #2c2c2e; }
-        .td-row-label { color: #888; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
-        .td-row-val-group { display:flex; align-items:center; gap:10px; }
-        .td-row-val { color: white; font-family: monospace; font-size: 1rem; font-weight: bold; }
-        .td-copy-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--accent); padding: 5px; line-height:1; }
-        .td-copy-btn:hover { color: #fff; }
-
-        .td-note-box { background: #151517; padding: 15px; border-radius: 12px; border: 1px solid #2c2c2e; margin-bottom: 20px; font-style: italic; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
-        .td-img-box { margin-bottom: 15px; }
-        .td-img-label { display: block; color: var(--accent); font-weight: bold; font-size: 0.8rem; margin-bottom: 5px; }
-        .td-img-thumb { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #333; cursor: pointer; transition: opacity 0.2s; margin-top:5px; }
-        .td-img-thumb:hover { opacity: 0.8; }
-        
-        /* --- WHATSAPP STYLE CHAT --- */
-        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--wa-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: relative; }
-        .chat-lobby { height: 100%; display: flex; flex-direction: column; background: var(--card-bg); }
-        .cl-header { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; background: var(--wa-header); display:flex; justify-content:space-between; align-items:center; }
-        .cl-list { overflow-y: auto; flex-grow: 1; }
-        .cl-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer; transition: 0.2s; gap: 15px; }
-        .cl-item:hover { background: rgba(255,255,255,0.05); }
-        .cl-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; flex-shrink: 0; }
-        .cl-info { display: flex; flex-direction: column; flex-grow: 1; }
-        .cl-name { font-weight: bold; font-size: 1rem; margin-bottom: 4px; display:flex; align-items:center; gap:5px; }
-        .cl-last { font-size: 0.8rem; color: var(--text-sub); }
-        
-        .chat-room { display: flex; flex-direction: column; height: 100%; background: var(--wa-bg); }
-        .cr-header { padding: 10px 15px; background: var(--wa-header); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-        .cr-back-btn { background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; padding: 5px; }
-        .cr-title { font-weight: bold; font-size: 1rem; }
-        
-        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
-        .chat-input-area { padding: 10px 15px; background: var(--wa-header); display: flex; gap: 10px; align-items: center; }
-        .chat-input-field { background: var(--wa-input-bg); border: none; padding: 12px 15px; border-radius: 20px; color: var(--text-main); width: 100%; font-size: 0.95rem; }
-        .chat-input-field:focus { outline: none; }
-        .chat-send-btn { background: var(--success); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2rem; flex-shrink: 0; }
-        
-        .msg-wrapper { max-width: 80%; display: flex; flex-direction: column; position: relative; margin-bottom: 2px; }
-        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
-        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
-        
-        .msg-bubble { padding: 6px 7px 8px 9px; border-radius: 7.5px; font-size: 0.95rem; line-height: 19px; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); word-wrap: break-word; min-width: 80px; }
-        .msg-wrapper.me .msg-bubble { background: var(--wa-bubble-out); color: #fff; border-top-right-radius: 0; }
-        .msg-wrapper.other .msg-bubble { background: var(--wa-bubble-in); color: var(--text-main); border-top-left-radius: 0; }
-        
-        .msg-sender-name { font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 4px; display: block; }
-        .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 2px; }
-        .msg-time { font-size: 0.65rem; color: rgba(255,255,255,0.6); }
-
-        .chat-trade-card { background: rgba(0,0,0,0.4); border-radius: 6px; padding: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); max-width: 260px; }
-        .ct-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .ct-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-top: 10px; pointer-events: none; }
-        
-        /* FEEDBACK ADMIN ITEM */
-        .feedback-item { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 10px; }
-        .fb-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px; }
-        .fb-type { font-weight: bold; color: var(--accent); text-transform: uppercase; }
-        .fb-text { font-size: 0.95rem; line-height: 1.4; color: var(--text-main); }
-        .fb-del { border:1px solid #333; background:none; color:#888; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:0.8rem; }
-        .fb-del:hover { color: var(--danger); border-color:var(--danger); }
-
-        /* --- UTILS --- */
-        .text-green { color: var(--success) !important; }
-        .text-red { color: var(--danger) !important; }
-        input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
-        .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; }
-        .btn-icon, .btn-small, .chart-btn, .icon-btn { padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
-        .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .stats-grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .chart-card { height: 300px; padding: 10px; position: relative; }
-        .full-width { grid-column: span 2; }
-        @media (max-width: 768px) { .stats-grid-view { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
-        
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-cell { background: var(--cell-bg); border-radius: 6px; aspect-ratio: 1/0.85; position: relative; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
-        .cal-cell.win { background: rgba(0, 200, 83, 0.15); border: 1px solid rgba(0, 200, 83, 0.3); }
-        .cal-cell.loss { background: rgba(255, 61, 0, 0.15); border: 1px solid rgba(255, 61, 0, 0.3); }
-        .cal-date { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-sub); }
-        .cal-pnl { position: absolute; bottom: 16px; width: 100%; text-align: center; font-size: 0.65rem; font-weight: bold; }
-        .cal-trades { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 0.55rem; color: var(--text-sub); }
-        
-        .hist-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-main); }
-        .hist-table th { text-align: left; padding: 15px 10px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-weight: 600; }
-        .hist-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-main); }
-        .time-sub { display: block; font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
-
-        .signal-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
-        .input-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        @media (max-width: 600px) { .input-row-2, .input-row-3 { grid-template-columns: 1fr; gap:0; } }
-
-        /* --- NEU: LOCK STYLES --- */
+        /* Chat Styles */
+        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: var(--wa-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; } .chat-lobby { height: 100%; display: flex; flex-direction: column; background: var(--card-bg); } .cl-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer; gap: 15px; } .cl-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; } .chat-room { display: flex; flex-direction: column; height: 100%; background: var(--wa-bg); } .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; } .msg-bubble { padding: 6px 9px; border-radius: 7.5px; font-size: 0.95rem; max-width: 80%; word-wrap: break-word; } .msg-wrapper.me { align-self: flex-end; } .msg-wrapper.me .msg-bubble { background: var(--wa-bubble-out); color: #fff; } .msg-wrapper.other { align-self: flex-start; } .msg-wrapper.other .msg-bubble { background: var(--wa-bubble-in); color: var(--text-main); } .chat-trade-card { background: rgba(0,0,0,0.4); border-radius: 6px; padding: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); max-width: 260px; } .ct-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-top: 10px; }
+        /* Utils */
+        input, select, textarea { background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; box-sizing: border-box; } .btn-primary { background: var(--accent); color: black; padding: 15px; border: none; font-weight: 800; border-radius: 8px; width: 100%; cursor: pointer; } .btn-small, .btn-icon { padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--cell-bg); color: var(--text-main); cursor: pointer; } .text-green { color: var(--success); } .text-red { color: var(--danger); }
+        .modal-base { width: 95%; max-width: 500px; background: var(--popup-bg); color: var(--text-main); border-radius: 16px; border: 1px solid var(--border); padding: 20px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; } #popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; display: none; justify-content: center; align-items: center; } #popup-overlay.open { display: flex; }
+        /* NEW STYLES */
         .lock-icon { font-size: 0.9rem; margin-left: 8px; vertical-align: middle; }
         .access-denied-box { text-align: center; padding: 50px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; }
-        .access-denied-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.8; }
-
-        /* --- NEU: ADMIN PANEL STYLES --- */
-        .adm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media(max-width: 600px) { .adm-grid { grid-template-columns: 1fr; } }
-        .adm-col-test { background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 8px; padding: 10px; }
-        .adm-col-pro { background: rgba(0, 200, 83, 0.05); border: 1px solid rgba(0, 200, 83, 0.3); border-radius: 8px; padding: 10px; }
-        .adm-card { background: var(--cell-bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 0.85rem; }
-        .adm-actions { display: flex; gap: 5px; margin-top: 5px; }
+        .adm-user-card { background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .settings-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--cell-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .auth-tab-btn { flex: 1; padding: 10px; background: none; border: none; color: #888; border-bottom: 2px solid transparent; cursor: pointer; } .auth-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="popup-overlay" onclick="if(event.target === this) closePopup()">
-    <div id="trade-form-modal" class="modal-base hidden">
-        <div class="dv-header">
-            <span class="popup-title" id="form-title">Neuer Trade</span>
-            <button class="popup-close" onclick="closePopup()">✕</button>
-        </div>
-        <div id="trade-limit-warning" class="hidden" style="color:var(--danger); font-size:0.9rem; font-weight:bold; margin-bottom:15px; padding:10px; border:1px solid var(--danger); border-radius:8px;">
-            ⚠️ Test-Phase Limit erreicht (5 Trades). <br>Upgrade auf Cloud Trade Pro für unbegrenzte Trades.
+<div id="auth-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); display:flex; justify-content:center; align-items:center; z-index:1000;">
+    <div class="card" style="text-align: center; width: 320px; border: 1px solid var(--accent);">
+        <h2 style="color: var(--accent); letter-spacing: 2px; margin-bottom: 20px;">TRADECLOUD</h2>
+        <div style="display:flex; margin-bottom:15px; border-bottom:1px solid #333;">
+            <button class="auth-tab-btn active" onclick="switchAuthMode('login')" id="tab-login">Login</button>
+            <button class="auth-tab-btn" onclick="switchAuthMode('register')" id="tab-register">Registrieren</button>
         </div>
         
-        <div id="trade-form-content">
-            <input type="hidden" id="editId">
-            <label>Journal</label><select id="inpJournalSelect"></select>
-            <label>Status</label><select id="status" onchange="toggleFormFields()"><option value="Aktiv">Laufend (Offen)</option><option value="Geschlossen">Geschlossen</option></select>
-            <label>Asset</label><input type="text" id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
-            <label>Datum</label><input type="datetime-local" id="datetime">
-            
-            <div class="input-row-2">
-                <div><label>Entry</label><input type="number" id="inpEntry" step="any"></div>
-                <div><label>Stop Loss</label><input type="number" id="inpSL" step="any"></div>
-            </div>
-            <div class="input-row-3">
-                <div><label>TP 1</label><input type="number" id="inpTP1" step="any"></div>
-                <div><label>TP 2</label><input type="number" id="inpTP2" step="any"></div>
-                <div><label>TP 3</label><input type="number" id="inpTP3" step="any"></div>
-            </div>
-
-            <label>Setup (Bild Link)</label>
-            <div style="display:flex; gap:10px;">
-                <input type="url" id="imgSetup" placeholder="Rechtsklick auf TV Bild -> Bildadresse kopieren" style="margin-bottom:0;">
-                <button onclick="runOCR()" class="btn-icon" style="width:50px; font-size:1.2rem;" title="Daten aus Bild lesen">🪄</button>
-            </div>
-            <div id="ocr-status" style="font-size:0.75rem; color:var(--accent); margin-bottom:12px; margin-top:5px; min-height:1rem;"></div>
-
-            <label>Notiz</label><textarea id="note" rows="2"></textarea>
-            
-            <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (€)</label><input type="number" id="pnl" step="0.01"><label>Result (Bild Link)</label><input type="url" id="imgResult"></div>
-            
-            <div id="admin-feedback-container" class="hidden" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-                <label style="color:var(--accent);">👨‍🏫 Coach Feedback (Admin)</label>
-                <textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent);" placeholder="Tipp für den User..."></textarea>
-            </div>
-
-            <button onclick="saveTrade()" class="btn-primary" style="margin-top:15px;">SPEICHERN</button>
-        </div>
-    </div>
-    
-    <div id="day-detail-view" class="modal-base hidden">
-        <div class="dv-header"><div id="dv-date-title" style="font-weight:700;">Date</div><button onclick="closePopup()">✕</button></div>
-        <div style="padding-bottom:20px; border-bottom:1px solid #2c2c2e; margin-bottom:20px;"><div style="height:180px;"><canvas id="dayChart"></canvas></div></div>
-        <div class="dv-stats-grid">
-            <div class="dv-stat-item"><span class="dv-stat-label">PnL</span><span id="dv-pnl" class="dv-stat-val sensitive">-</span></div>
-            <div class="dv-stat-item"><span class="dv-stat-label">Win rate</span><span id="dv-winrate" class="dv-stat-val">-</span></div>
-            <div class="dv-stat-item"><span class="dv-stat-label">Profit factor</span><span id="dv-pf" class="dv-stat-val">-</span></div>
-            <div class="dv-stat-item"><span class="dv-stat-label">Trades count</span><span id="dv-count" class="dv-stat-val">-</span></div>
-        </div>
-        <div class="closed-trades-title">Closed Trades</div>
-        <div id="dv-list"></div>
-    </div>
-
-    <div id="trade-detail-view" class="modal-base hidden">
-        <div class="dv-header"><button onclick="closeTradeDetail()" style="background:none; border:none; color:#0a84ff;">❮ Back</button><div style="font-weight:700;">Trade Details</div><div style="width:40px;"></div></div>
-        <div id="td-content"></div>
-    </div>
-    
-    <div id="delete-modal" class="modal-base hidden" style="text-align:center;">
-        <h3>Löschen?</h3><p>Kann nicht rückgängig gemacht werden.</p>
-        <button onclick="confirmDeleteMessage()" class="btn-primary" style="background:var(--danger);">Löschen</button>
-    </div>
-    
-    <div id="add-contact-modal" class="modal-base hidden">
-        <div class="dv-header"><span class="popup-title">Kontakt</span><button onclick="closePopup()">✕</button></div>
-        <input type="text" id="contact-search-input" placeholder="Name..." onkeyup="searchUsers()">
-        <div id="contact-search-results"></div>
-    </div>
-    
-    <div id="share-modal" class="modal-base hidden">
-        <div class="dv-header"><span class="popup-title">Trade Teilen</span><button onclick="closePopup()">✕</button></div>
-        <select id="share-channel" style="margin-bottom:15px;" onchange="toggleShareTarget()">
-            <option value="public">🌍 Public Chat</option>
-            <option value="signals">📡 Signale (Nur Trades)</option>
-            <option value="pro_signal">🚀 Pro Signal (Admin only)</option>
-            <option value="private">👤 An Kontakt senden</option>
-        </select>
-        <div id="share-private-container" class="hidden" style="margin-bottom:15px;">
-            <label style="font-size:0.8rem; color:var(--text-sub);">KONTAKT</label>
-            <select id="share-private-user"></select>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:5px;">
-            <div id="opt-setup" class="share-opt" onclick="selectShareOption('setup')"><span>📷</span> <span>Setup Chart</span></div>
-            <div id="opt-result" class="share-opt" onclick="selectShareOption('result')"><span>🏁</span> <span>Ergebnis Chart</span></div>
-        </div>
-        <div id="signal-inputs" class="signal-input-grid hidden">
-            <input type="number" id="sig-entry" placeholder="Entry">
-            <input type="number" id="sig-sl" placeholder="SL">
-            <input type="number" id="sig-tp1" placeholder="TP 1">
-        </div>
-        <button onclick="confirmShare()" class="btn-primary" style="margin-top:10px;">Senden</button>
-    </div>
-</div>
-
-<div id="auth-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:center; z-index:1000;">
-    <div class="card" style="text-align: center; width: 300px; border: 1px solid var(--accent);">
-        <h2 style="color: var(--accent); letter-spacing: 2px;">TRADECLOUD</h2>
-        <button onclick="loginGoogle()" class="btn-primary">LOGIN</button>
+        <input type="email" id="auth-email" placeholder="E-Mail" style="margin-bottom:10px;">
+        <input type="password" id="auth-pass" placeholder="Passwort" style="margin-bottom:20px;">
+        
+        <button onclick="handleAuthAction()" class="btn-primary" id="btn-auth-action">ANMELDEN</button>
+        <div style="margin: 15px 0; color: #666; font-size: 0.8rem;">ODER</div>
+        <button onclick="auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())" class="btn-small" style="width:100%; padding:12px;">Google Login</button>
+        
+        <p id="auth-error" style="color:var(--danger); font-size:0.8rem; margin-top:10px;"></p>
     </div>
 </div>
 
@@ -348,7 +65,7 @@
         <div id="view-title">DASHBOARD</div>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
-        <span id="status-badge" style="font-size:0.7rem; padding:4px 8px; border-radius:4px; font-weight:bold;"></span>
+        <span id="status-badge" style="font-size:0.7rem; padding:4px 8px; border-radius:4px; font-weight:bold;">TEST</span>
         <button class="btn-icon" style="padding:8px; font-size:1.2rem; border:none; background:none;" onclick="togglePrivacy()">👁️</button>
     </div>
 </header>
@@ -357,22 +74,18 @@
 
 <nav class="nav-drawer" id="navDrawer">
     <div style="text-align:right; padding:10px 20px;"><button class="btn-icon" onclick="toggleMenu()" style="border:none;background:none;font-size:1.5rem;color:var(--text-sub);">✕</button></div>
-    
     <button onclick="showView('Übersicht')" id="btn-Übersicht">🏠 Dashboard</button>
     <button onclick="prepareCreateView()" style="color:var(--accent);">➕ Neuer Trade</button>
     <button onclick="showView('Chat')" id="btn-Chat">💬 Chat <span id="lock-Chat" class="lock-icon hidden">🔒</span></button>
-    
     <div class="nav-separator"></div>
     <div class="nav-selector-container"><label class="nav-selector-label">JOURNAL ⌄</label><select id="navJournalSelect" onchange="changeActiveJournal(this.value)"></select></div>
     <button onclick="showView('Kalender')" id="btn-Kalender">📅 Kalender</button>
     <button onclick="showView('Statistik')" id="btn-Statistik">📈 Statistik</button>
     <button onclick="showView('Historie')" id="btn-Historie">📜 Journal</button>
-    
     <div class="nav-separator"></div>
     <button onclick="showView('TradingView')" id="btn-TradingView">📈 Chart <span id="lock-TradingView" class="lock-icon hidden">🔒</span></button>
     <button onclick="showView('Lot Rechner')" id="btn-Lot Rechner">📊 Lot Rechner <span id="lock-Lot Rechner" class="lock-icon hidden">🔒</span></button>
     <button onclick="showView('News')" id="btn-News">📰 News <span id="lock-News" class="lock-icon hidden">🔒</span></button>
-    
     <div class="nav-separator"></div>
     <button onclick="showView('Einstellungen')" id="btn-Einstellungen">⚙️ Einstellungen</button>
     <button onclick="showView('Feedback')" id="btn-Feedback">📣 Feedback</button>
@@ -381,13 +94,10 @@
 </nav>
 
 <div id="app-content" class="container hidden">
-    
     <section id="view-Übersicht" class="view-section active">
         <div class="greet-container" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2 style="margin:0;">Hallo <span id="user-greeting-name">Trader</span> 👋</h2>
-            <button onclick="prepareCreateView()" class="btn-primary" style="width:auto; padding: 10px 20px; margin:0; font-size:0.8rem;">+ NEUER TRADE</button>
         </div>
-        <div id="dashboard-notification-area"></div>
         <div id="dashboard-journals-list"></div>
     </section>
     
@@ -399,8 +109,6 @@
                     <div class="cl-item" onclick="enterChat('public', '🌍 Public Chat')"><div class="cl-avatar" style="background:#2a9d8f;">🌍</div><div class="cl-info"><div class="cl-name">Public Chat</div></div></div>
                     <div class="cl-item" onclick="enterChat('signals', '📡 Signale')"><div class="cl-avatar" style="background:#e9c46a; color:black;">📡</div><div class="cl-info"><div class="cl-name">Signale</div></div></div>
                     <div class="cl-item" onclick="enterChat('pro_signal', '🚀 Pro Signal')"><div class="cl-avatar" style="background:#e76f51;">🚀</div><div class="cl-info"><div class="cl-name">Pro Signal</div></div></div>
-                    <div id="friend-requests-area"></div>
-                    <div style="padding:10px 15px; font-size:0.8rem; color:var(--text-sub); font-weight:bold; margin-top:10px;">KONTAKTE</div>
                     <div id="chat-user-list"></div>
                 </div>
             </div>
@@ -408,21 +116,9 @@
                 <div class="cr-header"><button class="cr-back-btn" onclick="leaveChat()">❮</button><div class="cr-title" id="chat-room-title">Chat</div></div>
                 <div id="chat-messages" class="chat-messages"></div>
                 <div id="chat-input-area" class="chat-input-area">
-                    <input type="text" id="chat-input" class="chat-input-field" placeholder="Nachricht schreiben..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <input type="text" id="chat-input" class="chat-input-field" placeholder="Nachricht..." onkeypress="if(event.key==='Enter') sendChatMessage()">
                     <button onclick="sendChatMessage()" class="chat-send-btn">➤</button>
                 </div>
-            </div>
-        </div>
-    </section>
-    
-    <section id="view-Feedback" class="view-section">
-        <div class="card">
-            <h3>📣 Feedback</h3>
-            <div id="user-feedback-form">
-                <p style="color:var(--text-sub); font-size:0.9rem; margin-bottom:20px;">Support & Vorschläge.</p>
-                <select id="fb-type"><option value="Allgemein">Allgemein</option><option value="Bug">Fehler / Bug</option><option value="Feature">Feature Wunsch</option></select>
-                <textarea id="fb-text" rows="5" placeholder="Deine Nachricht..."></textarea>
-                <button onclick="sendGeneralFeedback()" class="btn-primary" style="margin-top:15px;">Absenden</button>
             </div>
         </div>
     </section>
@@ -431,79 +127,87 @@
          <div id="tradingview_chart" style="height:100%; width:100%; border-radius: 12px; overflow: hidden;"></div>
     </section>
 
-    <section id="view-Kalender" class="view-section">
-        <div class="card">
-            <div class="cal-header-row"><div><h2 id="cal-month-title" style="margin:0;">-</h2></div><div><button class="chart-btn" onclick="changeCalMonth(-1)">❮</button><button class="chart-btn" onclick="changeCalMonth(1)">❯</button></div></div>
-            <div class="calendar-grid"><div style="text-align:center;color:#666;">So</div><div style="text-align:center;color:#666;">Mo</div><div style="text-align:center;color:#666;">Di</div><div style="text-align:center;color:#666;">Mi</div><div style="text-align:center;color:#666;">Do</div><div style="text-align:center;color:#666;">Fr</div><div style="text-align:center;color:#666;">Sa</div></div>
-            <div id="cal-days-grid" class="calendar-grid" style="margin-top:5px;"></div>
-        </div>
-    </section>
-
-    <section id="view-Statistik" class="view-section">
-        <div class="stats-grid-view">
-            <div class="card chart-card"><h4 style="margin:0 0 15px 0;">Asset Performance</h4><div style="height:240px; position:relative;"><canvas id="assetChart"></canvas></div></div>
-            <div class="card chart-card"><h4 style="margin:0 0 15px 0;">Wochentags Performance</h4><div style="height:240px; position:relative;"><canvas id="weekdayChart"></canvas></div></div>
-        </div>
-    </section>
-
-    <section id="view-Historie" class="view-section">
-        <div class="card" style="overflow-x:auto;">
-            <h3 id="hist-title">Trade Historie</h3>
-            <table class="hist-table"><thead><tr><th style="min-width:90px;">Date/Time</th><th>Asset</th><th style="text-align:right;">PnL</th><th></th></tr></thead><tbody id="tradeBody"></tbody></table>
-        </div>
-    </section>
-
     <section id="view-Lot-Rechner" class="view-section">
         <div class="card">
             <h3>Lot Rechner</h3>
-            <div class="input-row-2">
+            <div class="input-row-2" style="display:flex; gap:10px;">
                 <select id="cType" onchange="updateContractSize()" style="margin-bottom:0;"><option value="100000">Forex</option><option value="1">Indizes</option><option value="100">Gold</option></select>
                 <input type="number" id="cContract" value="100000" placeholder="Kontrakt">
             </div>
-            <div class="input-row-2" style="margin-top:15px;"><input type="number" id="cBal" placeholder="Konto"><input type="number" id="cRisk" placeholder="Risk %"></div>
-            <div class="input-row-2"><input type="number" id="cEnt" placeholder="Entry"><input type="number" id="cSl" placeholder="SL"></div>
+            <div style="display:flex; gap:10px; margin-top:15px;"><input type="number" id="cBal" placeholder="Konto"><input type="number" id="cRisk" placeholder="Risk %"></div>
+            <div style="display:flex; gap:10px;"><input type="number" id="cEnt" placeholder="Entry"><input type="number" id="cSl" placeholder="SL"></div>
             <button onclick="calcLots()" class="btn-primary">Berechnen</button>
             <div id="cRes" style="text-align:center; font-size:1.5rem; margin-top:15px; color:var(--success);">0.00 Lot</div>
         </div>
     </section>
-    
+
     <section id="view-News" class="view-section"><div class="card" style="height:600px; padding:0;"><div id="news-box" style="height:100%;"></div></div></section>
-    
+
     <section id="view-Einstellungen" class="view-section">
         <div class="card">
-            <h3>App Einstellungen</h3>
+            <h3>Einstellungen</h3>
             <div class="settings-list-item"><span>Dark Mode</span><label class="switch"><input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)"><span class="slider round"></span></label></div>
-            <div class="settings-list-item"><span>Coach Feedback erlauben</span><label class="switch"><input type="checkbox" id="feedback-toggle" onchange="toggleFeedback(this.checked)" checked><span class="slider round"></span></label></div>
+            <div class="settings-list-item"><span>Coach Feedback</span><label class="switch"><input type="checkbox" id="feedback-toggle" onchange="toggleFeedback(this.checked)" checked><span class="slider round"></span></label></div>
             
             <h3 style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">📚 Journal Verwaltung</h3>
             <div id="j-warning" class="hidden" style="color:var(--danger); margin-bottom:10px;">⚠️ Limit erreicht (1 Journal). Upgrade auf Pro.</div>
             <div id="journal-create-area">
-                <input id="newJName" placeholder="Name">
-                <div style="display:flex; gap:10px;"><button id="btn-save-journal" onclick="saveJournalInput()" class="btn-primary" style="padding:10px; flex:1;">Erstellen</button></div>
+                <input id="newJName" placeholder="Neues Journal Name">
+                <button onclick="saveJournalInput()" class="btn-primary">Journal Erstellen</button>
             </div>
-            <h4 style="margin-bottom:10px;">Existierende Journals</h4>
-            <div id="settings-journal-list"></div>
+            <div id="settings-journal-list" style="margin-top:15px;"></div>
 
             <div id="admin-panel" class="hidden" style="margin-top:40px; border-top:2px solid var(--accent); padding-top:20px;">
-                <h2 style="color:var(--accent); text-align:center; margin-bottom:20px;">🛡️ ADMIN ZENTRALE</h2>
-                <h4 style="margin-top:0;">📬 Feedback Inbox</h4>
-                <div id="adm-feedback-inbox" style="margin-bottom:30px; max-height:200px; overflow-y:auto; border:1px solid var(--border); padding:10px; border-radius:8px;">Lade...</div>
-                <div class="adm-grid">
-                    <div class="adm-col-test"><h4 style="color:#ff9800; text-align:center; margin-top:0;">⏳ Test-Phase (Free)</h4><div id="adm-list-test"></div></div>
-                    <div class="adm-col-pro"><h4 style="color:var(--success); text-align:center; margin-top:0;">🚀 Cloud Trade Pro</h4><div id="adm-list-pro"></div></div>
+                <h3 style="color:var(--accent); text-align:center;">🛡️ ADMIN ZENTRALE</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div style="background:rgba(255,152,0,0.1); padding:10px; border-radius:8px;">
+                        <h4 style="color:#ff9800; margin:0 0 10px 0;">⏳ Test-Phase</h4>
+                        <div id="adm-list-test"></div>
+                    </div>
+                    <div style="background:rgba(0,200,83,0.1); padding:10px; border-radius:8px;">
+                        <h4 style="color:#00c853; margin:0 0 10px 0;">🚀 Pro User</h4>
+                        <div id="adm-list-pro"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <section id="view-Kalender" class="view-section"><div class="card"><div id="cal-days-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:5px;"></div></div></section>
+    <section id="view-Statistik" class="view-section"><div class="card"><canvas id="assetChart"></canvas></div></section>
+    <section id="view-Historie" class="view-section"><div class="card" style="overflow-x:auto;"><table class="hist-table"><tbody id="tradeBody"></tbody></table></div></section>
+    <section id="view-Feedback" class="view-section"><div class="card"><h3>Feedback</h3><textarea id="fb-text" rows="5"></textarea><button onclick="sendFb()" class="btn-primary">Senden</button></div></section>
+
     <section id="view-Locked" class="view-section">
         <div class="access-denied-box">
             <div class="access-denied-icon">🔒</div>
             <h2 style="color:var(--accent);">Feature Gesperrt</h2>
-            <p>Diese Funktion ist exklusiv für <b>Cloud Trade Pro</b> Mitglieder verfügbar.</p>
-            <p style="color:var(--text-sub); font-size:0.9rem;">Bitte kontaktiere den Admin für ein Upgrade.</p>
+            <p>Upgrade auf <b>Cloud Trade Pro</b> nötig.</p>
         </div>
     </section>
+</div>
+
+<div id="popup-overlay" onclick="if(event.target === this) closePopup()">
+    <div id="trade-form-modal" class="modal-base hidden">
+        <div class="dv-header"><span class="popup-title">Trade</span><button onclick="closePopup()">✕</button></div>
+        <div id="limit-warning" class="hidden" style="color:red; margin-bottom:10px;">⚠️ Limit erreicht (5 Trades).</div>
+        <div id="form-content">
+            <input type="hidden" id="editId">
+            <label>Journal</label><select id="inpJournalSelect"></select>
+            <label>Asset</label><input id="assetInput" placeholder="EURUSD" style="text-transform:uppercase;">
+            <label>Datum</label><input type="datetime-local" id="datetime">
+            <div style="display:flex; gap:10px;"><input type="number" id="inpEntry" placeholder="Entry"><input type="number" id="inpSL" placeholder="SL"></div>
+            <div style="display:flex; gap:10px;"><input type="number" id="inpTP1" placeholder="TP1"><input type="number" id="inpTP2" placeholder="TP2"></div>
+            <input id="imgSetup" placeholder="Bild URL">
+            <div style="display:flex; gap:10px; margin-bottom:10px;"><label>Status:</label><select id="status"><option value="Aktiv">Offen</option><option value="Geschlossen">Geschlossen</option></select></div>
+            <input type="number" id="pnl" placeholder="PnL (€)">
+            <button onclick="saveTrade()" class="btn-primary">SPEICHERN</button>
+        </div>
+    </div>
+    <div id="add-contact-modal" class="modal-base hidden">
+        <div class="dv-header"><span>Kontakt</span><button onclick="closePopup()">✕</button></div>
+        <input id="contact-search" placeholder="Suche..." onkeyup="searchUsers()"><div id="contact-res"></div>
+    </div>
 </div>
 
 <script>
@@ -511,315 +215,233 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    let trades = [], journals = [], chartInstances = {}, activeJournal = null; 
-    let currentUserName = "User";
-    
-    // Status Vars
-    let isAdmin = false, isPro = false, userStatus = 'test';
-    const adminEmail = "leon.luca.lauterbach@gmail.com"; 
+    let trades = [], journals = [], chartInstances = {}, activeJournal = null;
+    let isAdmin = false, isPro = false, authMode = 'login', currentUserName = "User";
+    const adminEmail = "leon.luca.lauterbach@gmail.com";
 
-    // Chat Vars
-    let isChatActive = false, currentChatChannel = null, unsubscribeChat = null;
-    let shareTradeId = null, shareType = null;
-    let calDate = new Date();
+    // --- AUTH LOGIC ---
+    function switchAuthMode(mode) {
+        authMode = mode;
+        document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+        document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+        document.getElementById('btn-auth-action').innerText = mode === 'login' ? 'ANMELDEN' : 'REGISTRIEREN';
+        document.getElementById('auth-error').innerText = '';
+    }
 
-    const isLight = localStorage.getItem('tradeTheme') === 'light';
-    if(isLight) document.body.classList.add('light-mode');
-    document.getElementById('theme-toggle').checked = !isLight;
+    async function handleAuthAction() {
+        const e = document.getElementById('auth-email').value;
+        const p = document.getElementById('auth-pass').value;
+        const err = document.getElementById('auth-error');
+        if(!e || !p) return err.innerText = "Bitte Felder ausfüllen";
+
+        try {
+            if(authMode === 'login') {
+                // LOGIN CHECK
+                try {
+                    await auth.signInWithEmailAndPassword(e, p);
+                } catch(error) {
+                    if(error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        err.innerText = "Falsche Daten oder nicht registriert.";
+                    } else { err.innerText = error.message; }
+                }
+            } else {
+                // REGISTER CHECK
+                const cred = await auth.createUserWithEmailAndPassword(e, p);
+                await db.collection('users').doc(cred.user.uid).set({
+                    email: e, displayName: e.split('@')[0], status: 'test', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch(error) { err.innerText = error.message; }
+    }
 
     auth.onAuthStateChanged(async (user) => {
         if(user) {
-            const email = user.email.toLowerCase().trim();
-            let userDoc = await db.collection('users').doc(user.uid).get();
-            if(!userDoc.exists) {
-                await db.collection('users').doc(user.uid).set({ email: email, displayName: user.displayName || 'Trader', photoURL: user.photoURL || '', status: 'test', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                userDoc = await db.collection('users').doc(user.uid).get();
+            let uDoc = await db.collection('users').doc(user.uid).get();
+            if(!uDoc.exists) { // Fallback für Google Login beim ersten Mal
+                await db.collection('users').doc(user.uid).set({ email: user.email, displayName: user.displayName||'User', status: 'test' });
+                uDoc = await db.collection('users').doc(user.uid).get();
             }
-            const uData = userDoc.data();
-            userStatus = uData.status || 'test';
-            if(userStatus === 'banned') { alert("Dein Account wurde gesperrt."); await auth.signOut(); location.reload(); return; }
+            const data = uDoc.data();
+            if(data.status === 'banned') { auth.signOut(); alert("Account gesperrt!"); return; }
 
-            isAdmin = (email === adminEmail);
-            if(isAdmin) { userStatus = 'pro'; isPro = true; document.getElementById('admin-panel').classList.remove('hidden'); loadAdminUsers(); } 
-            else { isPro = (userStatus === 'pro'); }
+            isAdmin = (user.email === adminEmail);
+            isPro = (isAdmin || data.status === 'pro');
+            currentUserName = data.displayName || "User";
 
-            updateStatusUI();
-            finishLogin(user);
-        } else { document.getElementById('auth-overlay').classList.remove('hidden'); }
+            updateUI();
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            loadData();
+        } else {
+            document.getElementById('auth-overlay').classList.remove('hidden');
+        }
     });
 
-    function updateStatusUI() {
+    function updateUI() {
         const badge = document.getElementById('status-badge');
         badge.innerText = isPro ? "PRO" : "TEST";
         badge.style.background = isPro ? "var(--success)" : "#ff9800";
         badge.style.color = "black";
-        ['Chat', 'TradingView', 'Lot Rechner', 'News'].forEach(id => {
-            const el = document.getElementById('lock-' + id);
-            if(el) el.classList.toggle('hidden', isPro);
+        ['Chat', 'TradingView', 'Lot Rechner', 'News'].forEach(v => {
+            const el = document.getElementById('lock-' + v); if(el) el.classList.toggle('hidden', isPro);
         });
+        if(isAdmin) document.getElementById('admin-panel').classList.remove('hidden');
     }
 
-    async function finishLogin(user) {
-        currentUserName = user.displayName || "Trader";
-        document.getElementById('user-greeting-name').innerText = currentUserName;
-        document.getElementById('auth-overlay').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
-        document.getElementById('main-header').classList.remove('hidden');
-        await loadData();
+    // --- CORE DATA ---
+    async function loadData() {
+        const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
+        journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
+        if(journals.length === 0) { await db.collection('journals').add({userId:auth.currentUser.uid, name:'Main'}); loadData(); return; }
+        if(!activeJournal) activeJournal = journals[0].name;
+
+        const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
+        trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
+
+        populateSelectors();
+        renderDashboard();
+        renderHistory();
+        renderSettingsList();
+        if(isAdmin) loadAdminUsers();
         if(isPro) setupChat();
     }
 
-    async function loadData() {
-        if(!auth.currentUser) return;
-        const jSnap = await db.collection('journals').where('userId', '==', auth.currentUser.uid).get();
-        journals = jSnap.docs.map(d => ({id: d.id, ...d.data()}));
-        if(journals.length === 0) { await db.collection('journals').add({userId: auth.currentUser.uid, name: 'Main', startCap: 0, hidden: false}); loadData(); return; }
-        if(!activeJournal && journals.length > 0) activeJournal = journals[0].name;
-        
-        const tSnap = await db.collection('trades').where('userId', '==', auth.currentUser.uid).get();
-        trades = tSnap.docs.map(d => ({id: d.id, ...d.data()}));
-        
-        populateSelectors(); renderDashboard(); renderSettingsList(); renderHistory();
-    }
-
     function populateSelectors() {
-        const h = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
-        document.getElementById('navJournalSelect').innerHTML = h; document.getElementById('navJournalSelect').value = activeJournal;
-        document.getElementById('inpJournalSelect').innerHTML = h;
+        const html = journals.map(j => `<option value="${j.name}">${j.name}</option>`).join('');
+        document.getElementById('navJournalSelect').innerHTML = html;
+        document.getElementById('navJournalSelect').value = activeJournal;
+        document.getElementById('inpJournalSelect').innerHTML = html;
     }
 
-    function changeActiveJournal(val) {
-        activeJournal = val; renderDashboard(); renderHistory(); renderSettingsList();
-        if(document.getElementById('view-Statistik').classList.contains('active')) renderStatistics();
-        if(document.getElementById('view-Kalender').classList.contains('active')) renderCalendar();
-    }
+    function changeActiveJournal(val) { activeJournal = val; loadData(); }
 
     function showView(v) {
         if(!isPro && ['Chat', 'TradingView', 'Lot Rechner', 'News'].includes(v)) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             document.getElementById('view-Locked').classList.add('active');
-            document.getElementById('view-title').innerText = "GESPERRT";
             toggleMenu(); return;
         }
-
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-' + v.replace(/\s+/g, '-')).classList.add('active');
         document.getElementById('view-title').innerText = v.toUpperCase();
-        document.getElementById('navDrawer').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open');
-        
-        isChatActive = (v === 'Chat');
-        if(v === 'Übersicht') renderDashboard(); 
-        if(v === 'Kalender') renderCalendar(); 
-        if(v === 'Historie') renderHistory(); 
-        if(v === 'Statistik') renderStatistics(); 
-        if(v === 'Einstellungen' && isAdmin) loadAdminUsers();
-        if(v === 'News') renderNewsWidget();
-        if(v === 'TradingView') setTimeout(renderTradingViewWidget, 50);
-    }
-    
-    function prepareCreateView() {
-        if(!isPro && trades.length >= 5) {
-            document.getElementById('trade-limit-warning').classList.remove('hidden');
-            document.getElementById('trade-form-content').classList.add('hidden');
-        } else {
-            document.getElementById('trade-limit-warning').classList.add('hidden');
-            document.getElementById('trade-form-content').classList.remove('hidden');
-        }
-        document.getElementById('editId').value = "";
-        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('datetime').value = now.toISOString().slice(0,16);
-        if(activeJournal) document.getElementById('inpJournalSelect').value = activeJournal;
-        document.getElementById('trade-form-modal').classList.remove('hidden');
-        document.getElementById('popup-overlay').classList.add('open');
+        toggleMenu();
+        if(v === 'TradingView') new TradingView.widget({"container_id":"tradingview_chart","autosize":true,"symbol":"FX:EURUSD","theme":"dark"});
+        if(v === 'News') document.getElementById('news-box').innerHTML = '<iframe src="https://www.forexfactory.com" style="width:100%;height:100%;border:none;"></iframe>';
     }
 
-    async function saveTrade() {
-        if(!isPro && trades.length >= 5) return;
-        const id = document.getElementById('editId').value;
-        const asset = document.getElementById('assetInput').value.toUpperCase();
-        if(!asset) return alert("Asset fehlt!");
-        
-        const data = {
-            userId: auth.currentUser.uid, date: document.getElementById('datetime').value, asset: asset,
-            journal: document.getElementById('inpJournalSelect').value, status: document.getElementById('status').value,
-            pnl: parseFloat(document.getElementById('pnl').value) || 0,
-            imgSetup: document.getElementById('imgSetup').value, imgResult: document.getElementById('imgResult').value,
-            note: document.getElementById('note').value,
-            entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value,
-            tp1: document.getElementById('inpTP1').value, tp2: document.getElementById('inpTP2').value, tp3: document.getElementById('inpTP3').value
-        };
-        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data);
-        await loadData(); closePopup();
-    }
-
-    async function saveJournalInput() {
-        if(!isPro && journals.length >= 1) return alert("Limit erreicht (1 Journal). Upgrade auf Pro nötig.");
-        const name = document.getElementById('newJName').value.trim();
-        if(!name) return alert("Name fehlt!");
-        await db.collection('journals').add({userId:auth.currentUser.uid, name: name, startCap:0, hidden:false});
-        document.getElementById('newJName').value=''; await loadData();
-    }
-
-    async function loadAdminUsers() {
-        if(!isAdmin) return;
-        const listTest = document.getElementById('adm-list-test'); const listPro = document.getElementById('adm-list-pro'); const fbBox = document.getElementById('adm-feedback-inbox');
-        listTest.innerHTML = '<small>Lade...</small>'; listPro.innerHTML = '<small>Lade...</small>';
-        
-        const fbSnap = await db.collection('feedback_general').orderBy('timestamp', 'desc').limit(20).get();
-        if(fbSnap.empty) fbBox.innerHTML = '<small>Kein Feedback.</small>';
-        else fbBox.innerHTML = fbSnap.docs.map(d => `<div class="adm-card"><b>${d.data().type}</b>: ${d.data().text}<br><small>${d.data().userName}</small> <button onclick="delFb('${d.id}')" style="color:red;border:none;background:none;">✕</button></div>`).join('');
-
-        const uSnap = await db.collection('users').get();
-        let hTest = '', hPro = '';
-        uSnap.forEach(doc => {
-            const u = doc.data(); if(u.email === adminEmail) return;
-            const card = `<div class="adm-card"><div><b>${u.displayName}</b></div><div style="color:var(--text-sub); margin-bottom:5px;">${u.email}</div><div class="adm-actions">${u.status === 'test' ? `<button class="btn-small" onclick="admUpd('${doc.id}', 'pro')">🚀 Upgrade</button>` : `<button class="btn-small" onclick="admUpd('${doc.id}', 'test')">⏳ Downgrade</button>`}<button class="btn-small" onclick="admUpd('${doc.id}', 'banned')" style="color:red;">🚫</button><button class="btn-small" onclick="admDel('${doc.id}')">🗑️</button></div></div>`;
-            if(u.status === 'pro') hPro += card; else hTest += card;
-        });
-        listTest.innerHTML = hTest || '<small>Leer</small>'; listPro.innerHTML = hPro || '<small>Leer</small>';
-    }
-
-    async function admUpd(uid, s) { if(confirm(`Status auf ${s.toUpperCase()} ändern?`)) { await db.collection('users').doc(uid).update({status: s}); loadAdminUsers(); } }
-    async function admDel(uid) { if(confirm("User löschen?")) { await db.collection('users').doc(uid).delete(); loadAdminUsers(); } }
-    async function delFb(id) { await db.collection('feedback_general').doc(id).delete(); loadAdminUsers(); }
-
+    // --- DASHBOARD ---
     function renderDashboard() {
         const container = document.getElementById('dashboard-journals-list'); container.innerHTML = '';
         Object.values(chartInstances).forEach(c => c.destroy()); chartInstances = {};
-        journals.forEach(journal => {
-            const jTrades = trades.filter(t => (t.journal || 'Main') === journal.name);
-            const totalPnL = jTrades.reduce((acc, t) => acc + t.pnl, 0);
-            const openTrades = jTrades.filter(t => t.status === 'Aktiv');
-            let equity = [0]; let r=0; jTrades.filter(t=>t.status==='Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(t=>{r+=t.pnl; equity.push(r)});
-            const canvasId = `chart-${journal.id}`;
-            const limitHint = (!isPro && journal.name === activeJournal) ? `<small style="color:#ff9800; display:block; margin-bottom:5px;">(Test Limit: 5 Trades)</small>` : '';
 
-            container.innerHTML += `<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${canvasId}"></canvas></div><div class="jfc-sidebar">${limitHint}<div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL</span><span class="stat-value sensitive" style="color:${totalPnL>=0?'var(--success)':'var(--danger)'}">${totalPnL.toFixed(2)}€</span></div></div><div class="open-trades-box"><div class="ot-title">OFFEN (${openTrades.length})</div>${openTrades.map(t => `<div class="ot-list-item"><span>${t.asset}</span></div>`).join('')}</div></div></div></div>`;
-            setTimeout(() => { const ctx = document.getElementById(canvasId).getContext('2d'); chartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: equity.map(x => ''), datasets: [{ data: equity, borderColor: '#0a84ff', borderWidth: 2, pointRadius: 0, tension: 0.1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } } }); }, 50);
+        journals.forEach(j => {
+            const jTrades = trades.filter(t => (t.journal||'Main') === j.name);
+            const pnl = jTrades.reduce((a,b) => a + (b.pnl||0), 0);
+            const opens = jTrades.filter(t => t.status === 'Aktiv');
+            const equity = [0]; let r=0; jTrades.filter(t=>t.status==='Geschlossen').sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(t=>{r+=t.pnl; equity.push(r)});
+            
+            const cid = `chart-${j.id}`;
+            container.innerHTML += `
+            <div class="journal-full-card">
+                <div class="jfc-header"><span>${j.name}</span></div>
+                <div class="jfc-body-grid">
+                    <div class="jfc-chart-area"><canvas id="${cid}"></canvas></div>
+                    <div class="jfc-sidebar">
+                         <div class="stat-box"><small>PnL</small><b style="color:${pnl>=0?'#00c853':'#ff3d00'}">${pnl.toFixed(2)}€</b></div>
+                         <div class="open-trades-box"><small>Offen</small>${opens.map(o=>`<div class="ot-list-item">${o.asset}</div>`).join('')}</div>
+                    </div>
+                </div>
+            </div>`;
+            setTimeout(() => {
+                const ctx = document.getElementById(cid).getContext('2d');
+                chartInstances[cid] = new Chart(ctx, { type:'line', data:{labels:equity.map(e=>''), datasets:[{data:equity, borderColor:'#0a84ff', borderWidth:2, pointRadius:0}]}, options:{maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{grid:{color:'#222'}}}}});
+            }, 100);
         });
     }
 
-    function renderHistory() {
-        const tbody = document.getElementById('tradeBody');
-        const filtered = trades.filter(t => (t.journal||'Main') === activeJournal).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        tbody.innerHTML = filtered.map(t => {
-            const pnlClass = t.status==='Aktiv'?'':(t.pnl>=0?'text-green':'text-red');
-            const val = t.status==='Aktiv'?'OPEN':t.pnl.toFixed(2);
-            return `<tr><td>${t.date.slice(0,10)}<span class="time-sub">${t.date.slice(11,16)}</span></td><td><b>${t.asset}</b></td><td style="text-align:right;" class="sensitive ${pnlClass}">${val}</td><td style="text-align:right;"><button class="btn-icon" onclick="deleteTrade('${t.id}')">🗑️</button></td></tr>`;
-        }).join('');
+    // --- TRADE LOGIC ---
+    function prepareCreateView() {
+        if(!isPro && trades.length >= 5) { document.getElementById('limit-warning').classList.remove('hidden'); document.getElementById('form-content').classList.add('hidden'); }
+        else { document.getElementById('limit-warning').classList.add('hidden'); document.getElementById('form-content').classList.remove('hidden'); }
+        document.getElementById('editId').value='';
+        document.getElementById('popup-overlay').classList.add('open');
+        document.getElementById('trade-form-modal').classList.remove('hidden');
+    }
+    async function saveTrade() {
+        if(!isPro && trades.length >= 5) return;
+        const id = document.getElementById('editId').value;
+        const data = {
+            userId: auth.currentUser.uid,
+            asset: document.getElementById('assetInput').value.toUpperCase(),
+            journal: document.getElementById('inpJournalSelect').value,
+            date: document.getElementById('datetime').value || new Date().toISOString(),
+            status: document.getElementById('status').value,
+            pnl: parseFloat(document.getElementById('pnl').value)||0,
+            entry: document.getElementById('inpEntry').value, sl: document.getElementById('inpSL').value,
+            imgSetup: document.getElementById('imgSetup').value
+        };
+        if(id) await db.collection('trades').doc(id).update(data); else await db.collection('trades').add(data);
+        closePopup(); loadData();
     }
     async function deleteTrade(id) { if(confirm("Löschen?")) { await db.collection('trades').doc(id).delete(); loadData(); } }
-    
-    function renderSettingsList() {
-        const limitDiv = document.getElementById('j-warning'); const createDiv = document.getElementById('journal-create-area');
-        if(!isPro && journals.length >= 1) { limitDiv.classList.remove('hidden'); createDiv.classList.add('hidden'); }
-        else { limitDiv.classList.add('hidden'); createDiv.classList.remove('hidden'); }
-        document.getElementById('settings-journal-list').innerHTML = journals.map(j => `<div class="settings-list-item"><b>${j.name}</b></div>`).join('');
+
+    function renderHistory() {
+        const t = trades.filter(x => (x.journal||'Main') === activeJournal).sort((a,b)=>new Date(b.date)-new Date(a.date));
+        document.getElementById('tradeBody').innerHTML = t.map(x => `<tr><td>${x.date.slice(0,10)}</td><td>${x.asset}</td><td class="${x.pnl>=0?'text-green':'text-red'}">${x.pnl}</td><td><button class="btn-icon" onclick="deleteTrade('${x.id}')">🗑️</button></td></tr>`).join('');
     }
 
-    // --- Complex Features ---
-    function setupChat() { /* Init Chat for Pro */ } 
-    function enterChat(ch, title) { 
-        currentChatChannel = ch; document.getElementById('chat-lobby').classList.add('hidden'); document.getElementById('chat-room').classList.remove('hidden'); 
-        document.getElementById('chat-room-title').innerText = title;
-        if(unsubscribeChat) unsubscribeChat();
-        unsubscribeChat = db.collection('chat').where('channel','==',ch).orderBy('timestamp').onSnapshot(snap => {
-            document.getElementById('chat-messages').innerHTML = snap.docs.map(d => {
-                const m=d.data(); const isMe=m.senderId===auth.currentUser.uid;
-                return `<div class="msg-wrapper ${isMe?'me':'other'}"><div class="msg-bubble"><span class="msg-sender-name">${m.senderName}</span>${m.text}</div></div>`;
+    // --- JOURNAL SETTINGS ---
+    async function saveJournalInput() {
+        if(!isPro && journals.length >= 1) return alert("Limit (1 Journal). Upgrade nötig.");
+        const n = document.getElementById('newJName').value; if(!n) return;
+        await db.collection('journals').add({userId:auth.currentUser.uid, name:n});
+        document.getElementById('newJName').value=''; loadData();
+    }
+    async function deleteJournal(id) { if(confirm("Journal löschen?")) { await db.collection('journals').doc(id).delete(); loadData(); } }
+    function renderSettingsList() {
+        document.getElementById('settings-journal-list').innerHTML = journals.map(j => `<div class="settings-list-item"><b>${j.name}</b><button class="btn-icon" onclick="deleteJournal('${j.id}')">🗑️</button></div>`).join('');
+    }
+    
+    // --- ADMIN PANEL ---
+    async function loadAdminUsers() {
+        if(!isAdmin) return;
+        const uSnap = await db.collection('users').get();
+        let hT='', hP='';
+        uSnap.forEach(d => {
+            const u = d.data(); if(u.email === adminEmail) return;
+            const card = `<div class="adm-user-card"><div><b>${u.displayName}</b><br><small>${u.email}</small></div><div>${u.status==='test'?`<button class="btn-small" onclick="setStat('${d.id}','pro')">🚀</button>`:`<button class="btn-small" onclick="setStat('${d.id}','test')">⏳</button>`}<button class="btn-small" style="color:red" onclick="setStat('${d.id}','banned')">🚫</button></div></div>`;
+            if(u.status==='pro') hP+=card; else hT+=card;
+        });
+        document.getElementById('adm-list-test').innerHTML = hT; document.getElementById('adm-list-pro').innerHTML = hP;
+    }
+    async function setStat(id, s) { await db.collection('users').doc(id).update({status:s}); loadAdminUsers(); }
+
+    // --- CHAT & TOOLS ---
+    function setupChat() {
+        db.collection('chat').orderBy('timestamp','desc').limit(50).onSnapshot(s => {
+            document.getElementById('chat-messages').innerHTML = s.docs.reverse().map(d => {
+                const m=d.data(); const me = m.senderId===auth.currentUser.uid;
+                return `<div class="msg-wrapper ${me?'me':'other'}"><div class="msg-bubble"><small style="color:${var(--accent)}">${m.senderName}</small><br>${m.text}</div></div>`;
             }).join('');
-            const c=document.getElementById('chat-messages'); c.scrollTop=c.scrollHeight;
         });
     }
-    function leaveChat() { document.getElementById('chat-room').classList.add('hidden'); document.getElementById('chat-lobby').classList.remove('hidden'); if(unsubscribeChat) unsubscribeChat(); }
     async function sendChatMessage() {
-        const txt = document.getElementById('chat-input').value; if(!txt) return;
-        await db.collection('chat').add({text:txt, senderName:currentUserName, senderId:auth.currentUser.uid, channel:currentChatChannel, timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+        const t = document.getElementById('chat-input').value; if(!t) return;
+        await db.collection('chat').add({text:t, senderName:currentUserName, senderId:auth.currentUser.uid, timestamp:firebase.firestore.FieldValue.serverTimestamp()});
         document.getElementById('chat-input').value='';
     }
-    
-    // SHARE LOGIC
-    function openShare(id) { shareTradeId = id; document.getElementById('share-modal').classList.remove('hidden'); document.getElementById('popup-overlay').classList.add('open'); }
-    function selectShareOption(t) { shareType = t; document.querySelectorAll('.share-opt').forEach(e=>e.classList.remove('selected')); document.getElementById('opt-'+t).classList.add('selected'); }
-    function toggleShareTarget() { const v=document.getElementById('share-channel').value; document.getElementById('share-private-container').classList.toggle('hidden', v!=='private'); if(v==='private') loadContacts(); }
-    async function loadContacts() { 
-        const snap = await db.collection('friendships').where('users','array-contains',auth.currentUser.uid).where('status','==','accepted').get();
-        const sel = document.getElementById('share-private-user'); sel.innerHTML='';
-        for(const d of snap.docs) { const oid = d.data().users.find(u=>u!==auth.currentUser.uid); const u = await db.collection('users').doc(oid).get(); sel.innerHTML+=`<option value="${oid}">${u.data().displayName}</option>`; }
-    }
-    async function confirmShare() {
-        let ch = document.getElementById('share-channel').value; if(ch==='private') ch = [auth.currentUser.uid, document.getElementById('share-private-user').value].sort().join('_');
-        const t = trades.find(x=>x.id===shareTradeId);
-        await db.collection('chat').add({senderName:currentUserName, senderId:auth.currentUser.uid, type:'trade', tradeData:t, channel:ch, timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-        closePopup();
-    }
-
-    // CALENDAR & STATS
-    function changeCalMonth(d) { calDate.setMonth(calDate.getMonth() + d); renderCalendar(); }
-    function renderCalendar() {
-        const y = calDate.getFullYear(), m = calDate.getMonth();
-        document.getElementById('cal-month-title').innerText = new Date(y, m).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-        const grid = document.getElementById('cal-days-grid'); grid.innerHTML = "";
-        const filtered = trades.filter(t => (t.journal || 'Main') === activeJournal);
-        const firstDay = new Date(y, m, 1).getDay(), lastDay = new Date(y, m + 1, 0).getDate();
-        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell" style="opacity:0; cursor:default;"></div>`;
-        for(let d=1; d<=lastDay; d++) {
-            const dateStr = new Date(y, m, d).toDateString();
-            const dayTrades = filtered.filter(t => t.status === 'Geschlossen' && new Date(t.date).toDateString() === dateStr);
-            let sum = 0, count = dayTrades.length; dayTrades.forEach(t => sum += t.pnl);
-            let cellClass = 'cal-cell'; if(count > 0) { if(sum > 0) cellClass += ' win'; else if(sum < 0) cellClass += ' loss'; }
-            let html = `<div class="cal-date">${d}</div>`; if(count > 0) html += `<div class="cal-pnl sensitive ${sum>=0?'text-green':'text-red'}">${sum.toFixed(0)}</div><div class="cal-trades">${count} Trades</div>`;
-            grid.innerHTML += `<div class="${cellClass}" ${count > 0 ? `onclick="openDayDetail('${y}-${m+1}-${d}')"` : ''}>${html}</div>`;
-        }
-    }
-    function renderStatistics() {
-        if(!activeJournal) return;
-        const tradesToAnalyze = trades.filter(t => (t.journal || 'Main') === activeJournal && t.status === 'Geschlossen');
-        const assetMap = {}; tradesToAnalyze.forEach(t => { if(!assetMap[t.asset]) assetMap[t.asset] = 0; assetMap[t.asset] += t.pnl; });
-        const sortedAssets = Object.keys(assetMap).sort((a,b) => assetMap[b] - assetMap[a]);
-        const daysMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}; tradesToAnalyze.forEach(t => { daysMap[new Date(t.date).getDay()] += t.pnl; });
-        const ctxA = document.getElementById('assetChart').getContext('2d'); if(chartInstances['asset']) chartInstances['asset'].destroy();
-        chartInstances['asset'] = new Chart(ctxA, { type: 'bar', data: { labels: sortedAssets, datasets: [{ label: 'PnL', data: sortedAssets.map(a => assetMap[a]), backgroundColor: sortedAssets.map(a => assetMap[a] >= 0 ? '#00c853' : '#ff3d00') }] }, options: { maintainAspectRatio: false } });
-        const ctxW = document.getElementById('weekdayChart').getContext('2d'); if(chartInstances['week']) chartInstances['week'].destroy();
-        chartInstances['week'] = new Chart(ctxW, { type: 'bar', data: { labels: ['So','Mo','Di','Mi','Do','Fr','Sa'], datasets: [{ label: 'PnL', data: [0,1,2,3,4,5,6].map(d=>daysMap[d]), backgroundColor: [0,1,2,3,4,5,6].map(d=>daysMap[d]>=0?'#00c853':'#ff3d00') }] }, options: { maintainAspectRatio: false } });
-    }
-
-    // TOOLS
     function calcLots() {
-        const bal=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value);
-        const ent=parseFloat(document.getElementById('cEnt').value), sl=parseFloat(document.getElementById('cSl').value);
-        if(bal&&r&&ent&&sl) {
-            const riskAmt = bal * (r/100); const dist = Math.abs(ent-sl); const lot = riskAmt / (dist * 100000);
-            document.getElementById('cRes').innerText = lot.toFixed(2) + " Lot";
-        }
+        const b=parseFloat(document.getElementById('cBal').value), r=parseFloat(document.getElementById('cRisk').value), e=parseFloat(document.getElementById('cEnt').value), s=parseFloat(document.getElementById('cSl').value);
+        if(b&&r&&e&&s) document.getElementById('cRes').innerText = ((b*(r/100))/(Math.abs(e-s)*100000)).toFixed(2) + " Lot";
     }
-    function updateContractSize() { if(document.getElementById('cType').value!=='custom') document.getElementById('cContract').value=document.getElementById('cType').value; }
-    async function runOCR() {
-        const url = document.getElementById('imgSetup').value; if(!url) return alert("Bild URL fehlt");
-        document.getElementById('ocr-status').innerText = '🤖 Lese...';
-        try {
-            const r = await fetch(`https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${url}&language=eng&isOverlayRequired=false`);
-            const d = await r.json();
-            if (d.ParsedResults && d.ParsedResults.length > 0) {
-                const txt = d.ParsedResults[0].ParsedText;
-                const sl = txt.match(/(?:Stop|SL|Loss)[\s:=-]*(\d+[\.,]\d{2,5})/i); if(sl) document.getElementById('inpSL').value=sl[1].replace(',','.');
-                const ent = txt.match(/(?:Entry|Open|Price)[\s:=-]*(\d+[\.,]\d{2,5})/i); if(ent) document.getElementById('inpEntry').value=ent[1].replace(',','.');
-                document.getElementById('ocr-status').innerText = '✅ Fertig!';
-            }
-        } catch(e) { document.getElementById('ocr-status').innerText = '❌ Fehler'; }
-    }
-    function renderNewsWidget() { document.getElementById('news-box').innerHTML = '<iframe src="https://www.forexfactory.com" style="width:100%;height:100%;border:none;"></iframe>'; }
-    function renderTradingViewWidget() { new TradingView.widget({"container_id": "tradingview_chart","autosize": true,"symbol": "FX:EURUSD","theme": "dark"}); }
-    
+
+    // --- UTILS ---
     function toggleMenu() { document.getElementById('navDrawer').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); }
     function closePopup() { document.getElementById('popup-overlay').classList.remove('open'); document.querySelectorAll('.modal-base').forEach(e=>e.classList.add('hidden')); }
-    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    function handleLogout() { auth.signOut().then(()=>location.reload()); }
-    function toggleTheme(chk) { document.body.className = chk?'':'light-mode'; localStorage.setItem('tradeTheme', chk?'dark':'light'); }
-    function togglePrivacy() { document.documentElement.style.setProperty('--blur', document.documentElement.style.getPropertyValue('--blur')==='5px'?'0px':'5px'); }
-    function toggleFormFields() { document.getElementById('closedFields').classList.toggle('hidden', document.getElementById('status').value === 'Aktiv'); }
-    function openAddContactModal() { document.getElementById('add-contact-modal').classList.remove('hidden'); document.getElementById('popup-overlay').classList.add('open'); }
-    async function searchUsers() { /* User Search Logic same as before */ }
+    function handleLogout() { auth.signOut().then(() => location.reload()); }
+    function toggleTheme(c) { document.body.className = c?'':'light-mode'; localStorage.setItem('tradeTheme', c?'dark':'light'); }
+    function toggleFeedback(c) { db.collection('users').doc(auth.currentUser.uid).update({allowFeedback:c}); }
 </script>
 </body>
 </html>
