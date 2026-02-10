@@ -103,6 +103,10 @@ input:checked+.slider:before{transform:translateX(26px)}
 .cl-info{display:flex;flex-direction:column;flex-grow:1}
 .cl-name{font-weight:700;font-size:1rem;margin-bottom:4px;display:flex;align-items:center;gap:5px}
 .cl-last{font-size:.8rem;color:var(--text-sub)}
+.cl-actions{display:flex;gap:4px;align-items:center;flex-shrink:0;margin-left:auto}
+.cl-actions button{background:none;border:1px solid var(--border);color:var(--text-sub);cursor:pointer;padding:4px 7px;border-radius:6px;font-size:.85rem;line-height:1;transition:.2s}
+.cl-actions button:hover{background:rgba(255,255,255,.1);color:var(--text-main)}
+.cl-actions button.pinned{color:var(--accent);border-color:var(--accent)}
 .coach-tag{background:var(--accent);color:#000;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:800;text-transform:uppercase}
 .search-result-item{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#222;margin-bottom:5px;border-radius:6px;border:1px solid #333}
 .chat-room{display:flex;flex-direction:column;height:100%;background:var(--wa-bg)}
@@ -178,8 +182,9 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 .btn-primary{background:var(--accent);color:#000;padding:15px;border:none;font-weight:800;border-radius:8px;width:100%;cursor:pointer}
 .btn-icon,.btn-small,.chart-btn{padding:6px 10px;font-size:.85rem;border-radius:6px;border:1px solid var(--border);background:var(--cell-bg);color:var(--text-main);cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .settings-list-item{display:flex;justify-content:space-between;align-items:center;background:var(--cell-bg);padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid var(--border)}
-.stats-grid-view{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.chart-card{height:300px;padding:10px;position:relative}
+.stats-grid-view{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-card{height:320px;padding:20px;position:relative;border:1px solid var(--border);border-radius:12px;background:var(--card-bg)}
+.chart-card h4{font-size:.95rem;letter-spacing:.5px;color:var(--text-main);border-bottom:1px solid var(--border);padding-bottom:10px}
 .full-width{grid-column:span 2}
 @media(max-width:768px){.stats-grid-view{grid-template-columns:1fr}.full-width{grid-column:span 1}}
 .cal-header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
@@ -226,8 +231,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
     <div class="input-row-2"><div><label>Entry</label><input type="number" id="inpEntry" step="any"></div><div><label>Stop Loss</label><input type="number" id="inpSL" step="any"></div></div>
     <div class="input-row-3"><div><label>TP 1</label><input type="number" id="inpTP1" step="any"></div><div><label>TP 2</label><input type="number" id="inpTP2" step="any"></div><div><label>TP 3</label><input type="number" id="inpTP3" step="any"></div></div>
     <label>Setup (Bild Link)</label>
-    <div style="display:flex;gap:10px"><input type="url" id="imgSetup" placeholder="Bild URL" style="margin-bottom:0"><button onclick="runOCR()" class="btn-icon" style="width:50px;font-size:1.2rem">&#x1FA84;</button></div>
-    <div id="ocr-status" style="font-size:.75rem;color:var(--accent);margin-bottom:12px;margin-top:5px;min-height:1rem"></div>
+    <input type="url" id="imgSetup" placeholder="Bild URL">
     <label>Notiz</label><textarea id="note" rows="2"></textarea>
     <div id="closedFields" class="hidden"><label style="color:var(--success)">PnL (Euro)</label><input type="number" id="pnl" step="0.01"><label>Result (Bild Link)</label><input type="url" id="imgResult"></div>
     <div id="admin-feedback-container" class="hidden" style="margin-top:20px;border-top:1px solid #333;padding-top:15px"><label style="color:var(--accent)">Coach Feedback</label><textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent)" placeholder="Tipp fuer den User..."></textarea></div>
@@ -335,7 +339,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 </div>
 <header id="main-header" class="hidden">
   <div style="display:flex;align-items:center"><button class="menu-btn" onclick="toggleMenu()">&#9776;</button><div id="view-title">DASHBOARD</div></div>
-  <button class="btn-icon" style="padding:8px;font-size:1.2rem;border:none;background:none" onclick="togglePrivacy()">&#x1F441;</button>
+  <button class="btn-icon" style="padding:8px;font-size:1.2rem;border:none;background:none" onclick="togglePrivacy()" title="Privat-Modus">&#x1F441;</button>
 </header>
 <div id="menu-overlay" onclick="toggleMenu()"></div>
 <nav class="nav-drawer" id="navDrawer">
@@ -365,7 +369,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 <section id="view-Uebersicht" class="view-section active">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
     <h2 style="margin:0;font-size:2.5rem;font-weight:900">Hallo <span id="user-greeting-name">Trader</span></h2>
-    <button onclick="prepareCreateView()" class="btn-primary" style="width:auto;padding:10px 20px;margin:0;font-size:.8rem">+ NEUER TRADE</button>
+    <button onclick="prepareCreateView()" class="btn-icon" style="padding:10px 14px;font-size:1.3rem;border:none;background:var(--accent);color:#000" title="Neuer Trade">&#x2795;</button>
   </div>
   <div id="upgrade-banner-area"></div>
   <div id="dashboard-notification-area"></div>
@@ -374,11 +378,10 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 <section id="view-Chat" class="view-section" style="height:calc(100vh - 70px);padding:0;overflow:hidden">
   <div class="card chat-container" style="border:none;border-radius:0;height:100%;margin:0">
     <div id="chat-lobby" class="chat-lobby">
-      <div class="cl-header"><span>CHATS</span><button class="btn-icon" style="background:none;border:none;font-size:1.5rem" onclick="openAddContactModal()">+</button></div>
+      <div class="cl-header"><span>CHATS</span><button class="btn-icon" style="background:none;border:none;font-size:1.5rem" onclick="openAddContactModal()" title="Kontakt hinzufuegen">&#x2795;</button></div>
       <div class="cl-list">
-        <div class="cl-item" onclick="enterChat('public','Public Chat')"><div class="cl-avatar" style="background:#2a9d8f">&#x1F30D;</div><div class="cl-info"><div class="cl-name">Public Chat</div><div class="cl-last">Allgemeiner Austausch</div></div></div>
-        <div class="cl-item" onclick="enterChat('signals','Signale')"><div class="cl-avatar" style="background:#e9c46a;color:#000">&#x1F4E1;</div><div class="cl-info"><div class="cl-name">Signale</div><div class="cl-last">Nur Trades</div></div></div>
-        <div class="cl-item" onclick="enterChat('pro_signal','Pro Signal')"><div class="cl-avatar" style="background:#e76f51">&#x1F680;</div><div class="cl-info"><div class="cl-name">Pro Signal</div><div class="cl-last">Vom Coach</div></div></div>
+        <div id="chat-pinned-area"></div>
+        <div id="chat-channels-area"></div>
         <div id="friend-requests-area"></div>
         <div style="padding:10px 15px;font-size:.8rem;color:var(--text-sub);font-weight:700;margin-top:10px">KONTAKTE</div>
         <div id="chat-user-list"></div>
@@ -409,7 +412,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
   <div class="card">
     <div class="cal-header-row">
       <div><h2 id="cal-month-title" style="margin:0">-</h2><small id="cal-filter-hint" style="color:var(--accent);font-size:.8rem">-</small></div>
-      <div><button class="chart-btn" onclick="changeCalMonth(-1)">&#x276E;</button><button class="chart-btn" onclick="changeCalMonth(1)">&#x276F;</button></div>
+      <div><button class="chart-btn" onclick="changeCalMonth(-1)" title="Vorheriger Monat">&#x276E;</button><button class="chart-btn" onclick="changeCalMonth(1)" title="Naechster Monat">&#x276F;</button></div>
     </div>
     <div class="calendar-grid">
       <div style="text-align:center;color:#666;font-size:.7rem">So</div><div style="text-align:center;color:#666;font-size:.7rem">Mo</div><div style="text-align:center;color:#666;font-size:.7rem">Di</div>
@@ -419,10 +422,11 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
   </div>
 </section>
 <section id="view-Statistik" class="view-section">
+  <div id="stat-journal-hint" style="color:var(--accent);font-size:.85rem;margin-bottom:15px;font-weight:600"></div>
   <div class="stats-grid-view">
-    <div class="card chart-card"><h4 style="margin:0 0 15px">Asset Performance</h4><div style="height:240px;position:relative"><canvas id="assetChart"></canvas></div></div>
-    <div class="card chart-card"><h4 style="margin:0 0 15px">Wochentags Performance</h4><div style="height:240px;position:relative"><canvas id="weekdayChart"></canvas></div></div>
-    <div class="card chart-card full-width"><h4 style="margin:0 0 15px">Stuendliche Performance</h4><div style="height:240px;position:relative"><canvas id="hourChart"></canvas></div></div>
+    <div class="chart-card"><h4 style="margin:0 0 15px">&#x1F4CA; Asset Performance</h4><div style="height:240px;position:relative"><canvas id="assetChart"></canvas></div></div>
+    <div class="chart-card"><h4 style="margin:0 0 15px">&#x1F4C5; Wochentags Performance</h4><div style="height:240px;position:relative"><canvas id="weekdayChart"></canvas></div></div>
+    <div class="chart-card full-width"><h4 style="margin:0 0 15px">&#x23F0; Stuendliche Performance</h4><div style="height:240px;position:relative"><canvas id="hourChart"></canvas></div></div>
   </div>
 </section>
 <section id="view-Historie" class="view-section">
@@ -541,7 +545,7 @@ async function finishLogin(user){
   document.getElementById("auth-overlay").classList.add("hidden");
   document.getElementById("app-content").classList.remove("hidden");
   document.getElementById("main-header").classList.remove("hidden");
-  applyRestrictions();await loadData();loadContactsAndRequests();setupGlobalNotifications();
+  applyRestrictions();await loadData();renderChatLobby();loadContactsAndRequests();setupGlobalNotifications();
 }
 function applyRestrictions(){
   ["Chat","TradingView","Lot-Rechner","News"].forEach(v=>{
@@ -568,7 +572,7 @@ function populateSelectors(){
   const ns=document.getElementById("navJournalSelect");ns.innerHTML=journals.map(j=>`<option value="${j.name}">${j.name}</option>`).join("");if(activeJournal)ns.value=activeJournal;
   const cs=document.getElementById("inpJournalSelect");cs.innerHTML=journals.map(j=>`<option value="${j.name}">${j.name}</option>`).join("");if(activeJournal)cs.value=activeJournal;
 }
-function changeActiveJournal(val){activeJournal=val;const cs=document.getElementById("inpJournalSelect");if(cs)cs.value=activeJournal;renderDashboard();document.getElementById("navDrawer").classList.remove("open");document.getElementById("menu-overlay").classList.remove("open");}
+function changeActiveJournal(val){activeJournal=val;const cs=document.getElementById("inpJournalSelect");if(cs)cs.value=activeJournal;renderDashboard();if(document.getElementById("view-Kalender").classList.contains("active"))renderCalendar();if(document.getElementById("view-Statistik").classList.contains("active"))renderStatistics();if(document.getElementById("view-Historie").classList.contains("active"))renderHistory();document.getElementById("navDrawer").classList.remove("open");document.getElementById("menu-overlay").classList.remove("open");}
 function renderUpgradeBanner(){
   const area=document.getElementById("upgrade-banner-area");
   if(userStatus==="test"){const tc=trades.length;area.innerHTML=`<div class="upgrade-banner"><h3>Test-Phase aktiv</h3><p>Trades: <b>${tc}/5</b> | Journals: <b>${journals.length}/1</b><br>Chat, Charts, Lot Rechner &amp; News gesperrt</p><button class="btn-primary" style="width:auto;padding:10px 25px;display:inline-block" onclick="alert('Bitte kontaktiere den Admin fuer ein Upgrade!')">Upgrade auf Pro</button></div>`;}
@@ -599,17 +603,17 @@ function renderDashboard(){
     const tp=ca.filter(t=>new Date(t.date).toDateString()===ts).reduce((a,t)=>a+t.pnl,0);
     if(journal.maxDD&&parseFloat(journal.maxDD)>0){const lim=parseFloat(journal.maxDD);let thr=lim;if(journal.ddType==="percent"){const tb2=sc+ca.reduce((a,b)=>a+b.pnl,0);thr=Math.max(tb2,0)*(lim/100);}if(tp<-thr)wh=`<div class="loss-warning"><span>Tagesverlust ueberschritten!</span></div>`;}
     let oth=`<p style="color:var(--text-sub);font-style:italic;font-size:.8rem;text-align:center;padding-top:20px">Keine offenen Trades.</p>`;
-    if(open.length)oth=open.map(t=>`<div class="ot-list-item"><span style="font-weight:700;color:var(--accent)">${t.asset}</span><button class="btn-small" onclick="editTrade('${t.id}',true)">Close</button></div>`).join("");
+    if(open.length)oth=open.map(t=>`<div class="ot-list-item"><span style="font-weight:700;color:var(--accent)">${t.asset}</span><button class="btn-icon" onclick="editTrade('${t.id}',true)" title="Schliessen">&#x2716;</button></div>`).join("");
     const filters=["HEUTE","GESTERN","WOCHE","MONAT","JAHR","GESAMT","ZEITRAUM"];
     const fh=filters.map(f=>`<button class="filter-pill ${tf===f?"active":""}" onclick="setJournalFilter('${journal.id}','${f}')">${f}</button>`).join("");
-    container.innerHTML+=`<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${fh}</div>${wh}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${cid}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${tf})</span><span class="stat-value sensitive" style="color:${pc}">${pnl.toFixed(2)} Euro</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${wr}%</span></div></div><div class="open-trades-box"><div style="font-size:.8rem;font-weight:700;color:var(--text-sub);margin-bottom:8px">OFFENE TRADES</div><div style="flex-grow:1">${oth}</div></div></div></div></div>`;
+    container.innerHTML+=`<div class="journal-full-card"><div class="jfc-header"><div class="jfc-title">${journal.name}</div></div><div class="card-filters">${fh}</div>${wh}<div class="jfc-body-grid"><div class="jfc-chart-area"><canvas id="${cid}"></canvas></div><div class="jfc-sidebar"><div class="jfc-stats-row"><div class="stat-box"><span class="stat-label">PnL (${tf})</span><span class="stat-value sensitive" style="color:${pc}">${pnl.toFixed(2)} €</span></div><div class="stat-box"><span class="stat-label">Winrate</span><span class="stat-value">${wr}%</span></div></div><div class="open-trades-box"><div style="font-size:.8rem;font-weight:700;color:var(--text-sub);margin-bottom:8px">OFFENE TRADES</div><div style="flex-grow:1">${oth}</div></div></div></div></div>`;
     setTimeout(()=>{const c=document.getElementById(cid);if(!c)return;chartInstances[cid]=new Chart(c.getContext("2d"),{type:"line",data:{labels:ec.map(()=>""),datasets:[{data:ec,borderColor:"#0a84ff",borderWidth:2,pointRadius:0,tension:.1,fill:true,backgroundColor:"rgba(10,132,255,.05)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:"#222"}}}}});},50);
   });
 }
 async function renderNotificationsArea(){
   const area=document.getElementById("dashboard-notification-area");area.innerHTML="";
   const sc=parseInt(localStorage.getItem("chatCount")||"0");
-  if(lastMsgCount>sc&&!isChatActive)area.innerHTML+=`<div class="chat-notification"><div onclick="navGuard('Chat')" style="flex-grow:1">Neue Nachricht im Community Chat!</div><button onclick="this.parentElement.remove()">X</button></div>`;
+  if(lastMsgCount>sc&&!isChatActive)area.innerHTML+=`<div class="chat-notification"><div onclick="navGuard('Chat')" style="flex-grow:1">Neue Nachricht im Community Chat!</div><button onclick="this.parentElement.remove()" title="Schliessen" style="background:none;border:none;color:#fff;font-size:1rem;cursor:pointer">&#x2716;</button></div>`;
   if(!isAdmin){const uf=trades.filter(t=>t.adminFeedback&&!t.feedbackRead);uf.forEach(t=>{const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(t.imgSetup||t.imgResult||"");area.innerHTML+=`<div class="feedback-notification"><div style="font-weight:700;color:var(--accent);margin-bottom:5px">Coach Feedback zu ${t.asset}</div><div style="margin-bottom:10px">${t.adminFeedback.substring(0,80)}</div><button class="btn-primary" style="padding:10px 20px;width:auto" onclick="openSignalDetail('${ts}','${is}')">Ansehen</button></div>`;});}
 }
 function setupGlobalNotifications(){
@@ -621,6 +625,7 @@ function setJournalFilter(jid,tf){if(tf==="ZEITRAUM"){configJId=jid;document.get
 function applyCustomDate(){const s=document.getElementById("custom-start").value,e=document.getElementById("custom-end").value;if(s&&e&&configJId){jFilters[configJId]="ZEITRAUM";jCustomDates[configJId]={start:s,end:e};renderDashboard();closePopup();}}
 function renderStatistics(){
   if(!activeJournal)return;
+  const sh=document.getElementById("stat-journal-hint");if(sh)sh.innerText="Journal: "+activeJournal;
   const tt=trades.filter(t=>(t.journal||"Main")===activeJournal&&t.status==="Geschlossen");
   const am={};tt.forEach(t=>{if(!am[t.asset])am[t.asset]=0;am[t.asset]+=t.pnl;});const sa=Object.keys(am).sort((a,b)=>am[b]-am[a]);
   const dm={0:0,1:0,2:0,3:0,4:0,5:0,6:0};tt.forEach(t=>{dm[new Date(t.date).getDay()]+=t.pnl;});
@@ -638,7 +643,7 @@ async function searchUsers(){
   if(term.length<3){rd.innerHTML="<p style='color:var(--text-sub)'>Mindestens 3 Buchstaben...</p>";return;}
   try{const s=await db.collection("users").limit(50).get();const hits=s.docs.filter(d=>{const x=d.data();return x.displayName&&x.displayName.toLowerCase().includes(term)&&x.email!==auth.currentUser.email;});
   if(!hits.length){rd.innerHTML="<p style='color:var(--text-sub)'>Keine User gefunden.</p>";return;}
-  rd.innerHTML=hits.map(d=>`<div class="search-result-item"><span style="font-weight:700;color:#fff">${d.data().displayName}</span><button class="btn-small" onclick="sendContactReq('${d.id}')">Hinzufuegen</button></div>`).join("");}catch(e){rd.innerHTML="<p style='color:var(--danger)'>Fehler.</p>";}
+  rd.innerHTML=hits.map(d=>`<div class="search-result-item"><span style="font-weight:700;color:#fff">${d.data().displayName}</span><button class="btn-icon" onclick="sendContactReq('${d.id}')" title="Hinzufuegen">&#x2795;</button></div>`).join("");}catch(e){rd.innerHTML="<p style='color:var(--danger)'>Fehler.</p>";}
 }
 async function sendContactReq(tid){
   const ex=await db.collection("friendships").where("users","array-contains",auth.currentUser.uid).get();let exists=false;ex.forEach(d=>{if(d.data().users.includes(tid))exists=true;});
@@ -653,8 +658,8 @@ function loadContactsAndRequests(){
     for(const doc of s.docs){
       const d=doc.data();const ou=d.users.find(u=>u!==auth.currentUser.uid);let on="Unbekannt",oe="";
       try{const ud=await db.collection("users").doc(ou).get();if(ud.exists){on=ud.data().displayName;oe=ud.data().email;}}catch(e){}
-      if(d.status==="pending"&&d.receiverId===auth.currentUser.uid)ra.innerHTML+=`<div class="cl-item" style="background:rgba(187,134,252,.1)"><div class="cl-avatar" style="background:var(--accent)">?</div><div class="cl-info"><div class="cl-name">${on}</div><div class="cl-last">Moechte chatten</div></div><button class="btn-small" onclick="acceptReq('${doc.id}')" style="margin-right:5px">OK</button><button class="btn-small" onclick="declineReq('${doc.id}')">X</button></div>`;
-      else if(d.status==="accepted"){const nm=oe===ADMIN_EMAIL?`${on} <span class="coach-tag">Coach</span>`:on;la.innerHTML+=`<div class="cl-item" onclick="enterPrivateChat('${ou}','${on}')"><div class="cl-avatar" style="background:#555">${on.charAt(0).toUpperCase()}</div><div class="cl-info"><div class="cl-name">${nm}</div><div class="cl-last">Privater Chat</div></div></div>`;}
+      if(d.status==="pending"&&d.receiverId===auth.currentUser.uid)ra.innerHTML+=`<div class="cl-item" style="background:rgba(187,134,252,.1)"><div class="cl-avatar" style="background:var(--accent)">?</div><div class="cl-info"><div class="cl-name">${on}</div><div class="cl-last">Moechte chatten</div></div><div class="cl-actions"><button title="Annehmen" onclick="acceptReq('${doc.id}')">&#x2714;</button><button title="Ablehnen" onclick="declineReq('${doc.id}')">&#x2716;</button></div></div>`;
+      else if(d.status==="accepted"){const nm=oe===ADMIN_EMAIL?`${on} <span class="coach-tag">Coach</span>`:on;const chatId=getChatId(auth.currentUser.uid,ou);const pins=getPinnedChats();const isPinned=pins.includes(chatId);const target=isPinned?document.getElementById("chat-pinned-area"):la;target.innerHTML+=`<div class="cl-item"><div class="cl-avatar" style="background:#555" onclick="enterPrivateChat('${ou}','${on}')">${on.charAt(0).toUpperCase()}</div><div class="cl-info" onclick="enterPrivateChat('${ou}','${on}')"><div class="cl-name">${nm}</div><div class="cl-last">Privater Chat</div></div><div class="cl-actions"><button class="${isPinned?"pinned":""}" title="${isPinned?"Loesen":"Anpinnen"}" onclick="event.stopPropagation();togglePinChat('${chatId}')">&#x1F4CC;</button><button title="Chat loeschen" onclick="deletePrivateChat('${doc.id}',event)">&#x1F5D1;&#xFE0E;</button></div></div>`;}
     }
   });
 }
@@ -669,6 +674,17 @@ function enterChat(ch,title){
   loadChat();
 }
 function leaveChat(){curChatChannel=null;if(unsubChat)unsubChat();document.getElementById("chat-room").classList.add("hidden");document.getElementById("chat-lobby").classList.remove("hidden");}
+function getPinnedChats(){try{return JSON.parse(localStorage.getItem("pinnedChats")||"[]");}catch(e){return[];}}
+function togglePinChat(chatId){let pins=getPinnedChats();if(pins.includes(chatId))pins=pins.filter(p=>p!==chatId);else pins.push(chatId);localStorage.setItem("pinnedChats",JSON.stringify(pins));renderChatLobby();loadContactsAndRequests();}
+async function deletePrivateChat(friendshipId,e){if(e)e.stopPropagation();if(!confirm("Chat wirklich loeschen?"))return;await db.collection("friendships").doc(friendshipId).delete();loadContactsAndRequests();}
+function renderChatLobby(){
+  const pins=getPinnedChats();const channels=[{id:"public",name:"Public Chat",desc:"Allgemeiner Austausch",avatar:"&#x1F30D;",bg:"#2a9d8f"},{id:"signals",name:"Signale",desc:"Nur Trades",avatar:"&#x1F4E1;",bg:"#e9c46a",avatarColor:"#000"},{id:"pro_signal",name:"Pro Signal",desc:"Vom Coach",avatar:"&#x1F680;",bg:"#e76f51"}];
+  const pinnedChannels=channels.filter(c=>pins.includes(c.id));const unpinnedChannels=channels.filter(c=>!pins.includes(c.id));
+  const renderChannel=(c)=>{const isPinned=pins.includes(c.id);return`<div class="cl-item"><div class="cl-avatar" style="background:${c.bg}${c.avatarColor?";color:"+c.avatarColor:""}" onclick="enterChat('${c.id}','${c.name}')">${c.avatar}</div><div class="cl-info" onclick="enterChat('${c.id}','${c.name}')"><div class="cl-name">${c.name}</div><div class="cl-last">${c.desc}</div></div><div class="cl-actions"><button class="${isPinned?"pinned":""}" title="${isPinned?"Loesen":"Anpinnen"}" onclick="event.stopPropagation();togglePinChat('${c.id}')">&#x1F4CC;</button></div></div>`;};
+  document.getElementById("chat-pinned-area").innerHTML=pinnedChannels.map(renderChannel).join("");
+  document.getElementById("chat-channels-area").innerHTML=unpinnedChannels.map(renderChannel).join("");
+}
+
 function loadChat(){
   if(!curChatChannel)return;if(unsubChat)unsubChat();
   unsubChat=db.collection("chat").where("channel","==",curChatChannel).limit(50).onSnapshot(snap=>{
@@ -680,7 +696,7 @@ function loadChat(){
 function renderMsg(msg){
   const isMe=msg.senderId===auth.currentUser.uid;let time="";if(msg.timestamp)time=msg.timestamp.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   let content=`<div>${msg.text||""}</div>`;
-  const db2=isAdmin?`<button style="position:absolute;top:2px;right:5px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer" onclick="deleteChatMsg('${msg.id}')">x</button>`:"";
+  const db2=isAdmin?`<button style="position:absolute;top:2px;right:5px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:.8rem" onclick="deleteChatMsg('${msg.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button>`:"";
   if(msg.type==="trade"&&msg.tradeData){const t=msg.tradeData;const img=msg.sharedImage||t.imgSetup;const sl=t.status==="Aktiv"?"OPEN":"CLOSED";const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(img||"");const th=img?`<img src="${img}" class="ct-img">`:"";content=`<div class="chat-trade-card" onclick="openSignalDetail('${ts}','${is}')"><div class="ct-header"><span>${t.asset}</span><span>${sl}</span></div>${th}</div>`;}
   return`<div class="msg-wrapper ${isMe?"me":"other"}"><div class="msg-bubble">${!isMe?`<span class="msg-sender-name">${msg.senderName}</span>`:""} ${content}${db2}<div class="msg-meta"><span class="msg-time">${time}</span>${isMe?`<span class="msg-tick">checkmark</span>`:""}</div></div></div>`;
 }
@@ -719,7 +735,7 @@ function openSignalDetail(tde,iue){
   if(t.adminFeedback&&(!t.feedbackRead||isAdmin))html+=`<div style="background:rgba(187,134,252,.15);border:1px solid var(--accent);border-radius:8px;padding:15px;margin-bottom:15px"><div style="color:var(--accent);font-weight:700;margin-bottom:5px">Coach Feedback</div><div>${t.adminFeedback}</div></div>`;
   html+=`<div class="td-hero"><span class="td-asset">${t.asset}</span><span class="td-pnl" style="color:${t.status==="Aktiv"?"#0a84ff":(t.pnl>=0?"#30d158":"#ff453a")}">${t.status==="Aktiv"?"OPEN":t.pnl.toFixed(2)+" Euro"}</span></div>`;
   html+=`<div class="td-value-list">`;
-  const ar=(label,val,id)=>{if(!val)return"";return`<div class="td-row"><span class="td-row-label">${label}</span><div class="td-row-val-group"><span class="td-row-val">${val}</span><button class="td-copy-btn" id="${id}" onclick="copyText('${val}','${id}')">copy</button></div></div>`;};
+  const ar=(label,val,id)=>{if(!val)return"";return`<div class="td-row"><span class="td-row-label">${label}</span><div class="td-row-val-group"><span class="td-row-val">${val}</span><button class="td-copy-btn" id="${id}" onclick="copyText('${val}','${id}')" title="Kopieren">&#x1F4CB;</button></div></div>`;};
   if(t.entry)html+=ar("Entry",t.entry,"btn-cp-ent");if(t.sl)html+=`<div class="td-row"><span class="td-row-label">Stop Loss</span><span class="td-row-val" style="color:#ff453a">${t.sl}</span></div>`;
   html+=ar("TP 1",t.tp1,"btn-cp-tp1");html+=ar("TP 2",t.tp2,"btn-cp-tp2");html+=ar("TP 3",t.tp3,"btn-cp-tp3");html+=`</div>`;
   if(t.note)html+=`<div class="td-note-box">"${t.note}"</div>`;
@@ -749,7 +765,7 @@ function updateAdminMemberView(){
   let bal=0;const data=cl.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t=>{bal+=t.pnl;return bal;});
   const ctx=document.getElementById("admChart").getContext("2d");if(adminCI)adminCI.destroy();
   adminCI=new Chart(ctx,{type:"line",data:{labels:data.map(()=>""),datasets:[{data,borderColor:"#bb86fc",borderWidth:2,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:"#333"}}}}});
-  document.getElementById("adm-trade-list").innerHTML=ft.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>{const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(t.imgSetup||t.imgResult||"");return`<tr><td>${t.date.split("T")[0]}</td><td>${t.asset}</td><td style="text-align:right;color:${t.pnl>=0?"var(--success)":"var(--danger)"}">${t.pnl.toFixed(2)}</td><td><button class="btn-icon" onclick="openSignalDetail('${ts}','${is}')">i</button></td></tr>`;}).join("");
+  document.getElementById("adm-trade-list").innerHTML=ft.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>{const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(t.imgSetup||t.imgResult||"");return`<tr><td>${t.date.split("T")[0]}</td><td>${t.asset}</td><td style="text-align:right;color:${t.pnl>=0?"var(--success)":"var(--danger)"}">${t.pnl.toFixed(2)}</td><td><button class="btn-icon" onclick="openSignalDetail('${ts}','${is}')" title="Details">&#x1F441;</button></td></tr>`;}).join("");
 }
 function switchAdminTab(tab){document.getElementById("btn-adm-stats").classList.toggle("active",tab==="stats");document.getElementById("btn-adm-trades").classList.toggle("active",tab==="trades");if(tab==="stats"){document.getElementById("adm-content-stats").classList.remove("hidden");document.getElementById("adm-content-trades").classList.add("hidden");}else{document.getElementById("adm-content-stats").classList.add("hidden");document.getElementById("adm-content-trades").classList.remove("hidden");}}
 async function loadAdminZentrale(){
@@ -767,7 +783,7 @@ async function adminUpgrade(uid,email){if(!uid){alert("UID nicht gefunden.");ret
 async function adminDowngrade(uid,email){if(!uid){alert("UID nicht gefunden.");return;}if(!confirm(`${email} auf Test setzen?`))return;await db.collection("users").doc(uid).update({status:"test"});alert("Test gesetzt.");loadAdminZentrale();}
 async function adminBan(uid,email){if(!uid){alert("UID nicht gefunden.");return;}if(!confirm(`${email} sperren?`))return;await db.collection("users").doc(uid).update({status:"banned"});alert("Gesperrt.");loadAdminZentrale();}
 async function adminDeleteUser(memberId,uid,email){if(!confirm(`${email} wirklich loeschen?`))return;await db.collection("members").doc(memberId).delete();if(uid){try{const ts=await db.collection("trades").where("userId","==",uid).get();const b=db.batch();ts.docs.forEach(d=>b.delete(d.ref));await b.commit();const js=await db.collection("journals").where("userId","==",uid).get();const b2=db.batch();js.docs.forEach(d=>b2.delete(d.ref));await b2.commit();}catch(e){}}alert("Geloescht.");loadAdminZentrale();admLoad();}
-async function loadAdminFeedback(){const list=document.getElementById("adm-feedback-inbox");list.innerHTML="Lade...";const s=await db.collection("feedback_general").orderBy("timestamp","desc").limit(20).get();if(s.empty){list.innerHTML="<div style='color:var(--text-sub);padding:10px'>Kein Feedback.</div>";return;}list.innerHTML=s.docs.map(doc=>{const d=doc.data();const dt=d.timestamp?d.timestamp.toDate().toLocaleString():"-";return`<div class="feedback-item"><div class="fb-header"><span>${d.userName} (${dt})</span><div><span class="fb-type">${d.type}</span><button class="fb-del" onclick="delFeedback('${doc.id}')">X</button></div></div><div class="fb-text">${d.text}</div></div>`;}).join("");}
+async function loadAdminFeedback(){const list=document.getElementById("adm-feedback-inbox");list.innerHTML="Lade...";const s=await db.collection("feedback_general").orderBy("timestamp","desc").limit(20).get();if(s.empty){list.innerHTML="<div style='color:var(--text-sub);padding:10px'>Kein Feedback.</div>";return;}list.innerHTML=s.docs.map(doc=>{const d=doc.data();const dt=d.timestamp?d.timestamp.toDate().toLocaleString():"-";return`<div class="feedback-item"><div class="fb-header"><span>${d.userName} (${dt})</span><div><span class="fb-type">${d.type}</span><button class="fb-del" onclick="delFeedback('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div></div><div class="fb-text">${d.text}</div></div>`;}).join("");}
 async function delFeedback(id){if(confirm("Loeschen?")){await db.collection("feedback_general").doc(id).delete();loadAdminFeedback();}}
 async function sendGeneralFeedback(){const type=document.getElementById("fb-type").value,text=document.getElementById("fb-text").value;if(!text){alert("Text fehlt.");return;}await db.collection("feedback_general").add({userId:auth.currentUser.uid,userName:currentUserName,type,text,timestamp:firebase.firestore.FieldValue.serverTimestamp()});alert("Feedback gesendet!");document.getElementById("fb-text").value="";}
 function changeCalMonth(d){calDate.setMonth(calDate.getMonth()+d);renderCalendar();}
@@ -791,12 +807,12 @@ function openDayDetail(ds){
 }
 function closePopup(){document.getElementById("popup-overlay").classList.remove("open");document.querySelectorAll(".modal-base").forEach(el=>{el.classList.add("hidden");el.classList.remove("open");});curDetailId=null;}
 async function closeTradeDetail(){document.getElementById("trade-detail-view").classList.add("hidden");const ddOpen=!document.getElementById("day-detail-view").classList.contains("hidden");const amOpen=!document.getElementById("admin-member-modal").classList.contains("hidden");if(!ddOpen&&!amOpen)document.getElementById("popup-overlay").classList.remove("open");if(curDetailId){const t=trades.find(x=>x.id===curDetailId);if(t&&t.adminFeedback&&!isAdmin&&t.userId===auth.currentUser.uid){await db.collection("trades").doc(curDetailId).update({adminFeedback:"",feedbackRead:true});await loadData();}curDetailId=null;}}
-function copyText(val,btnId){if(!val)return;navigator.clipboard.writeText(val).then(()=>{const b=document.getElementById(btnId);if(b){b.innerText="OK";setTimeout(()=>{b.innerText="copy";},1500);}});}
+function copyText(val,btnId){if(!val)return;navigator.clipboard.writeText(val).then(()=>{const b=document.getElementById(btnId);if(b){b.innerHTML="&#x2714;";setTimeout(()=>{b.innerHTML="&#x1F4CB;";},1500);}});}
 function renderHistory(){
   if(!activeJournal&&journals.length>0)activeJournal=journals[0].name;document.getElementById("hist-title").innerText="Trade Historie ("+activeJournal+")";
   let f=trades.filter(t=>(t.journal||"Main")===activeJournal).sort((a,b)=>new Date(b.date)-new Date(a.date));const tb=document.getElementById("tradeBody");if(!tb)return;
   if(!f.length){tb.innerHTML="<tr><td colspan='4' style='text-align:center;padding:20px;color:var(--text-sub)'>Keine Trades</td></tr>";return;}
-  tb.innerHTML=f.map(t=>{const time=t.date.split("T")[1];const date=t.date.split("T")[0];const sb=(t.imgSetup||t.imgResult)?`<button class="btn-icon" onclick="shareTrade('${t.id}')">share</button>`:"";const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(t.imgSetup||t.imgResult||"");let ph=t.status==="Aktiv"?`<span style="color:var(--text-sub);font-style:italic">Offen</span>`:`<span class="sensitive" style="color:${t.pnl>=0?"var(--success)":"var(--danger)"};font-weight:700">${t.pnl.toFixed(2)}</span>`;return`<tr><td>${date}<span class="time-sub">${time}</span></td><td><b>${t.asset}</b></td><td style="text-align:right">${ph}</td><td style="text-align:right"><button class="btn-icon" onclick="openSignalDetail('${ts}','${is}')">i</button> ${sb} <button class="btn-icon" onclick="editTrade('${t.id}')">edit</button> <button class="btn-icon" onclick="delTrade('${t.id}')">del</button></td></tr>`;}).join("");
+  tb.innerHTML=f.map(t=>{const time=t.date.split("T")[1];const date=t.date.split("T")[0];const sb=(t.imgSetup||t.imgResult)?`<button class="btn-icon" onclick="shareTrade('${t.id}')" title="Teilen">&#x2197;</button>`:"";const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(t.imgSetup||t.imgResult||"");let ph=t.status==="Aktiv"?`<span style="color:var(--text-sub);font-style:italic">Offen</span>`:`<span class="sensitive" style="color:${t.pnl>=0?"var(--success)":"var(--danger)"};font-weight:700">${t.pnl.toFixed(2)}</span>`;return`<tr><td>${date}<span class="time-sub">${time}</span></td><td><b>${t.asset}</b></td><td style="text-align:right">${ph}</td><td style="text-align:right"><button class="btn-icon" onclick="openSignalDetail('${ts}','${is}')" title="Details">&#x1F441;</button> ${sb} <button class="btn-icon" onclick="editTrade('${t.id}')" title="Bearbeiten">&#x270F;&#xFE0E;</button> <button class="btn-icon" onclick="delTrade('${t.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></td></tr>`;}).join("");
 }
 function prepareCreateView(){
   if(userStatus==="test"){const mt=trades.filter(t=>(t.journal||"Main")===(activeJournal||journals[0]?.name||"Main"));if(mt.length>=5){alert("Test-Limit: Max. 5 Trades!\nUpgrade auf Pro.");return;}}
@@ -825,10 +841,10 @@ function prepareEditJournal(id){const j=journals.find(x=>x.id===id);if(!j)return
 function cancelEdit(){document.getElementById("journal-form-title").innerText="Neues Journal";document.getElementById("newJName").value="";document.getElementById("newJCap").value="";document.getElementById("newJMaxDD").value="";document.getElementById("btn-save-journal").innerText="Erstellen";document.getElementById("btn-cancel-journal").classList.add("hidden");editingJournalId=null;}
 async function toggleJournalVisibility(id,ch){await db.collection("journals").doc(id).update({hidden:!ch});await loadData();renderSettingsList();}
 async function deleteJournal(id,name){if(!confirm(`Journal '${name}' und ALLE Trades loeschen?`))return;await db.collection("journals").doc(id).delete();const b=db.batch();(await db.collection("trades").where("userId","==",auth.currentUser.uid).where("journal","==",name).get()).docs.forEach(d=>b.delete(d.ref));await b.commit();if(activeJournal===name)activeJournal=null;await loadData();renderSettingsList();}
-function renderSettingsList(){document.getElementById("settings-journal-list").innerHTML=journals.map(j=>{const ih=j.hidden===true;return`<div class="settings-list-item" style="opacity:${ih?.5:1}"><div><strong>${j.name}</strong> <small style="color:var(--text-sub)">${j.startCap?j.startCap+" Euro":""}</small></div><div><button class="btn-small" onclick="toggleJournalVisibility('${j.id}',${ih})">${ih?"show":"hide"}</button><button class="btn-small" onclick="prepareEditJournal('${j.id}')">edit</button><button class="btn-small" onclick="deleteJournal('${j.id}','${j.name}')">del</button></div></div>`;}).join("");}
+function renderSettingsList(){document.getElementById("settings-journal-list").innerHTML=journals.map(j=>{const ih=j.hidden===true;return`<div class="settings-list-item" style="opacity:${ih?.5:1}"><div><strong>${j.name}</strong> <small style="color:var(--text-sub)">${j.startCap?j.startCap+" €":""}</small></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="toggleJournalVisibility('${j.id}',${ih})" title="${ih?"Einblenden":"Ausblenden"}">&#x1F441;</button><button class="btn-icon" onclick="prepareEditJournal('${j.id}')" title="Bearbeiten">&#x270F;&#xFE0E;</button><button class="btn-icon" onclick="deleteJournal('${j.id}','${j.name}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div></div>`;}).join("");}
 async function admLoad(){
-  try{const s=await db.collection("members").get();const le=document.getElementById("admList");le.innerHTML="";for(const doc of s.docs){const md=doc.data();let dn="User";const uq=await db.collection("users").where("email","==",md.email).get();if(!uq.empty)dn=uq.docs[0].data().displayName;le.innerHTML+=`<div class="adm-row"><div class="adm-user-info"><div class="adm-text"><span class="adm-name">${dn}</span><span class="adm-email">${md.email}</span></div></div><div><button class="btn-icon" onclick="openMemberDetail('${doc.id}','${md.email}')" style="margin-right:5px">view</button><button class="btn-icon" onclick="admDel('${doc.id}')">del</button></div></div>`;}
-  const cs=await db.collection("coaches").get();const cl=document.getElementById("coachList");cl.innerHTML="";for(const doc of cs.docs){const cd=doc.data();cl.innerHTML+=`<div class="adm-row"><div>${cd.email}</div><button class="btn-icon" onclick="coachDel('${doc.id}')">del</button></div>`;}}catch(e){console.error(e);}
+  try{const s=await db.collection("members").get();const le=document.getElementById("admList");le.innerHTML="";for(const doc of s.docs){const md=doc.data();let dn="User";const uq=await db.collection("users").where("email","==",md.email).get();if(!uq.empty)dn=uq.docs[0].data().displayName;le.innerHTML+=`<div class="adm-row"><div class="adm-user-info"><div class="adm-text"><span class="adm-name">${dn}</span><span class="adm-email">${md.email}</span></div></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="openMemberDetail('${doc.id}','${md.email}')" title="Details">&#x1F441;</button><button class="btn-icon" onclick="admDel('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div></div>`;}
+  const cs=await db.collection("coaches").get();const cl=document.getElementById("coachList");cl.innerHTML="";for(const doc of cs.docs){const cd=doc.data();cl.innerHTML+=`<div class="adm-row"><div>${cd.email}</div><button class="btn-icon" onclick="coachDel('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div>`;}}catch(e){console.error(e);}
 }
 async function admAdd(){const e=document.getElementById("admEmail").value.toLowerCase().trim();if(e){await db.collection("members").add({email:e});document.getElementById("admEmail").value="";admLoad();loadAdminZentrale();}}
 async function admDel(id){if(confirm("Loeschen?")){await db.collection("members").doc(id).delete();admLoad();loadAdminZentrale();}}
@@ -843,10 +859,10 @@ function calcLots(){const bal=parseFloat(document.getElementById("cBal").value),
 function updateContractSize(){const v=document.getElementById("cType").value;if(v!=="custom")document.getElementById("cContract").value=v;}
 async function runOCR(){const url=document.getElementById("imgSetup").value;const se=document.getElementById("ocr-status");if(!url){alert("Bitte Bild-URL eingeben!");return;}se.innerText="Lese Bild...";try{const res=await fetch(`https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${url}&language=eng&isOverlayRequired=false`);const data=await res.json();if(data.IsErroredOnProcessing){se.innerText="Fehler";return;}if(data.ParsedResults&&data.ParsedResults.length>0){const text=data.ParsedResults[0].ParsedText.replace(/(\r\n|\n|\r)/gm," ");const slm=text.match(/(?:Stop|SL|Loss)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(slm)document.getElementById("inpSL").value=slm[1].replace(",",".");const em=text.match(/(?:Entry|Open|Price)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(em)document.getElementById("inpEntry").value=em[1].replace(",",".");const tm=text.match(/(?:Target|TP|Profit)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(tm)document.getElementById("inpTP1").value=tm[1].replace(",",".");se.innerText="Daten gefunden!";setTimeout(()=>se.innerText="",3000);}else se.innerText="Kein Text erkannt";}catch(e){se.innerText="Netzwerkfehler";}}
 function showView(v){
-  document.querySelectorAll(".view-section").forEach(s=>s.classList.remove("active"));const el=document.getElementById("view-"+v.replace(/\s+/g,"-"));if(!el)return;el.classList.add("active");document.getElementById("view-title").innerText=v.toUpperCase();
+  document.querySelectorAll(".view-section").forEach(s=>s.classList.remove("active"));const el=document.getElementById("view-"+v.replace(/\s+/g,"-"));if(!el)return;el.classList.add("active");const titleMap={"Uebersicht":"DASHBOARD","Kalender":"KALENDER","Statistik":"STATISTIK","Historie":"JOURNAL","Chat":"CHAT","Einstellungen":"EINSTELLUNGEN","Feedback":"FEEDBACK","TradingView":"CHART","Lot-Rechner":"LOT RECHNER","News":"NEWS"};document.getElementById("view-title").innerText=titleMap[v]||v.toUpperCase();
   document.getElementById("navDrawer").classList.remove("open");document.getElementById("menu-overlay").classList.remove("open");
   document.querySelectorAll(".nav-drawer button").forEach(b=>b.classList.remove("nav-active"));const btn=document.getElementById("btn-"+v.replace(/\s+/g,"-"));if(btn)btn.classList.add("nav-active");
-  isChatActive=(v==="Chat");if(isChatActive){if(lastMsgCount>0)localStorage.setItem("chatCount",lastMsgCount);if(!curChatChannel){document.getElementById("chat-lobby").classList.remove("hidden");document.getElementById("chat-room").classList.add("hidden");}}
+  isChatActive=(v==="Chat");if(isChatActive){if(lastMsgCount>0)localStorage.setItem("chatCount",lastMsgCount);if(!curChatChannel){document.getElementById("chat-lobby").classList.remove("hidden");document.getElementById("chat-room").classList.add("hidden");}renderChatLobby();}
   if(v==="Einstellungen"&&isAdmin){loadAdminFeedback();loadAdminZentrale();}
   if(v==="Uebersicht")renderDashboard();if(v==="Kalender")renderCalendar();if(v==="Historie")renderHistory();if(v==="Statistik")renderStatistics();if(v==="Einstellungen")renderSettingsList();
   if(v==="News"){const b=document.getElementById("news-box");b.innerHTML="";const s=document.createElement("script");s.src="https://s3.tradingview.com/external-embedding/embed-widget-events.js";s.async=true;s.innerHTML=JSON.stringify({colorTheme:"dark",width:"100%",height:"100%",locale:"de"});b.appendChild(s);}
