@@ -202,6 +202,55 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 .input-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .input-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 @media(max-width:600px){.input-row-2,.input-row-3{grid-template-columns:1fr;gap:0}}
+@media(max-width:768px){
+  body{padding-bottom:20px}
+  .container{padding:10px}
+  header{padding:10px 15px}
+  #view-title{font-size:1rem}
+  .jfc-body-grid{grid-template-columns:1fr!important}
+  .jfc-chart-area{height:180px!important}
+  .jfc-title{font-size:1.1rem}
+  .stat-label{font-size:.7rem}
+  .stat-value{font-size:.95rem}
+  .dv-stats-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .modal-base{width:98%;padding:15px;max-height:95vh}
+  .td-hero .td-asset{font-size:1.4rem}
+  .td-hero .td-pnl{font-size:2rem}
+  .td-row{padding:10px 12px}
+  .td-row-val{font-size:.9rem}
+  .td-img-thumb{height:150px!important}
+  .hist-table{font-size:.75rem}
+  .hist-table th,.hist-table td{padding:10px 6px}
+  .admin-grid{grid-template-columns:1fr!important}
+  .adm-row{flex-wrap:wrap;gap:8px}
+  .user-card-actions{flex-wrap:wrap}
+  .cal-cell{aspect-ratio:1/1}
+  .cal-pnl{font-size:.55rem}
+  .cal-date{font-size:.6rem}
+  .chat-container{height:calc(100vh - 120px)!important}
+  .cl-item{padding:12px 10px;gap:10px}
+  .cl-avatar{width:38px;height:38px;font-size:1rem}
+  .cl-name{font-size:.9rem}
+  .msg-bubble{font-size:.85rem}
+  .filter-pill{padding:4px 8px;font-size:.65rem}
+  .card-filters{gap:3px}
+  .btn-icon,.btn-small{padding:5px 8px;font-size:.8rem}
+  h2{font-size:1.8rem!important}
+  .stats-grid-view{grid-template-columns:1fr!important}
+  .full-width{grid-column:span 1!important}
+  .chart-card{height:280px;padding:15px}
+  .nav-drawer{width:260px}
+  .settings-list-item{flex-wrap:wrap;gap:8px}
+  .search-result-item{flex-wrap:wrap;gap:8px}
+}
+@media(max-width:400px){
+  h2{font-size:1.5rem!important}
+  .jfc-stats-row{grid-template-columns:1fr}
+  .filter-pill{padding:3px 6px;font-size:.6rem}
+  .cal-cell{aspect-ratio:1/1.1}
+  .modal-base{padding:10px}
+  .td-hero .td-pnl{font-size:1.6rem}
+}
 </style></head><body>
 <!-- MODALS -->
 <div id="popup-overlay" onclick="if(event.target===this)closePopup()">
@@ -263,7 +312,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
     <div style="display:flex;border-bottom:1px solid #333"><button class="adm-tab-btn active" onclick="switchAdminTab('stats')" id="btn-adm-stats">Statistik</button><button class="adm-tab-btn" onclick="switchAdminTab('trades')" id="btn-adm-trades">Trade Liste</button></div>
     <div id="adm-content-stats" style="padding:20px;overflow-y:auto">
       <div class="dv-stats-grid">
-        <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 Euro</div></div>
+        <div class="stat-box"><span class="stat-label">Total PnL</span><div class="stat-value sensitive" id="adm-stat-pnl">0.00 €</div></div>
         <div class="stat-box"><span class="stat-label">Winrate</span><div class="stat-value" id="adm-stat-win">0%</div></div>
         <div class="stat-box"><span class="stat-label">Trades</span><div class="stat-value" id="adm-stat-count">0</div></div>
       </div>
@@ -375,7 +424,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
   <div id="dashboard-notification-area"></div>
   <div id="dashboard-journals-list"></div>
 </section>
-<section id="view-Chat" class="view-section" style="height:calc(100vh - 70px);padding:0;overflow:hidden">
+<section id="view-Chat" class="view-section" style="height:calc(100vh - 70px);height:calc(100dvh - 70px);padding:0;overflow:hidden">
   <div class="card chat-container" style="border:none;border-radius:0;height:100%;margin:0">
     <div id="chat-lobby" class="chat-lobby">
       <div class="cl-header"><span>CHATS</span><button class="btn-icon" style="background:none;border:none;font-size:1.5rem" onclick="openAddContactModal()" title="Kontakt hinzufuegen">&#x2795;</button></div>
@@ -437,14 +486,14 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 </section>
 <section id="view-Lot-Rechner" class="view-section">
   <div class="card"><h3>Lot Rechner</h3>
-    <div class="input-row-2">
-      <select id="cType" onchange="updateContractSize()" style="margin-bottom:0"><option value="100000">Forex</option><option value="1">Indizes</option><option value="100">Gold</option><option value="custom">Custom</option></select>
-      <input type="number" id="cContract" value="100000" placeholder="Kontrakt" style="margin-bottom:0">
-    </div>
-    <div class="input-row-2" style="margin-top:15px"><input type="number" id="cBal" placeholder="Konto"><input type="number" id="cRisk" placeholder="Risk %"></div>
-    <div class="input-row-2"><input type="number" id="cEnt" placeholder="Entry"><input type="number" id="cSl" placeholder="SL"></div>
+    <label>Asset</label><input type="text" id="cAsset" placeholder="z.B. EURUSD, XAUUSD, US30" style="text-transform:uppercase">
+    <div class="input-row-2"><div><label>Konto (USD)</label><input type="number" id="cBal" placeholder="10000"></div><div><label>Risiko %</label><input type="number" id="cRisk" placeholder="1" step="0.1"></div></div>
+    <div class="input-row-2"><div><label>Entry</label><input type="number" id="cEnt" placeholder="1.08500" step="any"></div><div><label>Stop Loss</label><input type="number" id="cSl" placeholder="1.08000" step="any"></div></div>
     <button onclick="calcLots()" class="btn-primary">Berechnen</button>
-    <div id="cRes" style="text-align:center;font-size:1.5rem;margin-top:15px;color:var(--success)">0.00 Lot</div>
+    <div id="cRes" style="text-align:center;margin-top:20px">
+      <div style="font-size:2rem;font-weight:900;color:var(--success)" id="cResLot">0.00 Lot</div>
+      <div style="font-size:.85rem;color:var(--text-sub);margin-top:8px" id="cResInfo"></div>
+    </div>
   </div>
 </section>
 <section id="view-News" class="view-section"><div class="card" style="height:600px;padding:0"><div id="news-box" style="height:100%"></div></div></section>
@@ -469,8 +518,8 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
     <div id="admin-panel" class="hidden" style="margin-top:40px;border-top:1px solid var(--border);padding-top:20px">
       <h3 style="color:var(--accent)">Feedback Inbox</h3>
       <div id="adm-feedback-inbox" style="margin-bottom:30px">Lade...</div>
-      <h3 style="color:var(--accent)">Mitgliederverwaltung</h3>
-      <div style="display:flex;gap:10px;margin-bottom:15px"><input id="admEmail" placeholder="Neues Mitglied (Email)" style="margin-bottom:0"><button onclick="admAdd()" class="btn-primary" style="width:100px;padding:0">Add</button></div>
+      <h3 style="color:var(--accent)">Mitglieder Uebersicht</h3>
+      <div style="margin-bottom:15px"><input id="admMemberSearch" placeholder="Mitglied suchen (Name oder Email)..." style="margin-bottom:0" oninput="filterAdmMembers()"></div>
       <div id="admList" style="background:var(--cell-bg);border-radius:8px;padding:10px;border:1px solid var(--border)"></div>
       <h3 style="color:var(--accent);margin-top:30px">Coach Verwaltung</h3>
       <p style="font-size:.8rem;color:var(--text-sub)">Coaches haben Admin-Rechte.</p>
@@ -535,7 +584,7 @@ auth.onAuthStateChanged(async(user)=>{
     else{const ud=uDoc.data();userStatus=ud.status||"test";if(userStatus==="banned"){alert("Dein Account wurde gesperrt.");await auth.signOut();location.reload();return;}document.getElementById("feedback-toggle").checked=ud.allowCoachFeedback!==false;}
     const cs=await db.collection("coaches").where("email","==",email).get();let isCoach=!cs.empty;
     if(email===ADMIN_EMAIL||isCoach){isAdmin=true;userStatus="pro";document.getElementById("admin-panel").classList.remove("hidden");document.getElementById("btn-Feedback").style.display="none";admLoad();loadAdminZentrale();finishLogin(user);}
-    else{const ms=await db.collection("members").where("email","==",email).get();if(!ms.empty)finishLogin(user);else{alert("Zugriff verweigert!");await auth.signOut();location.reload();}}
+    else{finishLogin(user);}
   }
 });
 async function finishLogin(user){
@@ -733,14 +782,17 @@ function openSignalDetail(tde,iue){
   if(aia){if(showAdm){aia.classList.remove("hidden");document.getElementById("adm-feedback-text").value=t.adminFeedback||"";}else aia.classList.add("hidden");}
   let html="";
   if(t.adminFeedback&&(!t.feedbackRead||isAdmin))html+=`<div style="background:rgba(187,134,252,.15);border:1px solid var(--accent);border-radius:8px;padding:15px;margin-bottom:15px"><div style="color:var(--accent);font-weight:700;margin-bottom:5px">Coach Feedback</div><div>${t.adminFeedback}</div></div>`;
-  html+=`<div class="td-hero"><span class="td-asset">${t.asset}</span><span class="td-pnl" style="color:${t.status==="Aktiv"?"#0a84ff":(t.pnl>=0?"#30d158":"#ff453a")}">${t.status==="Aktiv"?"OPEN":t.pnl.toFixed(2)+" Euro"}</span></div>`;
+  const pnlText=t.status==="Aktiv"?"OPEN":(t.pnl>=0?"+":"")+t.pnl.toFixed(2)+" €";
+  html+=`<div class="td-hero"><span class="td-asset">${t.asset}</span><span class="td-pnl" style="color:${t.status==="Aktiv"?"#0a84ff":(t.pnl>=0?"#30d158":"#ff453a")}">${pnlText}</span></div>`;
+  if(t.date)html+=`<div class="td-row" style="margin-bottom:10px"><span class="td-row-label">Eroeffnet</span><span class="td-row-val">${t.date.replace("T"," ")}</span></div>`;
+  if(t.closedAt)html+=`<div class="td-row" style="margin-bottom:10px"><span class="td-row-label">Geschlossen</span><span class="td-row-val">${t.closedAt.replace("T"," ")}</span></div>`;
   html+=`<div class="td-value-list">`;
-  const ar=(label,val,id)=>{if(!val)return"";return`<div class="td-row"><span class="td-row-label">${label}</span><div class="td-row-val-group"><span class="td-row-val">${val}</span><button class="td-copy-btn" id="${id}" onclick="copyText('${val}','${id}')" title="Kopieren">&#x1F4CB;</button></div></div>`;};
-  if(t.entry)html+=ar("Entry",t.entry,"btn-cp-ent");if(t.sl)html+=`<div class="td-row"><span class="td-row-label">Stop Loss</span><span class="td-row-val" style="color:#ff453a">${t.sl}</span></div>`;
-  html+=ar("TP 1",t.tp1,"btn-cp-tp1");html+=ar("TP 2",t.tp2,"btn-cp-tp2");html+=ar("TP 3",t.tp3,"btn-cp-tp3");html+=`</div>`;
+  const ar=(label,val,id,color)=>{if(!val)return"";return`<div class="td-row"><span class="td-row-label">${label}</span><div class="td-row-val-group"><span class="td-row-val"${color?' style="color:'+color+'"':''}>${val}</span><button class="td-copy-btn" id="${id}" onclick="copyText('${val}','${id}')" title="Kopieren">&#x1F4CB;</button></div></div>`;};
+  if(t.entry)html+=ar("Entry",t.entry,"btn-cp-ent");if(t.sl)html+=ar("Stop Loss",t.sl,"btn-cp-sl","#ff453a");
+  html+=ar("TP 1",t.tp1,"btn-cp-tp1","#30d158");html+=ar("TP 2",t.tp2,"btn-cp-tp2","#30d158");html+=ar("TP 3",t.tp3,"btn-cp-tp3","#30d158");html+=`</div>`;
   if(t.note)html+=`<div class="td-note-box">"${t.note}"</div>`;
-  if(t.imgSetup)html+=`<div class="td-img-box"><span class="td-img-label">Setup</span><img src="${t.imgSetup}" class="td-img-thumb" onclick="window.open('${t.imgSetup}','_blank')"></div>`;
-  if(t.imgResult)html+=`<div class="td-img-box"><span class="td-img-label">Ergebnis</span><img src="${t.imgResult}" class="td-img-thumb" onclick="window.open('${t.imgResult}','_blank')"></div>`;
+  if(t.imgSetup)html+=`<div class="td-img-box"><span class="td-img-label">&#x1F4F7; Setup</span><img src="${t.imgSetup}" class="td-img-thumb" style="height:200px;border-radius:12px;border:2px solid #333;box-shadow:0 4px 15px rgba(0,0,0,.5)" onclick="window.open('${t.imgSetup}','_blank')"></div>`;
+  if(t.imgResult)html+=`<div class="td-img-box"><span class="td-img-label">&#x1F3AF; Ergebnis</span><img src="${t.imgResult}" class="td-img-thumb" style="height:200px;border-radius:12px;border:2px solid #333;box-shadow:0 4px 15px rgba(0,0,0,.5)" onclick="window.open('${t.imgResult}','_blank')"></div>`;
   document.getElementById("td-content").innerHTML=html;
 }
 async function submitAdminFeedback(){const text=document.getElementById("adm-feedback-text").value;if(curDetailId&&text){await db.collection("trades").doc(curDetailId).update({adminFeedback:text,feedbackRead:false});alert("Feedback gesendet!");closeTradeDetail();}}
@@ -761,7 +813,7 @@ function updateAdminMemberView(){
   if(!iuFeedbackAllowed)return;const sj=document.getElementById("adm-journal-select").value;
   let ft=iuTrades;if(sj&&iuJournals.length>0){const tgt=sj!=="Kein Journal"?sj:iuJournals[0].name;ft=iuTrades.filter(t=>(t.journal||"Main")===tgt);}
   const cl=ft.filter(t=>t.status==="Geschlossen");const sum=cl.reduce((a,b)=>a+b.pnl,0);const wins=cl.filter(t=>t.pnl>0).length;const wr=cl.length?((wins/cl.length)*100).toFixed(0):0;
-  document.getElementById("adm-stat-pnl").innerText=sum.toFixed(2)+" Euro";document.getElementById("adm-stat-pnl").style.color=sum>=0?"var(--success)":"var(--danger)";document.getElementById("adm-stat-win").innerText=wr+"%";document.getElementById("adm-stat-count").innerText=cl.length;
+  document.getElementById("adm-stat-pnl").innerText=sum.toFixed(2)+" €";document.getElementById("adm-stat-pnl").style.color=sum>=0?"var(--success)":"var(--danger)";document.getElementById("adm-stat-win").innerText=wr+"%";document.getElementById("adm-stat-count").innerText=cl.length;
   let bal=0;const data=cl.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(t=>{bal+=t.pnl;return bal;});
   const ctx=document.getElementById("admChart").getContext("2d");if(adminCI)adminCI.destroy();
   adminCI=new Chart(ctx,{type:"line",data:{labels:data.map(()=>""),datasets:[{data,borderColor:"#bb86fc",borderWidth:2,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:"#333"}}}}});
@@ -772,9 +824,9 @@ async function loadAdminZentrale(){
   const tl=document.getElementById("admin-test-list"),pl=document.getElementById("admin-pro-list");if(!tl||!pl)return;
   tl.innerHTML="<div style='color:var(--text-sub);font-size:.85rem;padding:5px'>Lade...</div>";pl.innerHTML="<div style='color:var(--text-sub);font-size:.85rem;padding:5px'>Lade...</div>";
   try{
-    const ms=await db.collection("members").get();const tu=[],pu=[];
-    for(const doc of ms.docs){const me=doc.data().email;let dn="User",uid="",status="test";try{const us=await db.collection("users").where("email","==",me).get();if(!us.empty){dn=us.docs[0].data().displayName||me;uid=us.docs[0].id;status=us.docs[0].data().status||"test";}}catch(e){}const item={memberId:doc.id,uid,name:dn,email:me,status};if(status==="pro")pu.push(item);else tu.push(item);}
-    const rc=(u)=>`<div class="user-card"><div class="user-card-name">${u.name}</div><div class="user-card-email">${u.email}</div><div class="user-card-actions">${u.status!=="pro"?`<button class="ua-btn upgrade" onclick="adminUpgrade('${u.uid}','${u.email}')">Pro</button>`:""} ${u.status==="pro"?`<button class="ua-btn downgrade" onclick="adminDowngrade('${u.uid}','${u.email}')">Test</button>`:""} <button class="ua-btn ban" onclick="adminBan('${u.uid}','${u.email}')">Sperren</button> <button class="ua-btn del" onclick="adminDeleteUser('${u.memberId}','${u.uid}','${u.email}')">Loeschen</button></div></div>`;
+    const us=await db.collection("users").get();const tu=[],pu=[];
+    for(const doc of us.docs){const ud=doc.data();if(ud.email===ADMIN_EMAIL)continue;const cs2=await db.collection("coaches").where("email","==",ud.email).get();if(!cs2.empty)continue;const item={uid:doc.id,name:ud.displayName||"User",email:ud.email,status:ud.status||"test"};if(item.status==="pro")pu.push(item);else tu.push(item);}
+    const rc=(u)=>`<div class="user-card"><div class="user-card-name">${u.name}</div><div class="user-card-email">${u.email}</div><div class="user-card-actions">${u.status!=="pro"?`<button class="ua-btn upgrade" onclick="adminUpgrade('${u.uid}','${u.email}')">Pro</button>`:""} ${u.status==="pro"?`<button class="ua-btn downgrade" onclick="adminDowngrade('${u.uid}','${u.email}')">Test</button>`:""} <button class="ua-btn ban" onclick="adminBan('${u.uid}','${u.email}')">Sperren</button> <button class="ua-btn del" onclick="adminDeleteUserByUid('${u.uid}','${u.email}')">Loeschen</button></div></div>`;
     tl.innerHTML=tu.length?tu.map(rc).join(""):"<div style='color:var(--text-sub);font-size:.85rem;padding:10px'>Keine.</div>";
     pl.innerHTML=pu.length?pu.map(rc).join(""):"<div style='color:var(--text-sub);font-size:.85rem;padding:10px'>Keine.</div>";
   }catch(e){tl.innerHTML="<div style='color:var(--danger)'>Fehler</div>";}
@@ -782,7 +834,7 @@ async function loadAdminZentrale(){
 async function adminUpgrade(uid,email){if(!uid){alert("UID nicht gefunden.");return;}if(!confirm(`${email} auf Pro upgraden?`))return;await db.collection("users").doc(uid).update({status:"pro"});alert("Pro gesetzt!");loadAdminZentrale();}
 async function adminDowngrade(uid,email){if(!uid){alert("UID nicht gefunden.");return;}if(!confirm(`${email} auf Test setzen?`))return;await db.collection("users").doc(uid).update({status:"test"});alert("Test gesetzt.");loadAdminZentrale();}
 async function adminBan(uid,email){if(!uid){alert("UID nicht gefunden.");return;}if(!confirm(`${email} sperren?`))return;await db.collection("users").doc(uid).update({status:"banned"});alert("Gesperrt.");loadAdminZentrale();}
-async function adminDeleteUser(memberId,uid,email){if(!confirm(`${email} wirklich loeschen?`))return;await db.collection("members").doc(memberId).delete();if(uid){try{const ts=await db.collection("trades").where("userId","==",uid).get();const b=db.batch();ts.docs.forEach(d=>b.delete(d.ref));await b.commit();const js=await db.collection("journals").where("userId","==",uid).get();const b2=db.batch();js.docs.forEach(d=>b2.delete(d.ref));await b2.commit();}catch(e){}}alert("Geloescht.");loadAdminZentrale();admLoad();}
+async function adminDeleteUserByUid(uid,email){if(!confirm(`${email} wirklich loeschen?`))return;if(uid){try{const ts=await db.collection("trades").where("userId","==",uid).get();const b=db.batch();ts.docs.forEach(d=>b.delete(d.ref));await b.commit();const js=await db.collection("journals").where("userId","==",uid).get();const b2=db.batch();js.docs.forEach(d=>b2.delete(d.ref));await b2.commit();await db.collection("users").doc(uid).delete();}catch(e){}}alert("Geloescht.");loadAdminZentrale();admLoad();}
 async function loadAdminFeedback(){const list=document.getElementById("adm-feedback-inbox");list.innerHTML="Lade...";const s=await db.collection("feedback_general").orderBy("timestamp","desc").limit(20).get();if(s.empty){list.innerHTML="<div style='color:var(--text-sub);padding:10px'>Kein Feedback.</div>";return;}list.innerHTML=s.docs.map(doc=>{const d=doc.data();const dt=d.timestamp?d.timestamp.toDate().toLocaleString():"-";return`<div class="feedback-item"><div class="fb-header"><span>${d.userName} (${dt})</span><div><span class="fb-type">${d.type}</span><button class="fb-del" onclick="delFeedback('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div></div><div class="fb-text">${d.text}</div></div>`;}).join("");}
 async function delFeedback(id){if(confirm("Loeschen?")){await db.collection("feedback_general").doc(id).delete();loadAdminFeedback();}}
 async function sendGeneralFeedback(){const type=document.getElementById("fb-type").value,text=document.getElementById("fb-text").value;if(!text){alert("Text fehlt.");return;}await db.collection("feedback_general").add({userId:auth.currentUser.uid,userName:currentUserName,type,text,timestamp:firebase.firestore.FieldValue.serverTimestamp()});alert("Feedback gesendet!");document.getElementById("fb-text").value="";}
@@ -799,7 +851,7 @@ function openDayDetail(ds){
   const d=new Date(ds);document.getElementById("dv-date-title").innerText=d.toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
   const dt=trades.filter(t=>(t.journal||"Main")===activeJournal&&t.status==="Geschlossen"&&new Date(t.date).toDateString()===d.toDateString()).sort((a,b)=>new Date(a.date)-new Date(b.date));
   let sum=0;dt.forEach(t=>sum+=t.pnl);const wins=dt.filter(t=>t.pnl>0).length;const gl=Math.abs(dt.filter(t=>t.pnl<0).reduce((a,b)=>a+b.pnl,0));const pf=gl===0?(wins>0?99:0):dt.filter(t=>t.pnl>0).reduce((a,b)=>a+b.pnl,0)/gl;
-  document.getElementById("dv-pnl").innerText=(sum<0?"-":"+")+" Euro "+Math.abs(sum).toFixed(2);document.getElementById("dv-pnl").className="dv-stat-val sensitive "+(sum>=0?"text-green":"text-red");document.getElementById("dv-winrate").innerText=dt.length?((wins/dt.length)*100).toFixed(0)+"%":"0%";document.getElementById("dv-pf").innerText=pf.toFixed(2);document.getElementById("dv-count").innerText=dt.length;
+  document.getElementById("dv-pnl").innerText=(sum<0?"-":"+")+Math.abs(sum).toFixed(2)+" €";document.getElementById("dv-pnl").className="dv-stat-val sensitive "+(sum>=0?"text-green":"text-red");document.getElementById("dv-winrate").innerText=dt.length?((wins/dt.length)*100).toFixed(0)+"%":"0%";document.getElementById("dv-pf").innerText=pf.toFixed(2);document.getElementById("dv-count").innerText=dt.length;
   document.getElementById("dv-list").innerHTML=dt.map(t=>{const time=t.date.split("T")[1].slice(0,5);const ds2=d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});const pc=t.pnl>=0?"text-green":"text-red";const ar=t.pnl>=0?"up":"dn";const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(t.imgSetup||t.imgResult||"");return`<div class="trade-row" onclick="openSignalDetail('${ts}','${is}')"><div class="tr-icon ${pc}">${ar}</div><div class="tr-date-col"><span class="tr-date">${ds2}</span><span class="tr-time">${time}</span></div><div class="tr-sym">${t.asset}</div><div class="tr-pnl sensitive ${pc}">${t.pnl.toFixed(2)}</div></div>`;}).join("");
   document.getElementById("popup-overlay").classList.add("open");document.getElementById("day-detail-view").classList.remove("hidden");
   const ctx=document.getElementById("dayChart").getContext("2d");if(dayChart)dayChart.destroy();let r=0;const data=dt.map(t=>{r+=t.pnl;return r;});
@@ -824,7 +876,9 @@ async function saveTrade(){
   const id=document.getElementById("editId").value;const asset=document.getElementById("assetInput").value.toUpperCase();if(!asset){alert("Asset fehlt!");return;}
   const jval=document.getElementById("inpJournalSelect").value||activeJournal;
   if(!id&&userStatus==="test"){const mt=trades.filter(t=>(t.journal||"Main")===jval);if(mt.length>=5){alert("Test-Limit: Max. 5 Trades!");return;}}
-  const data={userId:auth.currentUser.uid,date:document.getElementById("datetime").value,asset,journal:jval,status:document.getElementById("status").value,pnl:parseFloat(document.getElementById("pnl").value)||0,imgSetup:document.getElementById("imgSetup").value,imgResult:document.getElementById("imgResult").value,note:document.getElementById("note").value,entry:document.getElementById("inpEntry").value,sl:document.getElementById("inpSL").value,tp1:document.getElementById("inpTP1").value,tp2:document.getElementById("inpTP2").value,tp3:document.getElementById("inpTP3").value,adminFeedback:document.getElementById("inpAdminFeedback").value};
+  const tradeStatus=document.getElementById("status").value;
+  const data={userId:auth.currentUser.uid,date:document.getElementById("datetime").value,asset,journal:jval,status:tradeStatus,pnl:parseFloat(document.getElementById("pnl").value)||0,imgSetup:document.getElementById("imgSetup").value,imgResult:document.getElementById("imgResult").value,note:document.getElementById("note").value,entry:document.getElementById("inpEntry").value,sl:document.getElementById("inpSL").value,tp1:document.getElementById("inpTP1").value,tp2:document.getElementById("inpTP2").value,tp3:document.getElementById("inpTP3").value,adminFeedback:document.getElementById("inpAdminFeedback").value};
+  if(tradeStatus==="Geschlossen"){const cn=new Date();cn.setMinutes(cn.getMinutes()-cn.getTimezoneOffset());data.closedAt=cn.toISOString().slice(0,16);}
   if(id)await db.collection("trades").doc(id).update(data);else await db.collection("trades").add(data);await loadData();closePopup();
 }
 function editTrade(id,cn){const t=trades.find(x=>x.id===id);if(!t)return;document.getElementById("editId").value=t.id;document.getElementById("datetime").value=t.date;document.getElementById("assetInput").value=t.asset;document.getElementById("inpJournalSelect").value=t.journal||(journals[0]?journals[0].name:"Main");document.getElementById("status").value=cn?"Geschlossen":t.status;document.getElementById("pnl").value=t.pnl;document.getElementById("imgSetup").value=t.imgSetup||"";document.getElementById("imgResult").value=t.imgResult||"";document.getElementById("note").value=t.note||"";document.getElementById("inpEntry").value=t.entry||"";document.getElementById("inpSL").value=t.sl||"";document.getElementById("inpTP1").value=t.tp1||"";document.getElementById("inpTP2").value=t.tp2||"";document.getElementById("inpTP3").value=t.tp3||"";document.getElementById("inpAdminFeedback").value=t.adminFeedback||"";document.getElementById("admin-feedback-container").classList.toggle("hidden",!isAdmin);document.getElementById("form-title").innerText="Trade Bearbeiten";toggleFormFields();document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");}
@@ -842,12 +896,27 @@ function cancelEdit(){document.getElementById("journal-form-title").innerText="N
 async function toggleJournalVisibility(id,ch){await db.collection("journals").doc(id).update({hidden:!ch});await loadData();renderSettingsList();}
 async function deleteJournal(id,name){if(!confirm(`Journal '${name}' und ALLE Trades loeschen?`))return;await db.collection("journals").doc(id).delete();const b=db.batch();(await db.collection("trades").where("userId","==",auth.currentUser.uid).where("journal","==",name).get()).docs.forEach(d=>b.delete(d.ref));await b.commit();if(activeJournal===name)activeJournal=null;await loadData();renderSettingsList();}
 function renderSettingsList(){document.getElementById("settings-journal-list").innerHTML=journals.map(j=>{const ih=j.hidden===true;return`<div class="settings-list-item" style="opacity:${ih?.5:1}"><div><strong>${j.name}</strong> <small style="color:var(--text-sub)">${j.startCap?j.startCap+" €":""}</small></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="toggleJournalVisibility('${j.id}',${ih})" title="${ih?"Einblenden":"Ausblenden"}">&#x1F441;</button><button class="btn-icon" onclick="prepareEditJournal('${j.id}')" title="Bearbeiten">&#x270F;&#xFE0E;</button><button class="btn-icon" onclick="deleteJournal('${j.id}','${j.name}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div></div>`;}).join("");}
+let allAdmMembers=[];
 async function admLoad(){
-  try{const s=await db.collection("members").get();const le=document.getElementById("admList");le.innerHTML="";for(const doc of s.docs){const md=doc.data();let dn="User";const uq=await db.collection("users").where("email","==",md.email).get();if(!uq.empty)dn=uq.docs[0].data().displayName;le.innerHTML+=`<div class="adm-row"><div class="adm-user-info"><div class="adm-text"><span class="adm-name">${dn}</span><span class="adm-email">${md.email}</span></div></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="openMemberDetail('${doc.id}','${md.email}')" title="Details">&#x1F441;</button><button class="btn-icon" onclick="admDel('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div></div>`;}
+  try{const s=await db.collection("users").get();const le=document.getElementById("admList");le.innerHTML="";allAdmMembers=[];
+  for(const doc of s.docs){const ud=doc.data();if(ud.email===ADMIN_EMAIL)continue;const cs2=await db.collection("coaches").where("email","==",ud.email).get();if(!cs2.empty)continue;allAdmMembers.push({uid:doc.id,name:ud.displayName||"User",email:ud.email,status:ud.status||"test"});}
+  renderAdmMembers(allAdmMembers);
   const cs=await db.collection("coaches").get();const cl=document.getElementById("coachList");cl.innerHTML="";for(const doc of cs.docs){const cd=doc.data();cl.innerHTML+=`<div class="adm-row"><div>${cd.email}</div><button class="btn-icon" onclick="coachDel('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div>`;}}catch(e){console.error(e);}
 }
-async function admAdd(){const e=document.getElementById("admEmail").value.toLowerCase().trim();if(e){await db.collection("members").add({email:e});document.getElementById("admEmail").value="";admLoad();loadAdminZentrale();}}
-async function admDel(id){if(confirm("Loeschen?")){await db.collection("members").doc(id).delete();admLoad();loadAdminZentrale();}}
+function renderAdmMembers(list){const le=document.getElementById("admList");le.innerHTML=list.length?list.map(u=>`<div class="adm-row"><div class="adm-user-info"><div class="adm-text"><span class="adm-name">${u.name}</span><span class="adm-email">${u.email} <span style="color:${u.status==="pro"?"var(--success)":"var(--text-sub)"};font-weight:700;font-size:.7rem;text-transform:uppercase">${u.status}</span></span></div></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="openMemberDetailByUid('${u.uid}','${u.email}')" title="Details">&#x1F441;</button></div></div>`).join(""):"<div style='color:var(--text-sub);padding:10px'>Keine Mitglieder.</div>";}
+function filterAdmMembers(){const q=(document.getElementById("admMemberSearch").value||"").toLowerCase();if(!q){renderAdmMembers(allAdmMembers);return;}renderAdmMembers(allAdmMembers.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)));}
+async function openMemberDetailByUid(uid,email){
+  let dn="User";const uDoc=await db.collection("users").doc(uid).get();if(uDoc.exists)dn=uDoc.data().displayName||"User";
+  document.getElementById("adm-detail-name").innerText=dn;document.getElementById("adm-detail-email").innerText=email;
+  iuFeedbackAllowed=true;const ud=uDoc.data();if(ud&&ud.allowCoachFeedback===false)iuFeedbackAllowed=false;
+  if(!iuFeedbackAllowed){document.getElementById("adm-content-area-wrapper").classList.add("hidden");document.getElementById("adm-access-denied").classList.remove("hidden");}
+  else{document.getElementById("adm-content-area-wrapper").classList.remove("hidden");document.getElementById("adm-access-denied").classList.add("hidden");}
+  const js=await db.collection("journals").where("userId","==",uid).get();iuJournals=js.docs.map(d=>({id:d.id,...d.data()}));
+  const ts=await db.collection("trades").where("userId","==",uid).get();iuTrades=ts.docs.map(d=>({id:d.id,...d.data()}));
+  const sel=document.getElementById("adm-journal-select");sel.innerHTML=iuJournals.length===0?"<option>Kein Journal</option>":iuJournals.map(j=>`<option value="${j.name}">${j.name}</option>`).join("");
+  document.getElementById("popup-overlay").classList.add("open");document.getElementById("admin-member-modal").classList.remove("hidden");
+  if(iuFeedbackAllowed)updateAdminMemberView();
+}
 async function coachAdd(){const e=document.getElementById("coachEmail").value.toLowerCase().trim();if(e){await db.collection("coaches").add({email:e});document.getElementById("coachEmail").value="";admLoad();}}
 async function coachDel(id){if(confirm("Coach loeschen?")){await db.collection("coaches").doc(id).delete();admLoad();}}
 async function toggleFeedback(val){if(auth.currentUser)await db.collection("users").doc(auth.currentUser.uid).set({allowCoachFeedback:val},{merge:true});}
@@ -855,8 +924,37 @@ function togglePrivacy(){privacyMode=!privacyMode;document.documentElement.style
 function handleLogout(){auth.signOut().then(()=>location.reload());}
 function toggleTheme(isDark){if(isDark){document.body.classList.remove("light-mode");localStorage.setItem("tradeTheme","dark");}else{document.body.classList.add("light-mode");localStorage.setItem("tradeTheme","light");}if(document.getElementById("view-Statistik").classList.contains("active"))renderStatistics();}
 function renderTradingViewWidget(){const c=document.getElementById("tradingview_chart");if(!c)return;c.innerHTML="";if(typeof TradingView!=="undefined")new TradingView.widget({autosize:true,symbol:"FX:EURUSD",interval:"D",timezone:"Etc/UTC",theme:document.body.classList.contains("light-mode")?"light":"dark",style:"1",locale:"de_DE",enable_publishing:false,allow_symbol_change:true,hide_side_toolbar:false,container_id:"tradingview_chart"});}
-function calcLots(){const bal=parseFloat(document.getElementById("cBal").value),r=parseFloat(document.getElementById("cRisk").value),ent=parseFloat(document.getElementById("cEnt").value),sl=parseFloat(document.getElementById("cSl").value);if(bal&&r&&ent&&sl){const ra=bal*(r/100);const dist=Math.abs(ent-sl);const lot=ra/(dist*100000);document.getElementById("cRes").innerHTML=`${Math.max(lot,.01).toFixed(2)} Lot<br><small>Risk: ${ra.toFixed(2)} Euro</small>`;}}
-function updateContractSize(){const v=document.getElementById("cType").value;if(v!=="custom")document.getElementById("cContract").value=v;}
+function detectAssetType(asset){
+  const a=asset.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(["XAUUSD","GOLD"].some(x=>a.includes(x)))return{type:"gold",pipSize:0.01,pipValue:1,contractSize:100,label:"Gold"};
+  if(["XAGUSD","SILVER"].some(x=>a.includes(x)))return{type:"silver",pipSize:0.001,pipValue:5,contractSize:5000,label:"Silber"};
+  if(["US30","DJ30","DOW"].some(x=>a.includes(x)))return{type:"index",pipSize:1,pipValue:1,contractSize:1,label:"US30 Index"};
+  if(["NAS100","USTEC","NDX"].some(x=>a.includes(x)))return{type:"index",pipSize:1,pipValue:1,contractSize:1,label:"NAS100 Index"};
+  if(["SPX500","US500","SP500"].some(x=>a.includes(x)))return{type:"index",pipSize:0.1,pipValue:1,contractSize:1,label:"S&P500 Index"};
+  if(["GER40","DAX","DE30"].some(x=>a.includes(x)))return{type:"index",pipSize:1,pipValue:1,contractSize:1,label:"DAX Index"};
+  if(["BTCUSD","BITCOIN"].some(x=>a.includes(x)))return{type:"crypto",pipSize:1,pipValue:1,contractSize:1,label:"Bitcoin"};
+  const jpyPairs=["JPY"];const isJpy=jpyPairs.some(x=>a.includes(x));
+  if(isJpy)return{type:"forex_jpy",pipSize:0.01,pipValue:1000/100,contractSize:100000,label:"Forex (JPY)"};
+  return{type:"forex",pipSize:0.0001,pipValue:10,contractSize:100000,label:"Forex"};
+}
+function calcLots(){
+  const asset=(document.getElementById("cAsset").value||"").toUpperCase().trim();
+  const bal=parseFloat(document.getElementById("cBal").value);
+  const r=parseFloat(document.getElementById("cRisk").value);
+  const ent=parseFloat(document.getElementById("cEnt").value);
+  const sl=parseFloat(document.getElementById("cSl").value);
+  if(!bal||!r||!ent||!sl){alert("Bitte alle Felder ausfuellen.");return;}
+  if(ent===sl){alert("Entry und SL duerfen nicht gleich sein.");return;}
+  const info=detectAssetType(asset||"EURUSD");
+  const riskAmount=bal*(r/100);
+  const pipDist=Math.abs(ent-sl)/info.pipSize;
+  const pipValuePerLot=info.pipValue;
+  let lot=riskAmount/(pipDist*pipValuePerLot);
+  lot=Math.max(lot,0.01);
+  lot=Math.round(lot*100)/100;
+  document.getElementById("cResLot").innerText=lot.toFixed(2)+" Lot";
+  document.getElementById("cResInfo").innerHTML=`Typ: ${info.label} | Risiko: ${riskAmount.toFixed(2)} USD | Pips: ${pipDist.toFixed(1)} | Pip-Wert: ${pipValuePerLot.toFixed(2)} USD/Lot`;
+}
 async function runOCR(){const url=document.getElementById("imgSetup").value;const se=document.getElementById("ocr-status");if(!url){alert("Bitte Bild-URL eingeben!");return;}se.innerText="Lese Bild...";try{const res=await fetch(`https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${url}&language=eng&isOverlayRequired=false`);const data=await res.json();if(data.IsErroredOnProcessing){se.innerText="Fehler";return;}if(data.ParsedResults&&data.ParsedResults.length>0){const text=data.ParsedResults[0].ParsedText.replace(/(\r\n|\n|\r)/gm," ");const slm=text.match(/(?:Stop|SL|Loss)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(slm)document.getElementById("inpSL").value=slm[1].replace(",",".");const em=text.match(/(?:Entry|Open|Price)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(em)document.getElementById("inpEntry").value=em[1].replace(",",".");const tm=text.match(/(?:Target|TP|Profit)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(tm)document.getElementById("inpTP1").value=tm[1].replace(",",".");se.innerText="Daten gefunden!";setTimeout(()=>se.innerText="",3000);}else se.innerText="Kein Text erkannt";}catch(e){se.innerText="Netzwerkfehler";}}
 function showView(v){
   document.querySelectorAll(".view-section").forEach(s=>s.classList.remove("active"));const el=document.getElementById("view-"+v.replace(/\s+/g,"-"));if(!el)return;el.classList.add("active");const titleMap={"Uebersicht":"DASHBOARD","Kalender":"KALENDER","Statistik":"STATISTIK","Historie":"JOURNAL","Chat":"CHAT","Einstellungen":"EINSTELLUNGEN","Feedback":"FEEDBACK","TradingView":"CHART","Lot-Rechner":"LOT RECHNER","News":"NEWS"};document.getElementById("view-title").innerText=titleMap[v]||v.toUpperCase();
