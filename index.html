@@ -64,8 +64,11 @@ input:checked+.slider:before{transform:translateX(26px)}
 @media(max-width:768px){.jfc-body-grid{grid-template-columns:1fr}.jfc-chart-area{height:220px}}
 #popup-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);z-index:999;display:none;justify-content:center;align-items:center;opacity:0;transition:opacity .3s}
 #popup-overlay.open{display:flex;opacity:1}
+#popup-overlay-2{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);z-index:1100;display:none;justify-content:center;align-items:center;opacity:0;transition:opacity .3s}
+#popup-overlay-2.open{display:flex;opacity:1}
 .modal-base{width:95%;max-width:500px;background:var(--popup-bg);color:var(--text-main);border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 40px rgba(0,0,0,.8);padding:20px;box-sizing:border-box;max-height:90vh;overflow-y:auto;position:relative}
 #day-detail-view,#trade-detail-view,#trade-form-modal,#add-contact-modal,#admin-member-modal,#journal-form-modal,#navguard-modal,#notif-modal,#profile-modal,#upgrade-req-modal,#course-modal,#module-modal,#quiz-edit-modal,#quiz-play-modal,#video-player-modal,#create-group-modal,#module-detail-modal,#invite-group-modal{background:#000!important;color:#fff!important;border:1px solid #333;z-index:1000}
+.modal-layer2{z-index:1200!important}
 .profile-card{background:linear-gradient(135deg,rgba(187,134,252,.15),rgba(187,134,252,.02));border:1px solid rgba(187,134,252,.3);border-radius:16px;padding:25px;text-align:center;margin-bottom:20px}
 .profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 15px}
 .profile-field-row{display:flex;flex-direction:column;gap:4px;margin-bottom:15px;text-align:left}
@@ -591,6 +594,8 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
     <button id="qp-result-btn" onclick="closePopup()" class="btn-primary">OK</button>
   </div>
 </div>
+</div>
+<div id="popup-overlay-2" onclick="if(event.target===this)closePopup2()">
 </div>
 <!-- AUTH -->
 <div id="auth-overlay">
@@ -1198,7 +1203,22 @@ function openDayDetail(ds){
   const ctx=document.getElementById("dayChart").getContext("2d");if(dayChart)dayChart.destroy();let r=0;const data=dt.map(t=>{r+=t.pnl;return r;});
   dayChart=new Chart(ctx,{type:"line",data:{labels:dt.map(()=>""),datasets:[{data,borderColor:sum>=0?"#00c853":"#ff453a",borderWidth:2,fill:true,backgroundColor:sum>=0?"rgba(0,200,83,.1)":"rgba(255,69,58,.1)",tension:.1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:"#333"}}}}});
 }
-function closePopup(){document.getElementById("popup-overlay").classList.remove("open");document.querySelectorAll(".modal-base").forEach(el=>{el.classList.add("hidden");el.classList.remove("open");});curDetailId=null;}
+function closePopup(){
+  const o2=document.getElementById("popup-overlay-2");
+  if(o2&&o2.classList.contains("open")){closePopup2();return;}
+  document.getElementById("popup-overlay").classList.remove("open");document.querySelectorAll(".modal-base").forEach(el=>{el.classList.add("hidden");el.classList.remove("open");});curDetailId=null;
+}
+function closePopup2(){document.getElementById("popup-overlay-2").classList.remove("open");document.querySelectorAll(".modal-layer2").forEach(el=>el.classList.add("hidden"));}
+function openOnLayer2(modalId){
+  const m=document.getElementById(modalId);m.classList.remove("hidden");m.classList.add("modal-layer2");
+  document.getElementById("popup-overlay-2").classList.add("open");
+  document.getElementById("popup-overlay-2").appendChild(m);
+}
+function closeLayer2AndReturn(modalId){
+  const m=document.getElementById(modalId);m.classList.add("hidden");m.classList.remove("modal-layer2");
+  document.getElementById("popup-overlay").appendChild(m);
+  document.getElementById("popup-overlay-2").classList.remove("open");
+}
 async function closeTradeDetail(){document.getElementById("trade-detail-view").classList.add("hidden");const ddOpen=!document.getElementById("day-detail-view").classList.contains("hidden");const amOpen=!document.getElementById("admin-member-modal").classList.contains("hidden");if(!ddOpen&&!amOpen)document.getElementById("popup-overlay").classList.remove("open");if(curDetailId){const t=trades.find(x=>x.id===curDetailId);if(t&&t.adminFeedback&&!isAdmin&&t.userId===auth.currentUser.uid){await db.collection("trades").doc(curDetailId).update({adminFeedback:"",feedbackRead:true});await loadData();}curDetailId=null;}}
 function copyText(val,btnId){if(!val)return;navigator.clipboard.writeText(val).then(()=>{const b=document.getElementById(btnId);if(b){b.innerHTML="&#x2714;";setTimeout(()=>{b.innerHTML="&#x1F4CB;";},1500);}});}
 function renderHistory(){
@@ -1517,8 +1537,19 @@ async function openModuleDetail(courseId,modId){
     player.onended=async function(){
       await markVideoWatched(courseId,modId);
       if(!hasQuiz){await completeModule(courseId,modId);closeModuleDetail();loadModules(courseId);}
-      else{openModuleDetail(courseId,modId);}
+      else{
+        const player2=document.getElementById("md-player");player2.pause();
+        va.classList.add("hidden");nqh.classList.add("hidden");vh.classList.add("hidden");
+        qa.classList.remove("hidden");
+        document.getElementById("md-quiz-btn").onclick=function(){startQuiz(courseId,modId);};
+      }
     };
+    if(!videoWatched&&!isCompleted){
+      const markBtn=document.createElement("div");
+      markBtn.style.cssText="text-align:center;margin-top:10px";
+      markBtn.innerHTML=`<button class="btn-small" style="font-size:.8rem;padding:8px 16px" onclick="manualMarkWatched('${courseId}','${modId}',${hasQuiz})">&#x2705; Video komplett angesehen</button>`;
+      va.appendChild(markBtn);
+    }
   }
   if(m.description){da.classList.remove("hidden");document.getElementById("md-desc-text").innerText=m.description;}
   if(m.docUrl){doa.classList.remove("hidden");document.getElementById("md-doc-link").href=m.docUrl;}
@@ -1531,7 +1562,10 @@ async function openModuleDetail(courseId,modId){
 }
 function closeModuleDetail(){
   const player=document.getElementById("md-player");if(player){player.pause();player.src="";}
-  document.getElementById("module-detail-modal").classList.add("hidden");document.getElementById("popup-overlay").classList.remove("open");
+  document.getElementById("module-detail-modal").classList.add("hidden");
+  document.getElementById("popup-overlay").classList.remove("open");
+  const va=document.getElementById("md-video-area");
+  const markBtns=va.querySelectorAll("div:last-child");markBtns.forEach(b=>{if(b.querySelector("button[onclick*='manualMarkWatched']"))b.remove();});
 }
 async function getUserCourseProgress(courseId){
   if(!auth.currentUser)return{completedModules:[],watchedVideos:[]};
@@ -1660,14 +1694,12 @@ async function saveModuleModal(){
   closePopup();if(curCourseId)loadModules(curCourseId);
 }
 function openQuizEditor(){
-  document.getElementById("module-modal").classList.add("hidden");
-  document.getElementById("quiz-edit-modal").classList.remove("hidden");
+  openOnLayer2("quiz-edit-modal");
   renderQuizEditor();
 }
 function updateQuizBtnLabel(){const btn=document.getElementById("btn-mm-quiz");if(btn)btn.innerHTML=tempQuizQuestions.length?`&#x1F9E0; Quiz (${tempQuizQuestions.length} Fragen)`:"&#x1F9E0; Quiz";}
 function closeQuizEditor(){
-  document.getElementById("quiz-edit-modal").classList.add("hidden");
-  document.getElementById("module-modal").classList.remove("hidden");
+  closeLayer2AndReturn("quiz-edit-modal");
 }
 function renderQuizEditor(){
   const area=document.getElementById("qe-questions");
@@ -1715,6 +1747,16 @@ function closeVideoPopup(){
   document.getElementById("video-player-modal").classList.add("hidden");
   document.getElementById("popup-overlay").classList.remove("open");
 }
+async function manualMarkWatched(courseId,modId,hasQuiz){
+  await markVideoWatched(courseId,modId);
+  if(!hasQuiz){await completeModule(courseId,modId);closeModuleDetail();loadModules(courseId);}
+  else{
+    const va=document.getElementById("md-video-area");const vh=document.getElementById("md-video-hint");const nqh=document.getElementById("md-no-quiz-hint");const qa=document.getElementById("md-quiz-area");
+    const player=document.getElementById("md-player");player.pause();
+    va.classList.add("hidden");vh.classList.add("hidden");nqh.classList.add("hidden");
+    qa.classList.remove("hidden");document.getElementById("md-quiz-btn").onclick=function(){startQuiz(courseId,modId);};
+  }
+}
 async function markVideoWatched(courseId,modId){
   const progId=auth.currentUser.uid+"_"+courseId;
   const progDoc=await db.collection("course_progress").doc(progId).get();
@@ -1734,15 +1776,22 @@ async function completeModule(courseId,modId){
 }
 async function deleteModule(courseId,modId){if(!confirm("Modul loeschen?"))return;await db.collection("courses").doc(courseId).collection("modules").doc(modId).delete();loadModules(courseId);}
 let quizState={questions:[],current:0,correct:0,selected:-1,answered:false,courseId:"",modId:""};
+let quizOnLayer2=false;
 async function startQuiz(courseId,modId){
   const doc=await db.collection("courses").doc(courseId).collection("modules").doc(modId).get();if(!doc.exists)return;
   const m=doc.data();const questions=m.quizQuestions;if(!questions||!questions.length){alert("Kein Quiz vorhanden.");return;}
   quizState={questions,current:0,correct:0,selected:-1,answered:false,courseId,modId};
   document.getElementById("qp-result").classList.add("hidden");
   document.getElementById("qp-question").parentElement.style.display="";
-  document.getElementById("popup-overlay").classList.add("open");
-  document.getElementById("quiz-play-modal").classList.remove("hidden");
+  const mdOpen=!document.getElementById("module-detail-modal").classList.contains("hidden");
+  quizOnLayer2=mdOpen;
+  if(mdOpen){openOnLayer2("quiz-play-modal");}
+  else{document.getElementById("popup-overlay").classList.add("open");document.getElementById("quiz-play-modal").classList.remove("hidden");}
   renderQuizQuestion();
+}
+function closeQuizPopup(){
+  if(quizOnLayer2){closeLayer2AndReturn("quiz-play-modal");quizOnLayer2=false;}
+  else{document.getElementById("quiz-play-modal").classList.add("hidden");document.getElementById("popup-overlay").classList.remove("open");}
 }
 function renderQuizQuestion(){
   const qs=quizState;const q=qs.questions[qs.current];
@@ -1787,11 +1836,12 @@ function quizNext(){
   if(passed){
     document.getElementById("qp-result-btn").innerText="Weiter";
     document.getElementById("qp-result-btn").onclick=async function(){
-      await completeModule(qs.courseId,qs.modId);closePopup();loadModules(qs.courseId);
+      await completeModule(qs.courseId,qs.modId);
+      closeQuizPopup();closeModuleDetail();loadModules(qs.courseId);
     };
   }else{
     document.getElementById("qp-result-btn").innerText="Erneut versuchen";
-    document.getElementById("qp-result-btn").onclick=function(){startQuiz(qs.courseId,qs.modId);};
+    document.getElementById("qp-result-btn").onclick=function(){closeQuizPopup();startQuiz(qs.courseId,qs.modId);};
   }
 }
 </script></body></html>
