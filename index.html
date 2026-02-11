@@ -1829,7 +1829,7 @@ function quizNext(){
   const passed=pct>=80;
   document.getElementById("qp-question").parentElement.style.display="none";
   const res=document.getElementById("qp-result");res.classList.remove("hidden");
-  document.getElementById("qp-result-icon").innerText=passed?"&#x1F389;":"&#x274C;";
+  document.getElementById("qp-result-icon").innerHTML=passed?"&#x1F389;":"&#x274C;";
   document.getElementById("qp-result-title").innerText=passed?"Bestanden!":"Nicht bestanden";
   document.getElementById("qp-result-title").style.color=passed?"var(--success)":"var(--danger)";
   document.getElementById("qp-result-text").innerText=qs.correct+"/"+qs.questions.length+" richtig ("+pct+"%)."+(passed?"":" Mindestens 80% noetig.");
