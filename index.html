@@ -614,7 +614,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
     <div id="qp-result-icon" style="font-size:4rem;margin-bottom:15px"></div>
     <h3 id="qp-result-title" style="margin:0 0 10px"></h3>
     <p id="qp-result-text" style="color:var(--text-sub);margin-bottom:20px"></p>
-    <button id="qp-result-btn" onclick="closePopup()" class="btn-primary">OK</button>
+    <button id="qp-result-btn" class="btn-primary">OK</button>
   </div>
 </div>
 </div>
@@ -1922,21 +1922,25 @@ function quizNext(){
   document.getElementById("qp-result-title").innerText=passed?"Bestanden!":"Nicht bestanden";
   document.getElementById("qp-result-title").style.color=passed?"var(--success)":"var(--danger)";
   document.getElementById("qp-result-text").innerText=qs.correct+"/"+qs.questions.length+" richtig ("+pct+"%)."+(passed?"":" Mindestens 80% noetig.");
+  const resultBtn=document.getElementById("qp-result-btn");
+  resultBtn.removeAttribute("onclick");
   if(passed){
-    document.getElementById("qp-result-btn").innerText="Weiter";
-    document.getElementById("qp-result-btn").onclick=async function(){
+    resultBtn.innerText="Weiter >";
+    resultBtn.onclick=async function(){
+      resultBtn.disabled=true;resultBtn.innerText="Lade...";
       await completeModule(qs.courseId,qs.modId);
-      closeQuizPopup();closeModuleDetail();
-      await loadModules(qs.courseId);
       const mods=await db.collection("courses").doc(qs.courseId).collection("modules").orderBy("order","asc").get();
       const prog=await getUserCourseProgress(qs.courseId);
       let nextModId=null;
       for(const d of mods.docs){if(!prog.completedModules.includes(d.id)){nextModId=d.id;break;}}
-      if(nextModId){openModuleDetail(qs.courseId,nextModId);}
+      closeQuizPopup();closeModuleDetail();
+      await loadModules(qs.courseId);
+      if(nextModId){setTimeout(()=>openModuleDetail(qs.courseId,nextModId),200);}
+      resultBtn.disabled=false;
     };
   }else{
-    document.getElementById("qp-result-btn").innerText="Erneut versuchen";
-    document.getElementById("qp-result-btn").onclick=function(){closeQuizPopup();startQuiz(qs.courseId,qs.modId);};
+    resultBtn.innerText="Erneut versuchen";
+    resultBtn.onclick=function(){closeQuizPopup();startQuiz(qs.courseId,qs.modId);};
   }
 }
 const ASSET_LIST=[
