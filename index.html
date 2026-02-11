@@ -7,6 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <style>
@@ -64,7 +65,17 @@ input:checked+.slider:before{transform:translateX(26px)}
 #popup-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);z-index:999;display:none;justify-content:center;align-items:center;opacity:0;transition:opacity .3s}
 #popup-overlay.open{display:flex;opacity:1}
 .modal-base{width:95%;max-width:500px;background:var(--popup-bg);color:var(--text-main);border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 40px rgba(0,0,0,.8);padding:20px;box-sizing:border-box;max-height:90vh;overflow-y:auto;position:relative}
-#day-detail-view,#trade-detail-view,#trade-form-modal,#add-contact-modal,#admin-member-modal,#journal-form-modal,#navguard-modal,#notif-modal,#profile-modal,#upgrade-req-modal{background:#000!important;color:#fff!important;border:1px solid #333;z-index:1000}
+#day-detail-view,#trade-detail-view,#trade-form-modal,#add-contact-modal,#admin-member-modal,#journal-form-modal,#navguard-modal,#notif-modal,#profile-modal,#upgrade-req-modal,#course-modal,#module-modal,#quiz-edit-modal{background:#000!important;color:#fff!important;border:1px solid #333;z-index:1000}
+.upload-area{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:12px}
+.upload-area:hover{border-color:var(--accent);background:rgba(187,134,252,.05)}
+.upload-area.uploading{opacity:.6;pointer-events:none}
+.upload-progress{height:4px;background:#333;border-radius:2px;overflow:hidden;margin-top:8px}
+.upload-progress-bar{height:100%;background:var(--accent);transition:width .3s;width:0}
+.quiz-q-card{background:#151517;border:1px solid #333;border-radius:8px;padding:12px;margin-bottom:10px}
+.quiz-q-card label{color:var(--text-sub);font-size:.8rem;font-weight:700;display:block;margin-bottom:4px}
+.quiz-answer-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.quiz-answer-row input[type="text"]{flex:1;margin-bottom:0}
+.quiz-answer-row input[type="radio"]{width:18px;height:18px;accent-color:var(--accent)}
 .dv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .dv-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:25px}
 .dv-stat-item{display:flex;flex-direction:column}
@@ -419,6 +430,52 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
   <p style="color:var(--text-sub);margin-bottom:20px">Der Admin wird deine Anfrage pruefen.</p>
   <button onclick="closePopup()" class="btn-primary">OK</button>
 </div>
+<div id="course-modal" class="modal-base hidden">
+  <div class="dv-header"><span id="course-modal-title" style="font-weight:700;font-size:1.1rem">Neuer Kurs</span><button onclick="closePopup()" style="background:none;border:none;color:#8e8e93;cursor:pointer;font-size:1.2rem">&#x2715;</button></div>
+  <div style="padding:15px">
+    <label>Titel</label><input id="cm-title" placeholder="Kurs Titel">
+    <label>Beschreibung</label><textarea id="cm-desc" rows="3" placeholder="Kurze Beschreibung des Kurses..."></textarea>
+    <button id="btn-cm-save" onclick="saveCourseModal()" class="btn-primary" style="margin-top:15px">Erstellen</button>
+  </div>
+</div>
+<div id="module-modal" class="modal-base hidden">
+  <div class="dv-header"><span id="module-modal-title" style="font-weight:700;font-size:1.1rem">Neues Modul</span><button onclick="closePopup()" style="background:none;border:none;color:#8e8e93;cursor:pointer;font-size:1.2rem">&#x2715;</button></div>
+  <div style="padding:15px">
+    <label>Titel</label><input id="mm-title" placeholder="Modul Titel">
+    <label>Beschreibung</label><textarea id="mm-desc" rows="2" placeholder="Beschreibung (optional)"></textarea>
+    <label>Video (MP4)</label>
+    <div id="mm-upload-area" class="upload-area" onclick="document.getElementById('mm-video-file').click()">
+      <div style="font-size:2rem;margin-bottom:8px">&#x1F4F9;</div>
+      <div style="color:var(--text-sub);font-size:.85rem">MP4-Datei hier klicken zum Hochladen</div>
+      <input type="file" id="mm-video-file" accept="video/mp4,.mp4" style="display:none" onchange="handleVideoSelect(this)">
+    </div>
+    <div id="mm-upload-progress" class="hidden" style="margin-bottom:12px">
+      <div class="upload-progress"><div id="mm-progress-bar" class="upload-progress-bar"></div></div>
+      <small id="mm-upload-status" style="color:var(--text-sub);display:block;margin-top:4px">Hochladen...</small>
+    </div>
+    <div id="mm-video-preview" class="hidden" style="margin-bottom:12px;background:#151517;padding:10px;border-radius:8px;border:1px solid #333">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--success);font-size:.85rem;font-weight:700">&#x2705; Video hochgeladen</span>
+        <button class="btn-small" onclick="removeModuleVideo()" style="font-size:.75rem">Entfernen</button>
+      </div>
+      <video id="mm-video-player" controls style="width:100%;max-height:200px;margin-top:8px;border-radius:6px"></video>
+    </div>
+    <input type="hidden" id="mm-video-url">
+    <div style="display:flex;gap:10px;margin-top:15px">
+      <button id="btn-mm-save" onclick="saveModuleModal()" class="btn-primary" style="flex:1">Erstellen</button>
+      <button id="btn-mm-quiz" onclick="openQuizEditor()" class="btn-small" style="flex:1" title="Quiz Fragen hinzufuegen">&#x1F9E0; Quiz</button>
+    </div>
+  </div>
+</div>
+<div id="quiz-edit-modal" class="modal-base hidden" style="max-height:90vh">
+  <div class="dv-header"><span style="font-weight:700;font-size:1.1rem">Quiz bearbeiten</span><button onclick="closeQuizEditor()" style="background:none;border:none;color:#8e8e93;cursor:pointer;font-size:1.2rem">&#x2715;</button></div>
+  <div style="padding:15px;overflow-y:auto;max-height:70vh">
+    <p style="color:var(--text-sub);font-size:.8rem;margin-bottom:15px">Erstelle Fragen mit jeweils mehreren Antworten. Markiere die richtige Antwort.</p>
+    <div id="qe-questions"></div>
+    <button onclick="addQuizQuestion()" class="btn-small" style="width:100%;margin-top:10px">&#x2795; Frage hinzufuegen</button>
+    <button onclick="saveQuizToModule()" class="btn-primary" style="margin-top:15px">Quiz uebernehmen</button>
+  </div>
+</div>
 </div>
 <!-- AUTH -->
 <div id="auth-overlay">
@@ -475,7 +532,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
   <button onclick="navGuard('TradingView')" id="btn-TradingView">&#x1F4C8; Chart <span id="lock-TradingView" class="nav-lock hidden">&#x1F512;</span></button>
   <button onclick="navGuard('Lot-Rechner')" id="btn-Lot-Rechner">&#x1F4CA; Lot Rechner <span id="lock-Lot-Rechner" class="nav-lock hidden">&#x1F512;</span></button>
   <button onclick="navGuard('News')" id="btn-News">&#x1F4F0; News <span id="lock-News" class="nav-lock hidden">&#x1F512;</span></button>
-  <button onclick="navGuard('Kurse')" id="btn-Kurse">&#x1F393; Kurse <span id="lock-Kurse" class="nav-lock hidden">&#x1F512;</span></button>
+  <button onclick="navGuard('Kurse')" id="btn-Kurse">&#x1F393; Kurs <span id="lock-Kurse" class="nav-lock hidden">&#x1F512;</span></button>
   <div class="nav-separator"></div>
   <button onclick="showView('Einstellungen')" id="btn-Einstellungen">&#x2699; Einstellungen</button>
   <button onclick="showView('Feedback')" id="btn-Feedback">&#x1F4E3; Feedback</button>
@@ -568,7 +625,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 <section id="view-Kurse" class="view-section">
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-      <h3 style="margin:0">Kurse</h3>
+      <h3 style="margin:0">Kurs</h3>
       <button id="btn-add-course" class="btn-icon hidden" style="padding:8px 12px;font-size:1.3rem;background:var(--accent);color:#000;border:none" onclick="openCreateCourse()" title="Neuer Kurs">&#x2795;</button>
     </div>
     <div id="course-list"><div style="color:var(--text-sub);text-align:center;padding:30px">Lade Kurse...</div></div>
@@ -619,7 +676,7 @@ input,select,textarea{background:var(--bg-dark);color:var(--text-main);border:1p
 </div><script>
 const FC={apiKey:"AIzaSyDCgM4h6Rgk-r95Qy7BlT1S4QQI-4IDqAQ",authDomain:"trading-journal-acc.firebaseapp.com",projectId:"trading-journal-acc",storageBucket:"trading-journal-acc.firebasestorage.app",messagingSenderId:"68601000570",appId:"1:68601000570:web:87d3ebd5e86416403e41c3"};
 firebase.initializeApp(FC);
-const auth=firebase.auth(),db=firebase.firestore();
+const auth=firebase.auth(),db=firebase.firestore(),storage=firebase.storage();
 let trades=[],journals=[],chartInstances={},dayChart=null,assetCI=null,weekCI=null,hourCI=null,adminCI=null;
 let calDate=new Date(),privacyMode=false,activeJournal=null,editingJournalId=null;
 let currentUserName="User",isAdmin=false,isCoach=false,userStatus="test";
@@ -707,7 +764,7 @@ function populateSelectors(){
 function changeActiveJournal(val){activeJournal=val;const cs=document.getElementById("inpJournalSelect");if(cs)cs.value=activeJournal;renderDashboard();if(document.getElementById("view-Kalender").classList.contains("active"))renderCalendar();if(document.getElementById("view-Statistik").classList.contains("active"))renderStatistics();if(document.getElementById("view-Historie").classList.contains("active"))renderHistory();document.getElementById("navDrawer").classList.remove("open");document.getElementById("menu-overlay").classList.remove("open");}
 function renderUpgradeBanner(){
   const area=document.getElementById("upgrade-banner-area");
-  if(userStatus==="test"){const tc=trades.length;area.innerHTML=`<div class="upgrade-banner"><h3>Test-Phase aktiv</h3><p>Trades: <b>${tc}/5</b> | Journals: <b>${journals.length}/1</b><br>Chat, Charts, Lot Rechner, News &amp; Kurse gesperrt</p><button class="btn-primary" style="width:auto;padding:10px 25px;display:inline-block" onclick="requestUpgrade()">Upgrade anfragen</button></div>`;}
+  if(userStatus==="test"){const tc=trades.length;area.innerHTML=`<div class="upgrade-banner"><h3>Test-Phase aktiv</h3><p>Trades: <b>${tc}/5</b> | Journals: <b>${journals.length}/1</b><br>Chat, Charts, Lot Rechner, News &amp; Kurs gesperrt</p><button class="btn-primary" style="width:auto;padding:10px 25px;display:inline-block" onclick="requestUpgrade()">Upgrade anfragen</button></div>`;}
   else area.innerHTML="";
 }
 function renderDashboard(){
@@ -1083,7 +1140,7 @@ function calcLots(){
 }
 async function runOCR(){const url=document.getElementById("imgSetup").value;const se=document.getElementById("ocr-status");if(!url){alert("Bitte Bild-URL eingeben!");return;}se.innerText="Lese Bild...";try{const res=await fetch(`https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${url}&language=eng&isOverlayRequired=false`);const data=await res.json();if(data.IsErroredOnProcessing){se.innerText="Fehler";return;}if(data.ParsedResults&&data.ParsedResults.length>0){const text=data.ParsedResults[0].ParsedText.replace(/(\r\n|\n|\r)/gm," ");const slm=text.match(/(?:Stop|SL|Loss)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(slm)document.getElementById("inpSL").value=slm[1].replace(",",".");const em=text.match(/(?:Entry|Open|Price)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(em)document.getElementById("inpEntry").value=em[1].replace(",",".");const tm=text.match(/(?:Target|TP|Profit)[\s:=-]*(\d+[\.,]\d{2,5})/i);if(tm)document.getElementById("inpTP1").value=tm[1].replace(",",".");se.innerText="Daten gefunden!";setTimeout(()=>se.innerText="",3000);}else se.innerText="Kein Text erkannt";}catch(e){se.innerText="Netzwerkfehler";}}
 function showView(v){
-  document.querySelectorAll(".view-section").forEach(s=>s.classList.remove("active"));const el=document.getElementById("view-"+v.replace(/\s+/g,"-"));if(!el)return;el.classList.add("active");const titleMap={"Uebersicht":"DASHBOARD","Kalender":"KALENDER","Statistik":"STATISTIK","Historie":"JOURNAL","Chat":"CHAT","Einstellungen":"EINSTELLUNGEN","Feedback":"FEEDBACK","TradingView":"CHART","Lot-Rechner":"LOT RECHNER","News":"NEWS","Kurse":"KURSE"};document.getElementById("view-title").innerText=titleMap[v]||v.toUpperCase();
+  document.querySelectorAll(".view-section").forEach(s=>s.classList.remove("active"));const el=document.getElementById("view-"+v.replace(/\s+/g,"-"));if(!el)return;el.classList.add("active");const titleMap={"Uebersicht":"DASHBOARD","Kalender":"KALENDER","Statistik":"STATISTIK","Historie":"JOURNAL","Chat":"CHAT","Einstellungen":"EINSTELLUNGEN","Feedback":"FEEDBACK","TradingView":"CHART","Lot-Rechner":"LOT RECHNER","News":"NEWS","Kurse":"KURS"};document.getElementById("view-title").innerText=titleMap[v]||v.toUpperCase();
   document.getElementById("navDrawer").classList.remove("open");document.getElementById("menu-overlay").classList.remove("open");
   document.querySelectorAll(".nav-drawer button").forEach(b=>b.classList.remove("nav-active"));const btn=document.getElementById("btn-"+v.replace(/\s+/g,"-"));if(btn)btn.classList.add("nav-active");
   isChatActive=(v==="Chat");if(isChatActive){if(lastMsgCount>0)localStorage.setItem("chatCount",lastMsgCount);if(!curChatChannel){document.getElementById("chat-lobby").classList.remove("hidden");document.getElementById("chat-room").classList.add("hidden");}renderChatLobby();}
@@ -1167,21 +1224,36 @@ async function loadUpgradeRequests(){
 }
 async function approveUpgrade(reqId,uid,email){await db.collection("users").doc(uid).update({status:"pro"});await db.collection("upgrade_requests").doc(reqId).update({status:"approved"});alert(email+" auf Pro gesetzt!");loadUpgradeRequests();loadAdminZentrale();}
 async function denyUpgrade(reqId){await db.collection("upgrade_requests").doc(reqId).update({status:"denied"});loadUpgradeRequests();}
-let curCourseId=null;
+let curCourseId=null,editingCourseId=null,editingModuleId=null,editingModuleCourseId=null,tempQuizQuestions=[];
 async function loadCourses(){
   const list=document.getElementById("course-list");if(!list)return;
   const addBtn=document.getElementById("btn-add-course");if(addBtn&&isAdmin&&!isCoach)addBtn.classList.remove("hidden");
   list.innerHTML="<div style='color:var(--text-sub);text-align:center;padding:30px'>Lade...</div>";
+  try{
   const s=await db.collection("courses").orderBy("order","asc").get();
   if(s.empty){list.innerHTML="<div style='color:var(--text-sub);text-align:center;padding:30px'>Noch keine Kurse verfuegbar.</div>";return;}
-  list.innerHTML=s.docs.map(doc=>{const d=doc.data();if(d.disabled&&!isAdmin)return"";const dis=d.disabled?'<span style="color:var(--danger);font-size:.7rem"> (Deaktiviert)</span>':"";return`<div class="settings-list-item" style="cursor:pointer" onclick="openCourse('${doc.id}')"><div><strong>${d.title}</strong>${dis}<div style="color:var(--text-sub);font-size:.8rem;margin-top:4px">${d.description||""}</div></div><div style="display:flex;gap:4px">${isAdmin&&!isCoach?`<button class="btn-icon" onclick="event.stopPropagation();toggleCourseDisabled('${doc.id}',${!!d.disabled})" title="${d.disabled?"Aktivieren":"Deaktivieren"}">&#x1F441;</button><button class="btn-icon" onclick="event.stopPropagation();deleteCourse('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button>`:""}<span style="color:var(--text-sub);font-size:1.2rem">&#x276F;</span></div></div>`;}).join("");
+  list.innerHTML=s.docs.map(doc=>{const d=doc.data();if(d.disabled&&!isAdmin)return"";const dis=d.disabled?'<span style="color:var(--danger);font-size:.7rem"> (Deaktiviert)</span>':"";return`<div class="settings-list-item" style="cursor:pointer" onclick="openCourse('${doc.id}')"><div><strong>${d.title}</strong>${dis}<div style="color:var(--text-sub);font-size:.8rem;margin-top:4px">${d.description||""}</div></div><div style="display:flex;gap:4px">${isAdmin&&!isCoach?`<button class="btn-icon" onclick="event.stopPropagation();openEditCourse('${doc.id}')" title="Bearbeiten">&#x270F;&#xFE0E;</button><button class="btn-icon" onclick="event.stopPropagation();toggleCourseDisabled('${doc.id}',${!!d.disabled})" title="${d.disabled?"Aktivieren":"Deaktivieren"}">&#x1F441;</button><button class="btn-icon" onclick="event.stopPropagation();deleteCourse('${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button>`:""}<span style="color:var(--text-sub);font-size:1.2rem">&#x276F;</span></div></div>`;}).join("");
+  }catch(e){list.innerHTML="<div style='color:var(--text-sub);text-align:center;padding:30px'>Noch keine Kurse verfuegbar.</div>";}
 }
-async function openCreateCourse(){
-  const title=prompt("Kurs Titel:");if(!title)return;
-  const desc=prompt("Kurze Beschreibung:")||"";
-  const count=(await db.collection("courses").get()).size;
-  await db.collection("courses").add({title,description:desc,order:count,disabled:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-  loadCourses();
+function openCreateCourse(){
+  editingCourseId=null;document.getElementById("course-modal-title").innerText="Neuer Kurs";
+  document.getElementById("cm-title").value="";document.getElementById("cm-desc").value="";
+  document.getElementById("btn-cm-save").innerText="Erstellen";
+  document.getElementById("popup-overlay").classList.add("open");document.getElementById("course-modal").classList.remove("hidden");
+}
+async function openEditCourse(id){
+  const doc=await db.collection("courses").doc(id).get();if(!doc.exists)return;const d=doc.data();
+  editingCourseId=id;document.getElementById("course-modal-title").innerText="Kurs bearbeiten";
+  document.getElementById("cm-title").value=d.title||"";document.getElementById("cm-desc").value=d.description||"";
+  document.getElementById("btn-cm-save").innerText="Speichern";
+  document.getElementById("popup-overlay").classList.add("open");document.getElementById("course-modal").classList.remove("hidden");
+}
+async function saveCourseModal(){
+  const title=document.getElementById("cm-title").value.trim();const desc=document.getElementById("cm-desc").value.trim();
+  if(!title){alert("Titel fehlt!");return;}
+  if(editingCourseId){await db.collection("courses").doc(editingCourseId).update({title,description:desc});}
+  else{const count=(await db.collection("courses").get()).size;await db.collection("courses").add({title,description:desc,order:count,disabled:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});}
+  editingCourseId=null;closePopup();loadCourses();
 }
 async function toggleCourseDisabled(id,isDisabled){await db.collection("courses").doc(id).update({disabled:!isDisabled});loadCourses();}
 async function deleteCourse(id){if(!confirm("Kurs wirklich loeschen?"))return;await db.collection("courses").doc(id).delete();loadCourses();}
@@ -1195,7 +1267,7 @@ function backToCourseList(){document.getElementById("course-list").parentElement
 async function loadModules(courseId){
   const area=document.getElementById("course-modules-list");area.innerHTML="Lade...";
   const s=await db.collection("courses").doc(courseId).collection("modules").orderBy("order","asc").get();
-  const addBtn=isAdmin&&!isCoach?`<button class="btn-small" onclick="addModule('${courseId}')" style="margin-top:15px;width:100%">&#x2795; Modul hinzufuegen</button>`:"";
+  const addBtn=isAdmin&&!isCoach?`<button class="btn-small" onclick="openAddModule('${courseId}')" style="margin-top:15px;width:100%">&#x2795; Modul hinzufuegen</button>`:"";
   if(s.empty){area.innerHTML="<div style='color:var(--text-sub);padding:20px;text-align:center'>Keine Module vorhanden.</div>"+addBtn;return;}
   const progress=await getUserCourseProgress(courseId);
   let html="";let moduleIndex=0;
@@ -1203,10 +1275,10 @@ async function loadModules(courseId){
     const m=doc.data();const isUnlocked=moduleIndex===0||progress.completedModules.includes(s.docs[moduleIndex-1].id);
     const isCompleted=progress.completedModules.includes(doc.id);
     const lockIcon=isUnlocked?"":"&#x1F512; ";const statusIcon=isCompleted?"&#x2705; ":"";
-    html+=`<div class="card" style="opacity:${isUnlocked?1:.5}"><div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">${statusIcon}${lockIcon}${m.title}</h4>${isAdmin&&!isCoach?`<div style="display:flex;gap:4px"><button class="btn-icon" onclick="editModule('${courseId}','${doc.id}')" title="Bearbeiten">&#x270F;&#xFE0E;</button><button class="btn-icon" onclick="deleteModule('${courseId}','${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div>`:""}</div>`;
-    if(m.videoUrl&&isUnlocked)html+=`<div style="margin-top:10px"><a href="${m.videoUrl}" target="_blank" class="btn-small" style="display:inline-flex;gap:5px">&#x25B6; Video ansehen</a></div>`;
+    html+=`<div class="card" style="opacity:${isUnlocked?1:.5}"><div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">${statusIcon}${lockIcon}${m.title}</h4>${isAdmin&&!isCoach?`<div style="display:flex;gap:4px"><button class="btn-icon" onclick="openEditModule('${courseId}','${doc.id}')" title="Bearbeiten">&#x270F;&#xFE0E;</button><button class="btn-icon" onclick="deleteModule('${courseId}','${doc.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button></div>`:""}</div>`;
+    if(m.videoUrl&&isUnlocked)html+=`<div style="margin-top:10px"><video controls style="width:100%;max-height:300px;border-radius:8px;border:1px solid #333" src="${m.videoUrl}"></video></div>`;
     if(m.description)html+=`<p style="color:var(--text-sub);font-size:.85rem;margin-top:8px">${m.description}</p>`;
-    if(m.quizQuestions&&m.quizQuestions.length>0&&isUnlocked&&!isCompleted)html+=`<button class="btn-primary" style="margin-top:10px;padding:10px" onclick="startQuiz('${courseId}','${doc.id}')">Quiz starten</button>`;
+    if(m.quizQuestions&&m.quizQuestions.length>0&&isUnlocked&&!isCompleted)html+=`<button class="btn-primary" style="margin-top:10px;padding:10px" onclick="startQuiz('${courseId}','${doc.id}')">Quiz starten (${m.quizQuestions.length} Fragen)</button>`;
     if(isCompleted)html+=`<div style="color:var(--success);font-size:.8rem;margin-top:8px;font-weight:700">Abgeschlossen</div>`;
     html+=`</div>`;moduleIndex++;
   }
@@ -1214,45 +1286,141 @@ async function loadModules(courseId){
 }
 async function getUserCourseProgress(courseId){
   if(!auth.currentUser)return{completedModules:[]};
-  const doc=await db.collection("course_progress").doc(auth.currentUser.uid+"_"+courseId).get();
-  return doc.exists?doc.data():{completedModules:[]};
+  try{const doc=await db.collection("course_progress").doc(auth.currentUser.uid+"_"+courseId).get();
+  return doc.exists?doc.data():{completedModules:[]};}catch(e){return{completedModules:[]};}
 }
-async function addModule(courseId){
-  const title=prompt("Modul Titel:");if(!title)return;
-  const videoUrl=prompt("Video URL (optional):")||"";
-  const desc=prompt("Beschreibung (optional):")||"";
-  const quizQ=prompt("Quiz Fragen (JSON Array, optional, z.B. [{\"q\":\"Frage?\",\"a\":[\"A\",\"B\",\"C\"],\"correct\":0}]):");
-  let quiz=[];try{if(quizQ)quiz=JSON.parse(quizQ);}catch(e){alert("Quiz JSON ungueltig.");}
-  const count=(await db.collection("courses").doc(courseId).collection("modules").get()).size;
-  await db.collection("courses").doc(courseId).collection("modules").add({title,videoUrl,description:desc,quizQuestions:quiz,order:count});
-  loadModules(courseId);
+function openAddModule(courseId){
+  editingModuleId=null;editingModuleCourseId=courseId;tempQuizQuestions=[];
+  document.getElementById("module-modal-title").innerText="Neues Modul";
+  document.getElementById("mm-title").value="";document.getElementById("mm-desc").value="";
+  document.getElementById("mm-video-url").value="";document.getElementById("mm-video-file").value="";
+  document.getElementById("mm-upload-progress").classList.add("hidden");
+  document.getElementById("mm-video-preview").classList.remove("hidden");document.getElementById("mm-video-preview").classList.add("hidden");
+  document.getElementById("mm-upload-area").classList.remove("hidden");
+  document.getElementById("btn-mm-save").innerText="Erstellen";
+  document.getElementById("popup-overlay").classList.add("open");document.getElementById("module-modal").classList.remove("hidden");
 }
-async function editModule(courseId,modId){
-  const doc=await db.collection("courses").doc(courseId).collection("modules").doc(modId).get();if(!doc.exists)return;const m=doc.data();
-  const title=prompt("Titel:",m.title);if(!title)return;
-  const videoUrl=prompt("Video URL:",m.videoUrl||"")||"";
-  const desc=prompt("Beschreibung:",m.description||"")||"";
-  await db.collection("courses").doc(courseId).collection("modules").doc(modId).update({title,videoUrl,description:desc});
-  loadModules(courseId);
+async function openEditModule(courseId,modId){
+  const doc=await db.collection("courses").doc(courseId).collection("modules").doc(modId).get();
+  if(!doc.exists)return;const m=doc.data();
+  editingModuleId=modId;editingModuleCourseId=courseId;tempQuizQuestions=m.quizQuestions||[];
+  document.getElementById("module-modal-title").innerText="Modul bearbeiten";
+  document.getElementById("mm-title").value=m.title||"";document.getElementById("mm-desc").value=m.description||"";
+  document.getElementById("mm-video-url").value=m.videoUrl||"";document.getElementById("mm-video-file").value="";
+  document.getElementById("mm-upload-progress").classList.add("hidden");
+  if(m.videoUrl){
+    document.getElementById("mm-video-preview").classList.remove("hidden");
+    document.getElementById("mm-video-player").src=m.videoUrl;
+    document.getElementById("mm-upload-area").classList.add("hidden");
+  }else{
+    document.getElementById("mm-video-preview").classList.add("hidden");
+    document.getElementById("mm-upload-area").classList.remove("hidden");
+  }
+  document.getElementById("btn-mm-save").innerText="Speichern";
+  document.getElementById("popup-overlay").classList.add("open");document.getElementById("module-modal").classList.remove("hidden");
+}
+function handleVideoSelect(input){
+  const file=input.files[0];if(!file)return;
+  if(!file.type.startsWith("video/")){alert("Bitte eine MP4-Videodatei waehlen.");return;}
+  if(file.size>500*1024*1024){alert("Datei zu gross (max. 500MB).");return;}
+  const area=document.getElementById("mm-upload-area");area.classList.add("uploading");
+  document.getElementById("mm-upload-progress").classList.remove("hidden");
+  const fileName=Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"");
+  const ref=storage.ref("courses/videos/"+fileName);
+  const task=ref.put(file);
+  task.on("state_changed",
+    snap=>{const pct=Math.round((snap.bytesTransferred/snap.totalBytes)*100);
+      document.getElementById("mm-progress-bar").style.width=pct+"%";
+      document.getElementById("mm-upload-status").innerText="Hochladen... "+pct+"%";},
+    err=>{alert("Upload fehlgeschlagen: "+err.message);area.classList.remove("uploading");document.getElementById("mm-upload-progress").classList.add("hidden");},
+    ()=>{task.snapshot.ref.getDownloadURL().then(url=>{
+      document.getElementById("mm-video-url").value=url;
+      document.getElementById("mm-upload-progress").classList.add("hidden");
+      area.classList.remove("uploading");area.classList.add("hidden");
+      document.getElementById("mm-video-preview").classList.remove("hidden");
+      document.getElementById("mm-video-player").src=url;
+    });}
+  );
+}
+function removeModuleVideo(){
+  document.getElementById("mm-video-url").value="";
+  document.getElementById("mm-video-preview").classList.add("hidden");
+  document.getElementById("mm-video-player").src="";
+  document.getElementById("mm-upload-area").classList.remove("hidden","uploading");
+  document.getElementById("mm-video-file").value="";
+}
+async function saveModuleModal(){
+  const title=document.getElementById("mm-title").value.trim();
+  if(!title){alert("Titel fehlt!");return;}
+  const desc=document.getElementById("mm-desc").value.trim();
+  const videoUrl=document.getElementById("mm-video-url").value;
+  if(editingModuleId){
+    await db.collection("courses").doc(editingModuleCourseId).collection("modules").doc(editingModuleId).update({title,description:desc,videoUrl,quizQuestions:tempQuizQuestions});
+  }else{
+    const count=(await db.collection("courses").doc(editingModuleCourseId).collection("modules").get()).size;
+    await db.collection("courses").doc(editingModuleCourseId).collection("modules").add({title,description:desc,videoUrl,quizQuestions:tempQuizQuestions,order:count});
+  }
+  closePopup();if(curCourseId)loadModules(curCourseId);
+}
+function openQuizEditor(){
+  document.getElementById("module-modal").classList.add("hidden");
+  document.getElementById("quiz-edit-modal").classList.remove("hidden");
+  renderQuizEditor();
+}
+function closeQuizEditor(){
+  document.getElementById("quiz-edit-modal").classList.add("hidden");
+  document.getElementById("module-modal").classList.remove("hidden");
+}
+function renderQuizEditor(){
+  const area=document.getElementById("qe-questions");
+  if(!tempQuizQuestions.length){area.innerHTML="<div style='color:var(--text-sub);text-align:center;padding:15px;font-size:.85rem'>Noch keine Fragen. Klicke unten um eine hinzuzufuegen.</div>";return;}
+  area.innerHTML=tempQuizQuestions.map((q,qi)=>{
+    let html=`<div class="quiz-q-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Frage ${qi+1}</label><button class="btn-icon" onclick="removeQuizQuestion(${qi})" title="Entfernen" style="font-size:.75rem">&#x1F5D1;&#xFE0E;</button></div>`;
+    html+=`<input type="text" value="${(q.q||"").replace(/"/g,"&quot;")}" onchange="tempQuizQuestions[${qi}].q=this.value" placeholder="Frage..." style="margin-bottom:8px">`;
+    const answers=q.a||["","",""];
+    answers.forEach((a,ai)=>{
+      html+=`<div class="quiz-answer-row"><input type="radio" name="quiz-correct-${qi}" ${q.correct===ai?"checked":""} onchange="tempQuizQuestions[${qi}].correct=${ai}"><input type="text" value="${(a||"").replace(/"/g,"&quot;")}" onchange="tempQuizQuestions[${qi}].a[${ai}]=this.value" placeholder="Antwort ${ai+1}"></div>`;
+    });
+    html+=`<button class="btn-small" onclick="addQuizAnswer(${qi})" style="font-size:.7rem;margin-top:4px">+ Antwort</button></div>`;
+    return html;
+  }).join("");
+}
+function addQuizQuestion(){
+  tempQuizQuestions.push({q:"",a:["","",""],correct:0});
+  renderQuizEditor();
+}
+function removeQuizQuestion(idx){
+  tempQuizQuestions.splice(idx,1);
+  renderQuizEditor();
+}
+function addQuizAnswer(qi){
+  tempQuizQuestions[qi].a.push("");
+  renderQuizEditor();
+}
+function saveQuizToModule(){
+  const valid=tempQuizQuestions.filter(q=>q.q&&q.a.some(a=>a));
+  tempQuizQuestions=valid;
+  closeQuizEditor();
 }
 async function deleteModule(courseId,modId){if(!confirm("Modul loeschen?"))return;await db.collection("courses").doc(courseId).collection("modules").doc(modId).delete();loadModules(courseId);}
 async function startQuiz(courseId,modId){
   const doc=await db.collection("courses").doc(courseId).collection("modules").doc(modId).get();if(!doc.exists)return;
   const m=doc.data();const questions=m.quizQuestions;if(!questions||!questions.length){alert("Kein Quiz vorhanden.");return;}
-  let correct=0;
-  for(let i=0;i<questions.length;i++){
-    const q=questions[i];const opts=q.a.map((a,idx)=>(idx+1)+". "+a).join("\n");
-    const ans=prompt("Frage "+(i+1)+"/"+questions.length+":\n\n"+q.q+"\n\n"+opts+"\n\nAntwort (Nummer):");
+  let correct=0;const total=questions.length;
+  for(let i=0;i<total;i++){
+    const q=questions[i];const opts=q.a.map((a,idx)=>"\n"+(idx+1)+". "+a).join("");
+    const ans=prompt("Frage "+(i+1)+"/"+total+":\n\n"+q.q+opts+"\n\nDeine Antwort (Nummer):");
+    if(ans===null)return;
     if(parseInt(ans)-1===q.correct)correct++;
   }
-  const pct=Math.round((correct/questions.length)*100);
+  const pct=Math.round((correct/total)*100);
   if(pct>=80){
     const progId=auth.currentUser.uid+"_"+courseId;
     const progDoc=await db.collection("course_progress").doc(progId).get();
     const completed=progDoc.exists?progDoc.data().completedModules:[];
     if(!completed.includes(modId))completed.push(modId);
     await db.collection("course_progress").doc(progId).set({completedModules:completed},{merge:true});
-    alert("Bestanden! "+pct+"% richtig ("+correct+"/"+questions.length+")");loadModules(courseId);
-  }else{alert("Nicht bestanden: "+pct+"% (mind. 80% noetig). Versuche es erneut!");}
+    alert("Bestanden! "+pct+"% richtig ("+correct+"/"+total+")");loadModules(courseId);
+  }else{alert("Nicht bestanden: "+pct+"% (mind. 80% noetig).\n"+correct+"/"+total+" richtig. Versuche es erneut!");}
 }
 </script></body></html>
