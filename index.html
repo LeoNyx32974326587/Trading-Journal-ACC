@@ -928,6 +928,19 @@ function renderUpgradeBanner(){
 function renderDashboard(){
   renderUpgradeBanner();renderNotificationsArea();
   const container=document.getElementById("dashboard-journals-list");container.innerHTML="";Object.values(chartInstances).forEach(c=>c.destroy());chartInstances={};
+  /* Schnelluebersicht */
+  const todayStr=new Date().toDateString();
+  const allClosed=trades.filter(t=>t.status==="Geschlossen");
+  const todayTrades=allClosed.filter(t=>new Date(t.date).toDateString()===todayStr);
+  const todayPnl=todayTrades.reduce((a,t)=>a+t.pnl,0);
+  const todayWins=todayTrades.filter(t=>t.pnl>0).length;
+  const todayWr=todayTrades.length?((todayWins/todayTrades.length)*100).toFixed(0):"-";
+  const allOpen=trades.filter(t=>t.status==="Aktiv");
+  const totalBal=journals.reduce((sum,j)=>{const sc=parseFloat(j.startCap)||0;const jt=allClosed.filter(t=>(t.journal||"Main")===j.name);return sum+sc+jt.reduce((a,t)=>a+t.pnl,0);},0);
+  const tpc=todayPnl>=0?"var(--success)":"var(--danger)";
+  const last5=allClosed.sort((a,b)=>new Date(b.closedAt||b.date)-new Date(a.closedAt||a.date)).slice(0,5);
+  const l5html=last5.length?last5.map(t=>{const pc2=t.pnl>=0?"var(--success)":"var(--danger)";const d=t.closedAt?new Date(t.closedAt):new Date(t.date);const ds=d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem"><span style="font-weight:700;color:var(--accent)">${t.asset}</span><span style="color:var(--text-sub);font-size:.75rem">${ds}</span><span style="font-weight:800;color:${pc2}">${t.pnl>=0?"+":""}${t.pnl.toFixed(2)} €</span></div>`;}).join(""):`<p style="color:var(--text-sub);font-size:.8rem;text-align:center">Noch keine Trades.</p>`;
+  container.innerHTML+=`<div class="card" style="margin-bottom:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><span style="font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-sub)">Heute</span><span style="font-size:.8rem;color:var(--text-sub)">${new Date().toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long"})}</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:15px"><div class="stat-box"><span class="stat-label">Heute PnL</span><span class="stat-value sensitive" style="color:${tpc}">${todayPnl>=0?"+":""}${todayPnl.toFixed(2)} €</span></div><div class="stat-box"><span class="stat-label">Trades</span><span class="stat-value">${todayTrades.length} <span style="font-size:.7rem;color:var(--text-sub)">(${todayWr}%)</span></span></div><div class="stat-box"><span class="stat-label">Kontostand</span><span class="stat-value sensitive">${totalBal.toFixed(2)} €</span></div></div><div style="font-size:.8rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Letzte Trades</div>${l5html}</div>`;
   journals.forEach(journal=>{
     if(journal.hidden)return;
     const tf=jFilters[journal.id]||"GESAMT";const now=new Date();let sd=null,ed=null;
@@ -960,12 +973,16 @@ function renderDashboard(){
 async function renderNotificationsArea(){
   const area=document.getElementById("dashboard-notification-area");area.innerHTML="";updateNotifDot();
 }
-function updateChatBadge(){
+async function updateChatBadge(){
   const badge=document.getElementById("chat-unread-badge");if(!badge)return;
-  const sc=parseInt(localStorage.getItem("chatCount")||"0");
-  const unread=lastMsgCount-sc;
-  if(unread>0&&!isChatActive){badge.style.display="inline-block";badge.innerText=unread>99?"99+":unread;}
-  else{badge.style.display="none";}
+  try{
+    let totalUnread=0;
+    const channels=["public","signals","pro_signal"];
+    for(const ch of channels){const snap=await db.collection("chat").where("channel","==",ch).get();const read=getChannelReadCount(ch);totalUnread+=Math.max(0,snap.size-read);}
+    try{const gs=await db.collection("groups").get();for(const gd of gs.docs){const g=gd.data();if(g.members&&g.members.includes(auth.currentUser.uid)){const chId="group_"+gd.id;const snap=await db.collection("chat").where("channel","==",chId).get();const read=getChannelReadCount(chId);totalUnread+=Math.max(0,snap.size-read);}}}catch(e){}
+    if(totalUnread>0&&!isChatActive){badge.style.display="inline-block";badge.innerText=totalUnread>99?"99+":totalUnread;}
+    else{badge.style.display="none";}
+  }catch(e){badge.style.display="none";}
 }
 function setupGlobalNotifications(){
   db.collection("chat").orderBy("timestamp","desc").limit(1).onSnapshot(snap=>{
@@ -1010,7 +1027,7 @@ function loadContactsAndRequests(){
       const d=doc.data();const ou=d.users.find(u=>u!==auth.currentUser.uid);let on="Unbekannt",oe="";
       try{const ud=await db.collection("users").doc(ou).get();if(ud.exists){on=ud.data().displayName;oe=ud.data().email;}}catch(e){}
       if(d.status==="pending"&&d.receiverId===auth.currentUser.uid)ra.innerHTML+=`<div class="cl-item" style="background:rgba(187,134,252,.1)"><div class="cl-avatar" style="background:var(--accent)">?</div><div class="cl-info"><div class="cl-name">${on}</div><div class="cl-last">Moechte chatten</div></div><div class="cl-actions"><button title="Annehmen" onclick="acceptReq('${doc.id}')">&#x2714;</button><button title="Ablehnen" onclick="declineReq('${doc.id}')">&#x2716;</button></div></div>`;
-      else if(d.status==="accepted"){const nm=oe===ADMIN_EMAIL?`${on} <span class="coach-tag">Coach</span>`:on;const chatId=getChatId(auth.currentUser.uid,ou);const pins=getPinnedChats();const isPinned=pins.includes(chatId);const target=isPinned?document.getElementById("chat-pinned-area"):la;target.innerHTML+=`<div class="cl-item"><div class="cl-avatar" style="background:#555" onclick="enterPrivateChat('${ou}','${on}')">${on.charAt(0).toUpperCase()}</div><div class="cl-info" onclick="enterPrivateChat('${ou}','${on}')"><div class="cl-name">${nm}</div><div class="cl-last">Privater Chat</div></div><div class="cl-actions"><button class="${isPinned?"pinned":""}" title="${isPinned?"Loesen":"Anpinnen"}" onclick="event.stopPropagation();togglePinChat('${chatId}')">&#x1F4CC;</button><button title="Chat loeschen" onclick="deletePrivateChat('${doc.id}',event)">&#x1F5D1;&#xFE0E;</button></div></div>`;}
+      else if(d.status==="accepted"){const nm=oe===ADMIN_EMAIL?`${on} <span class="coach-tag">Coach</span>`:on;const chatId=getChatId(auth.currentUser.uid,ou);const pins=getPinnedChats();const isPinned=pins.includes(chatId);const target=isPinned?document.getElementById("chat-pinned-area"):la;const badgeId="badge-pm-"+ou;target.innerHTML+=`<div class="cl-item"><div class="cl-avatar" style="background:#555" onclick="enterPrivateChat('${ou}','${on}')">${on.charAt(0).toUpperCase()}</div><div class="cl-info" onclick="enterPrivateChat('${ou}','${on}')"><div class="cl-name">${nm} <span id="${badgeId}"></span></div><div class="cl-last">Privater Chat</div></div><div class="cl-actions"><button class="${isPinned?"pinned":""}" title="${isPinned?"Loesen":"Anpinnen"}" onclick="event.stopPropagation();togglePinChat('${chatId}')">&#x1F4CC;</button><button title="Chat loeschen" onclick="deletePrivateChat('${doc.id}',event)">&#x1F5D1;&#xFE0E;</button></div></div>`;loadChannelUnread(chatId,badgeId);}
     }
   });
 }
@@ -1036,10 +1053,19 @@ async function loadChannelUnread(channelId,badgeElId){
   const el=document.getElementById(badgeElId);if(el)el.innerHTML=renderUnreadBadge(unread);
   }catch(e){}
 }
-function leaveChat(){curChatChannel=null;if(unsubChat)unsubChat();document.getElementById("chat-room").classList.add("hidden");document.getElementById("chat-lobby").classList.remove("hidden");}
+function leaveChat(){curChatChannel=null;if(unsubChat)unsubChat();document.getElementById("chat-room").classList.add("hidden");document.getElementById("chat-lobby").classList.remove("hidden");renderChatLobby();loadContactsAndRequests();updateChatBadge();}
 function getPinnedChats(){try{return JSON.parse(localStorage.getItem("pinnedChats")||"[]");}catch(e){return[];}}
 function togglePinChat(chatId){let pins=getPinnedChats();if(pins.includes(chatId))pins=pins.filter(p=>p!==chatId);else pins.push(chatId);localStorage.setItem("pinnedChats",JSON.stringify(pins));renderChatLobby();loadContactsAndRequests();}
-async function deletePrivateChat(friendshipId,e){if(e)e.stopPropagation();if(!confirm("Chat wirklich loeschen?"))return;await db.collection("friendships").doc(friendshipId).delete();loadContactsAndRequests();}
+async function deletePrivateChat(friendshipId,e){
+  if(e)e.stopPropagation();if(!confirm("Chat wirklich loeschen? Alle Nachrichten werden entfernt."))return;
+  try{const fd=await db.collection("friendships").doc(friendshipId).get();
+    if(fd.exists){const d=fd.data();const chatId=[...d.users].sort().join("_");
+      const msgs=await db.collection("chat").where("channel","==",chatId).get();
+      if(!msgs.empty){const batch=db.batch();msgs.docs.forEach(doc=>batch.delete(doc.ref));await batch.commit();}
+    }
+  }catch(e){}
+  await db.collection("friendships").doc(friendshipId).delete();loadContactsAndRequests();
+}
 function renderChatLobby(){
   const channels=[{id:"public",name:"Public Chat",desc:"Allgemeiner Austausch",avatar:"&#x1F30D;",bg:"#2a9d8f"},{id:"signals",name:"Signale",desc:"Nur Trades",avatar:"&#x1F4E1;",bg:"#e9c46a",avatarColor:"#000"},{id:"pro_signal",name:"Pro Signal",desc:"Vom Coach",avatar:"&#x1F680;",bg:"#e76f51"}];
   const renderChannel=(c)=>`<div class="cl-item"><div class="cl-avatar" style="background:${c.bg}${c.avatarColor?";color:"+c.avatarColor:""}" onclick="enterChat('${c.id}','${c.name}')">${c.avatar}</div><div class="cl-info" onclick="enterChat('${c.id}','${c.name}')"><div class="cl-name">${c.name} <span id="badge-${c.id}"></span></div><div class="cl-last">${c.desc}</div></div></div>`;
@@ -1111,7 +1137,7 @@ function getRoleBadge(msg){
 function renderMsg(msg){
   const isMe=msg.senderId===auth.currentUser.uid;let time="";if(msg.timestamp)time=msg.timestamp.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   let content=`<div>${msg.text||""}</div>`;
-  const db2=isAdmin?`<button style="position:absolute;top:2px;right:5px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:.8rem" onclick="deleteChatMsg('${msg.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button>`:"";
+  const canDel=isAdmin||isMe;const db2=canDel?`<button style="position:absolute;top:2px;right:5px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:.8rem" onclick="deleteChatMsg('${msg.id}')" title="Loeschen">&#x1F5D1;&#xFE0E;</button>`:"";
   if(msg.type==="trade"&&msg.tradeData){const t=msg.tradeData;const img=msg.sharedImage||t.imgSetup;const sl=t.status==="Aktiv"?"OPEN":"CLOSED";const ts=encodeURIComponent(JSON.stringify(t));const is=encodeURIComponent(img||"");const th=img?`<img src="${img}" class="ct-img">`:"";content=`<div class="chat-trade-card" onclick="openSignalDetail('${ts}','${is}')"><div class="ct-header"><span>${t.asset}</span><span>${sl}</span></div>${th}</div>`;}
   const badge=getRoleBadge(msg);
   const reactions=msg.reactions?renderReactions(msg.id,msg.reactions):"";
