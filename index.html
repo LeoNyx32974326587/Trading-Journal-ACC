@@ -929,19 +929,11 @@ function renderDashboard(){
   renderUpgradeBanner();renderNotificationsArea();
   const container=document.getElementById("dashboard-journals-list");container.innerHTML="";Object.values(chartInstances).forEach(c=>c.destroy());chartInstances={};
   /* Schnelluebersicht */
-  const todayStr=new Date().toDateString();
   const allClosed=trades.filter(t=>t.status==="Geschlossen");
-  const todayTrades=allClosed.filter(t=>new Date(t.date).toDateString()===todayStr);
-  const todayPnl=todayTrades.reduce((a,t)=>a+t.pnl,0);
-  const todayWins=todayTrades.filter(t=>t.pnl>0).length;
-  const todayWr=todayTrades.length?((todayWins/todayTrades.length)*100).toFixed(0):"-";
-  const allOpen=trades.filter(t=>t.status==="Aktiv");
-  const totalBal=journals.reduce((sum,j)=>{const sc=parseFloat(j.startCap)||0;const jt=allClosed.filter(t=>(t.journal||"Main")===j.name);return sum+sc+jt.reduce((a,t)=>a+t.pnl,0);},0);
-  const tpc=todayPnl>=0?"var(--success)":"var(--danger)";
   const last3=allClosed.sort((a,b)=>new Date(b.closedAt||b.date)-new Date(a.closedAt||a.date)).slice(0,3);
   const l3html=last3.length?last3.map(t=>{const pc2=t.pnl>=0?"var(--success)":"var(--danger)";const d=t.closedAt?new Date(t.closedAt):new Date(t.date);const ds=d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});const ts2=d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});const jn=t.journal||"Main";return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:.85rem"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;color:var(--accent)">${t.asset}</span><span style="font-size:.65rem;color:var(--text-sub)">${jn}</span></div><span style="color:var(--text-sub);font-size:.75rem">${ds} ${ts2}</span><span style="font-weight:800;color:${pc2}">${t.pnl>=0?"+":""}${t.pnl.toFixed(2)} €</span></div>`;}).join(""):`<p style="color:var(--text-sub);font-size:.8rem;text-align:center">Noch keine Trades.</p>`;
   const nowDt=new Date();const dateLine=nowDt.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});const timeLine=nowDt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-  container.innerHTML+=`<div class="card" style="margin-bottom:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><span style="font-size:.8rem;color:var(--text-sub)">${dateLine}, ${timeLine}</span><span style="font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-sub)">Heute</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:15px"><div class="stat-box"><span class="stat-label">Heute PnL</span><span class="stat-value sensitive" style="color:${tpc}">${todayPnl>=0?"+":""}${todayPnl.toFixed(2)} €</span></div><div class="stat-box"><span class="stat-label">Trades</span><span class="stat-value">${todayTrades.length} <span style="font-size:.7rem;color:var(--text-sub)">(${todayWr}%)</span></span></div><div class="stat-box"><span class="stat-label">Kontostand</span><span class="stat-value sensitive">${totalBal.toFixed(2)} €</span></div></div><div style="font-size:.8rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Letzte Trades</div>${l3html}</div>`;
+  container.innerHTML+=`<div class="card" style="margin-bottom:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><span style="font-size:.8rem;color:var(--text-sub)">${dateLine}, ${timeLine}</span><span style="font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-sub)">Heute</span></div><div style="font-size:.8rem;font-weight:700;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Letzte Trades</div>${l3html}</div>`;
   journals.forEach(journal=>{
     if(journal.hidden)return;
     const tf=jFilters[journal.id]||"GESAMT";const now=new Date();let sd=null,ed=null;
