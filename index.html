@@ -279,8 +279,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
   .stat-label{font-size:.7rem}
   .stat-value{font-size:.95rem}
   .dv-stats-grid{grid-template-columns:1fr 1fr;gap:10px}
-  .modal-base{width:100%!important;max-width:100%!important;padding:15px 15px calc(15px + env(safe-area-inset-bottom));max-height:85vh;border-radius:18px 18px 0 0;animation:slideUpModal .3s ease-out;margin:0!important;box-sizing:border-box!important}
-  #popup-overlay,#popup-overlay-2{flex-direction:column!important;justify-content:flex-end!important;align-items:stretch!important}
+  .modal-base{position:absolute!important;bottom:0!important;left:0!important;right:0!important;width:100%!important;max-width:100%!important;padding:15px 15px calc(15px + env(safe-area-inset-bottom))!important;max-height:85vh!important;border-radius:18px 18px 0 0!important;animation:slideUpModal .3s ease-out!important;margin:0!important;box-sizing:border-box!important;overflow-y:auto!important}
+  #popup-overlay,#popup-overlay-2{align-items:flex-start!important;justify-content:flex-start!important}
   .td-hero .td-asset{font-size:1.4rem}
   .td-hero .td-pnl{font-size:2rem}
   .td-row{padding:10px 12px}
