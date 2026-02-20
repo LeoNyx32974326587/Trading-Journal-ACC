@@ -1321,6 +1321,7 @@ function openSignalDetail(tde,iue){
   if(t.note)html+=`<div class="td-note-box">"${t.note}"</div>`;
   if(t.imgSetup)html+=`<div class="td-img-box"><span class="td-img-label">&#x1F4F7; Setup</span><img src="${t.imgSetup}" class="td-img-thumb" style="height:200px;border-radius:12px;border:2px solid #333;box-shadow:0 4px 15px rgba(0,0,0,.5)" onclick="window.open('${t.imgSetup}','_blank')"></div>`;
   if(t.imgResult)html+=`<div class="td-img-box"><span class="td-img-label">&#x1F3AF; Ergebnis</span><img src="${t.imgResult}" class="td-img-thumb" style="height:200px;border-radius:12px;border:2px solid #333;box-shadow:0 4px 15px rgba(0,0,0,.5)" onclick="window.open('${t.imgResult}','_blank')"></div>`;
+  if(isOwnTrade&&t.status!=='Aktiv')html+=`<button onclick="analyzeTradeFromDetail('${t.id}')" style="width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,var(--accent),#7b2fff);color:#000;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-size:.95rem">&#x1F916; KI Trade-Analyse</button>`;
   document.getElementById("td-content").innerHTML=html;
 }
 async function submitAdminFeedback(){const text=document.getElementById("adm-feedback-text").value;if(curDetailId&&text){await db.collection("trades").doc(curDetailId).update({adminFeedback:text,feedbackRead:false});alert("Feedback gesendet!");closeTradeDetail();}}
@@ -1402,6 +1403,7 @@ function closeLayer2AndReturn(modalId){
   document.getElementById("popup-overlay-2").classList.remove("open");
 }
 async function closeTradeDetail(){const onL2=document.getElementById("trade-detail-view").classList.contains("modal-layer2");if(onL2){closeLayer2AndReturn("trade-detail-view");}else{document.getElementById("trade-detail-view").classList.add("hidden");document.getElementById("popup-overlay").classList.remove("open");}if(curDetailId){const t=trades.find(x=>x.id===curDetailId);if(t&&t.adminFeedback&&!isAdmin&&t.userId===auth.currentUser.uid){await db.collection("trades").doc(curDetailId).update({adminFeedback:"",feedbackRead:true});await loadData();}curDetailId=null;}}
+async function analyzeTradeFromDetail(id){await closeTradeDetail();showView('KI');setTimeout(()=>{switchKITab('analyse');_kiPopulateTradeSelect();const sel=document.getElementById('ki-trade-select');if(sel)sel.value=id;analyzeMyTrades();},300);}
 function copyText(val,btnId){if(!val)return;navigator.clipboard.writeText(val).then(()=>{const b=document.getElementById(btnId);if(b){b.innerHTML="&#x2714;";setTimeout(()=>{b.innerHTML="&#x1F4CB;";},1500);}});}
 function renderHistory(){
   if(!activeJournal&&journals.length>0)activeJournal=journals[0].name;document.getElementById("hist-title").innerText="Trade Historie ("+activeJournal+")";
@@ -2180,7 +2182,7 @@ function switchKITab(tab){
 function _kiPopulateTradeSelect(){
   const sel=document.getElementById('ki-trade-select');
   if(!sel)return;
-  const all=trades||[];
+  const all=(trades||[]).filter(t=>(t.journal||'Main')===activeJournal);
   const sorted=[...all].filter(t=>t.status==='Geschlossen'||!t.status).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const prev=sel.value;
   sel.innerHTML='<option value="">&#x1F4CA; Alle Trades (Portfolio-Analyse)</option>';
@@ -2196,7 +2198,7 @@ function _kiPopulateTradeSelect(){
 }
 
 function _kiTradeCtx(){
-  const all=trades||[];
+  const all=(trades||[]).filter(t=>(t.journal||'Main')===activeJournal);
   if(!all.length)return'Noch keine Trades im Journal.';
   const wins=all.filter(t=>parseFloat(t.pnl)>0).length;
   const pnl=all.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
@@ -2251,7 +2253,7 @@ async function analyzeMyTrades(){
   const btn=document.getElementById('ki-analyse-btn');
   const res=document.getElementById('ki-analyse-result');
   btn.disabled=true;btn.textContent='Analysiere\u2026';res.innerHTML='';
-  const all=trades||[];
+  const all=(trades||[]).filter(t=>(t.journal||'Main')===activeJournal);
   const sel=document.getElementById('ki-trade-select');
   const selectedId=sel?sel.value:'';
   let prompt;
