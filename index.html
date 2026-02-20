@@ -2129,7 +2129,9 @@ function selectAsset(inputId,symbol,ddId){document.getElementById(inputId).value
 
 // ─── KI-ASSISTENT (Gemini) ───────────────────────────────────────────────────
 const _GK='AIzaSyDxAHJN-Zqczr-dQlKRTX0Z9eAXr7KFMHg';
-const _GU='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key='+_GK;
+const _GM='gemini-2.0-flash-lite';
+const _GU='https://generativelanguage.googleapis.com/v1beta/models/'+_GM+':generateContent?key='+_GK;
+console.log('[KI] Modell aktiv:',_GM);
 let _kiHistory=[];
 
 // ─── STRATEGIE DES NUTZERS ───────────────────────────────────────────────────
