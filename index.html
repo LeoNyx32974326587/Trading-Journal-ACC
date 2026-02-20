@@ -331,7 +331,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .ki-typing span{width:7px;height:7px;background:var(--text-sub);border-radius:50%;animation:kiDot 1.2s infinite}
 .ki-typing span:nth-child(2){animation-delay:.2s}.ki-typing span:nth-child(3){animation-delay:.4s}
 @keyframes kiDot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-.ki-input-row{display:flex;gap:8px;align-items:flex-end}.ki-input-row textarea{margin-bottom:0;width:auto;line-height:1.5;font-family:inherit;font-size:.95rem}
+.ki-input-row{display:flex;flex-direction:column;gap:8px}.ki-input-row textarea{margin-bottom:0;width:100%;box-sizing:border-box;line-height:1.5;font-family:inherit;font-size:.95rem}.ki-input-actions{display:flex;justify-content:flex-end}.ki-send-btn{background:var(--gradient);color:#fff;padding:10px 22px;border:none;font-weight:700;border-radius:10px;cursor:pointer;white-space:nowrap;font-size:.95rem;box-shadow:0 4px 15px rgba(187,134,252,.25)}
 .ki-result-box{background:var(--cell-bg);border:1px solid var(--border);border-radius:12px;padding:16px;white-space:pre-wrap;line-height:1.75;font-size:.9rem;margin-top:16px}
 .ki-chart-drop{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.25s}
 .ki-chart-drop:hover{border-color:var(--accent);background:rgba(0,0,0,.05)}
@@ -871,8 +871,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
       <div class="ki-msg ai">Hallo! Ich bin dein KI-Trading-Assistent. Ich kenne deine Trades und kann dir helfen, Muster zu erkennen, Fehler zu vermeiden und besser zu werden. Was möchtest du wissen?</div>
     </div>
     <div class="ki-input-row">
-      <textarea id="ki-chat-input" placeholder="Frag mich etwas zu deinen Trades..." style="flex:1;resize:none;min-height:110px;max-height:260px;overflow-y:auto" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendKIChat()}" oninput="this.style.height='110px';this.style.height=Math.min(this.scrollHeight,260)+'px'"></textarea>
-      <button class="btn-primary" onclick="sendKIChat()" style="white-space:nowrap">Senden</button>
+      <textarea id="ki-chat-input" placeholder="Frag mich etwas zu deinen Trades... (Shift+Enter = neue Zeile)" style="resize:none;min-height:110px;max-height:260px;overflow-y:auto" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendKIChat()}" oninput="this.style.height='110px';this.style.height=Math.min(this.scrollHeight,260)+'px'"></textarea>
+      <div class="ki-input-actions"><button class="ki-send-btn" onclick="sendKIChat()">&#x27A4; Senden</button></div>
     </div>
   </div>
   <!-- Analyse -->
