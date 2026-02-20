@@ -2457,14 +2457,15 @@ function toggleDashboardNews(val){
 }
 async function _ffFetch(slug){
   const base='https://nfs.faireconomy.media/ff_calendar_'+slug+'.json';
-  const urls=[
-    base,                                                        // direkt (falls CORS passt)
-    'https://cors.eu.org/'+base,                                 // primärer Proxy
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(base) // Fallback
+  const proxies=[
+    u=>u,                                                          // direkt
+    u=>'https://api.cors.lol/?url='+u,                            // zuverlässigster Proxy
+    u=>'https://cors.eu.org/'+u,                                   // 2. Wahl
+    u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u) // letzter Fallback
   ];
-  for(const url of urls){
+  for(const p of proxies){
     try{
-      const r=await fetch(url,{cache:'no-cache'});
+      const r=await fetch(p(base),{cache:'no-cache'});
       if(!r.ok)continue;
       const json=await r.json();
       if(Array.isArray(json)&&json.length>0)return json;
@@ -2480,17 +2481,20 @@ async function loadDashboardNews(){
   try{
     const[tw,nw]=await Promise.all([_ffFetch('thisweek'),_ffFetch('nextweek')]);
     const data=[...tw,...nw];
-    if(!data.length)throw new Error('no data');
+    if(!data.length){w.innerHTML='<div style="color:var(--text-sub);font-size:.72rem;padding:4px 8px">&#x1F4C5; Kalender nicht erreichbar</div>';return;}
     const now=Date.now();
     _newsEvents=data
       .filter(e=>e.impact==='High'||e.impact==='Medium')
       .filter(e=>new Date(e.date).getTime()>now)
       .sort((a,b)=>new Date(a.date)-new Date(b.date))
       .slice(0,3);
-    if(!_newsEvents.length){w.innerHTML='';return;}
+    if(!_newsEvents.length){
+      w.innerHTML='<div style="color:var(--text-sub);font-size:.72rem;padding:4px 8px">&#x1F634; Keine anstehenden Events</div>';
+      return;
+    }
     _renderNewsWidget();
     _newsTick=setInterval(_renderNewsWidget,1000);
-  }catch(err){w.innerHTML='<div style="color:var(--text-sub);font-size:.72rem;padding:4px 8px">⚠ News nicht verfügbar</div>';}
+  }catch(err){w.innerHTML='<div style="color:var(--text-sub);font-size:.72rem;padding:4px 8px">&#x26A0; News nicht verfügbar</div>';}
 }
 function _renderNewsWidget(){
   const w=document.getElementById('dashboard-news-widget');if(!w)return;
