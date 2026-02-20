@@ -2180,9 +2180,18 @@ function switchKITab(tab){
 }
 
 async function kiRateNewTrade(data){
-  const prompt=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade: Asset: ${data.asset} | Status: ${data.status} | PnL: ${data.pnl}€ | Entry: ${data.entry||'-'} | SL: ${data.sl||'-'} | TP1: ${data.tp1||'-'} | Notiz: ${data.note||'-'}\n\nAntworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 1 Satz)`;
+  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${data.asset} | Status: ${data.status} | PnL: ${data.pnl}€ | Entry: ${data.entry||'-'} | SL: ${data.sl||'-'} | TP1: ${data.tp1||'-'} | Notiz: ${data.note||'-'}\n\nAnalysiere die beigefügten Chart-Screenshots (falls vorhanden) und bewerte ob der Trade die Strategie erfüllt.\n\nAntworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 1 Satz)`;
+  const imgs=[data.imgSetup,data.imgResult].filter(Boolean);
+  const useVision=imgs.length>0;
+  let msgContent;
+  if(useVision){
+    msgContent=imgs.map(url=>({type:'image_url',image_url:{url}}));
+    msgContent.push({type:'text',text:promptText});
+  }else{
+    msgContent=promptText;
+  }
   try{
-    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GM,messages:[{role:'user',content:prompt}],temperature:0.3,max_tokens:80})});
+    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:useVision?_GMV:_GM,messages:[{role:'user',content:msgContent}],temperature:0.3,max_tokens:80})});
     if(!r.ok)return;
     const d=await r.json();
     const txt=d.choices?.[0]?.message?.content||'';
