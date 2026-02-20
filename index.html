@@ -333,6 +333,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 @keyframes kiDot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 .ki-input-row{display:flex;flex-direction:column;gap:8px}.ki-input-row textarea{margin-bottom:0;width:100%;box-sizing:border-box;line-height:1.5;font-family:inherit;font-size:.95rem}.ki-input-actions{display:flex;justify-content:flex-end}.ki-send-btn{background:var(--gradient);color:#fff;padding:10px 22px;border:none;font-weight:700;border-radius:10px;cursor:pointer;white-space:nowrap;font-size:.95rem;box-shadow:0 4px 15px rgba(187,134,252,.25)}
 .ki-result-box{background:var(--cell-bg);border:1px solid var(--border);border-radius:12px;padding:16px;white-space:pre-wrap;line-height:1.75;font-size:.9rem;margin-top:16px}
+.news-pill{display:flex;align-items:center;gap:5px;background:var(--cell-bg);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:.75rem;white-space:nowrap;overflow:hidden}
+.news-pill .np-name{color:var(--text-main);font-weight:600;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.news-pill .np-timer{font-family:monospace;color:var(--accent);font-weight:700;font-size:.72rem;flex-shrink:0}
+@media(max-width:480px){.news-pill .np-name{display:none}.news-pill{padding:4px 8px}}
 .ki-chart-drop{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.25s}
 .ki-chart-drop:hover{border-color:var(--accent);background:rgba(0,0,0,.05)}
 .trade-img-drop{border:1.5px dashed var(--border);border-radius:10px;padding:11px 16px;text-align:center;cursor:pointer;transition:.2s;font-size:.88rem;color:var(--text-sub)}
@@ -735,9 +739,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 </nav>
 <div id="app-content" class="container hidden">
 <section id="view-Uebersicht" class="view-section active">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-    <h2 style="margin:0;font-size:2.2rem;font-weight:900;letter-spacing:-.5px">Hallo <span id="user-greeting-name">Trader</span></h2>
-    <button onclick="prepareCreateView()" style="padding:12px 16px;font-size:1.3rem;border:none;background:var(--gradient);color:#fff;border-radius:12px;cursor:pointer;box-shadow:0 4px 20px rgba(108,99,255,.4);transition:.2s" title="Neuer Trade">&#x2795;</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px">
+    <h2 style="margin:0;font-size:2.2rem;font-weight:900;letter-spacing:-.5px;white-space:nowrap">Hallo <span id="user-greeting-name">Trader</span></h2>
+    <div id="dashboard-news-widget" style="flex:1;min-width:0"></div>
+    <button onclick="prepareCreateView()" style="padding:12px 16px;font-size:1.3rem;border:none;background:var(--gradient);color:#fff;border-radius:12px;cursor:pointer;box-shadow:0 4px 20px rgba(108,99,255,.4);transition:.2s;flex-shrink:0" title="Neuer Trade">&#x2795;</button>
   </div>
   <div id="upgrade-banner-area"></div>
   <div id="dashboard-notification-area"></div>
@@ -1057,7 +1062,7 @@ function renderUpgradeBanner(){
   else area.innerHTML="";
 }
 function renderDashboard(){
-  renderUpgradeBanner();renderNotificationsArea();
+  renderUpgradeBanner();renderNotificationsArea();loadDashboardNews();
   const container=document.getElementById("dashboard-journals-list");container.innerHTML="";Object.values(chartInstances).forEach(c=>c.destroy());chartInstances={};
   /* Schnelluebersicht */
   const allClosed=trades.filter(t=>t.status==="Geschlossen");
@@ -2428,5 +2433,40 @@ async function pasteTradeImg(field){
     for(const item of items){const t=item.types.find(x=>x.startsWith('image/'));if(t){loadTradeImgFromBlob(await item.getType(t),field);return;}}
     alert('Kein Bild in der Zwischenablage. Bitte zuerst einen Screenshot kopieren.');
   }catch(_){alert('Zwischenablage nicht lesbar. Bitte Strg+V im Formular drücken.');}
+}
+
+// ─── DASHBOARD NEWS COUNTDOWN ────────────────────────────────────────────────
+let _newsEvents=[],_newsTick=null;
+const _NEWS_FLAGS={USD:'&#x1F1FA;&#x1F1F8;',EUR:'&#x1F1EA;&#x1F1FA;',GBP:'&#x1F1EC;&#x1F1E7;',JPY:'&#x1F1EF;&#x1F1F5;',CHF:'&#x1F1E8;&#x1F1ED;',CAD:'&#x1F1E8;&#x1F1E6;',AUD:'&#x1F1E6;&#x1F1FA;',NZD:'&#x1F1F3;&#x1F1FF;',CNY:'&#x1F1E8;&#x1F1F3;'};
+const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
+async function loadDashboardNews(){
+  const w=document.getElementById('dashboard-news-widget');if(!w)return;
+  if(_newsTick){clearInterval(_newsTick);_newsTick=null;}
+  try{
+    const r=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'});
+    if(!r.ok)throw new Error();
+    const data=await r.json();
+    const now=Date.now();
+    _newsEvents=data.filter(e=>e.impact!=='Holiday'&&new Date(e.date).getTime()>now).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+    if(!_newsEvents.length){w.innerHTML='';return;}
+    _renderNewsWidget();
+    _newsTick=setInterval(_renderNewsWidget,1000);
+  }catch(_){w.innerHTML='';}
+}
+function _renderNewsWidget(){
+  const w=document.getElementById('dashboard-news-widget');if(!w)return;
+  const now=Date.now();
+  _newsEvents=_newsEvents.filter(e=>new Date(e.date).getTime()>now);
+  if(!_newsEvents.length){w.innerHTML='';if(_newsTick){clearInterval(_newsTick);_newsTick=null;}return;}
+  w.innerHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">'+
+    _newsEvents.slice(0,3).map(e=>{
+      const diff=new Date(e.date).getTime()-now;
+      const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+      const timer=h>=24?`${Math.floor(h/24)}T&nbsp;${h%24}h`:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const flag=_NEWS_FLAGS[e.country]||'&#x1F310;';
+      const dot=`<span style="width:7px;height:7px;border-radius:50%;background:${_NEWS_IMP[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
+      const name=e.title.length>20?e.title.slice(0,18)+'…':e.title;
+      return `<div class="news-pill">${dot}<span style="font-size:.85rem">${flag}</span><span class="np-name">${name}</span><span class="np-timer">${timer}</span></div>`;
+    }).join('')+'</div>';
 }
 </script></body></html>
