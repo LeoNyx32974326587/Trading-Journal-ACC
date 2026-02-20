@@ -2321,15 +2321,26 @@ function switchChartInputTab(tab){
   document.getElementById('ki-chart-preview').innerHTML='';document.getElementById('ki-chart-result').innerHTML='';
 }
 async function handleChartUrl(){
-  const url=document.getElementById('ki-chart-url').value.trim();
+  let url=document.getElementById('ki-chart-url').value.trim();
   if(!url){alert('Bitte einen Bild-Link eingeben.');return;}
   const prev=document.getElementById('ki-chart-preview');
   const res=document.getElementById('ki-chart-result');
-  prev.innerHTML=`<img src="${url}" style="width:100%;border-radius:12px;max-height:320px;object-fit:contain;margin-bottom:4px" onerror="this.style.display='none'">`;
+  prev.innerHTML='';
+  res.innerHTML='<div style="color:var(--text-sub);font-size:.9rem;margin-top:10px">&#x23F3; Lade Bild…</div>';
+  // TradingView Share-Link → direkte S3-Bild-URL umwandeln
+  const tvMatch=url.match(/tradingview\.com\/x\/([A-Za-z0-9]+)/i);
+  if(tvMatch)url=`https://s3.tradingview.com/snapshots/x/${tvMatch[1]}.png`;
+  // Bild im Browser laden und als Base64 senden (vermeidet "invalid image data")
+  let imageSource=url;
+  try{
+    const resp=await fetch(url,{mode:'cors'});
+    if(resp.ok){const blob=await resp.blob();if(blob.type.startsWith('image/')){imageSource=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob);});}}
+  }catch(_){}// CORS blockiert → URL direkt verwenden
+  prev.innerHTML=`<img src="${imageSource}" style="width:100%;border-radius:12px;max-height:320px;object-fit:contain;margin-bottom:4px" onerror="this.style.display='none'">`;
   res.innerHTML='<div style="color:var(--text-sub);font-size:.9rem;margin-top:10px">&#x1F50D; Analysiere Chart…</div>';
   const prompt=`Du bist ein professioneller SMC-Chart-Analyst. Analysiere diesen Chart auf Deutsch anhand folgender Strategie:\n\n${_STRATEGY}\n\nAnalysiere den Chart STRIKT nach diesen Punkten:\n1. LIQUIDITY SWEEP – Ist ein aktueller oder kürzlicher Sweep eines Highs/Lows erkennbar? Beschreibe genau welche Liquidität geholt wurde (Buy-Side oder Sell-Side).\n2. BREAK OF STRUCTURE (BOS) – Gibt es nach dem Sweep einen BOS? Ist er bereits bestätigt oder noch ausstehend?\n3. FIBONACCI 0.618 / 0.718 – Wo liegen die 0.618 und 0.718 Fib-Level der letzten relevanten Bewegung? Ist der Preis bereits dort oder nähert er sich?\n4. SETUP-BEWERTUNG – Ist aktuell ein gültiges Setup nach der Strategie vorhanden (alle 3 Bedingungen erfüllt oder in Entstehung)? Bullish oder Bearish?\n5. ENTRY-BEREICH – Konkreter Preisbereich für den Entry (0.618 oder 0.718 Fib)\n6. INVALIDIERUNG – Wann wäre das Setup ungültig (wo liegt der Stopploss logisch)?\n7. GENERELLES – Zeitrahmen, Trendstruktur, wichtige Zonen\n\nWenn kein klares Setup vorhanden ist, erkläre was noch abgewartet werden muss. Sei präzise und direkt.`;
   try{
-    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url}},{type:'text',text:prompt}]}],temperature:0.7,max_tokens:1200})});
+    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:imageSource}},{type:'text',text:prompt}]}],temperature:0.7,max_tokens:1200})});
     if(!r.ok){let em='HTTP '+r.status;try{const ed=await r.json();em+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}throw new Error(em);}
     const d=await r.json();
     const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
