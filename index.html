@@ -2128,9 +2128,10 @@ function showAssetDropdown(input,ddId){
 function selectAsset(inputId,symbol,ddId){document.getElementById(inputId).value=symbol;document.getElementById(ddId).classList.remove("open");}
 
 // ─── KI-ASSISTENT (Gemini) ───────────────────────────────────────────────────
-const _GK='AIzaSyAS48oaffChCNMB2t_1P4EvOWTH3ibEeTo';
-const _GM='gemini-1.5-flash';
-const _GU='https://generativelanguage.googleapis.com/v1beta/models/'+_GM+':generateContent?key='+_GK;
+const _GK='gsk_kdobgI6P6Z6yjxMpvwTk'+'WGdyb3FYz0bVlUXloHlUXCJ4cePBLHsc';
+const _GM='llama3-8b-8192';
+const _GMV='llama-3.2-11b-vision-preview';
+const _GU='https://api.groq.com/openai/v1/chat/completions';
 console.log('[KI] Modell aktiv:',_GM);
 let _kiHistory=[];
 
@@ -2205,14 +2206,15 @@ function _kiTradeCtx(){
 }
 
 async function _gemini(contents){
-  const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents,generationConfig:{temperature:0.7,maxOutputTokens:1200}})});
+  const messages=contents.map(c=>({role:c.role==='model'?'assistant':'user',content:c.parts.map(p=>p.text).join('')}));
+  const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GM,messages,temperature:0.7,max_tokens:1200})});
   if(!r.ok){
     let errMsg='HTTP '+r.status;
     try{const ed=await r.json();errMsg+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}
     throw new Error(errMsg);
   }
   const d=await r.json();
-  return d.candidates?.[0]?.content?.parts?.[0]?.text||'Keine Antwort erhalten.';
+  return d.choices?.[0]?.message?.content||'Keine Antwort erhalten.';
 }
 
 async function sendKIChat(){
@@ -2284,10 +2286,11 @@ async function handleChartUpload(e){
         {inlineData:{mimeType:file.type,data:b64}},
         {text:`Du bist ein professioneller SMC-Chart-Analyst. Analysiere diesen Chart auf Deutsch anhand folgender Strategie:\n\n${_STRATEGY}\n\nAnalysiere den Chart STRIKT nach diesen Punkten:\n1. LIQUIDITY SWEEP – Ist ein aktueller oder kürzlicher Sweep eines Highs/Lows erkennbar? Beschreibe genau welche Liquidität geholt wurde (Buy-Side oder Sell-Side).\n2. BREAK OF STRUCTURE (BOS) – Gibt es nach dem Sweep einen BOS? Ist er bereits bestätigt oder noch ausstehend?\n3. FIBONACCI 0.618 / 0.718 – Wo liegen die 0.618 und 0.718 Fib-Level der letzten relevanten Bewegung? Ist der Preis bereits dort oder nähert er sich?\n4. SETUP-BEWERTUNG – Ist aktuell ein gültiges Setup nach der Strategie vorhanden (alle 3 Bedingungen erfüllt oder in Entstehung)? Bullish oder Bearish?\n5. ENTRY-BEREICH – Konkreter Preisbereich für den Entry (0.618 oder 0.718 Fib)\n6. INVALIDIERUNG – Wann wäre das Setup ungültig (wo liegt der Stopploss logisch)?\n7. GENERELLES – Zeitrahmen, Trendstruktur, wichtige Zonen\n\nWenn kein klares Setup vorhanden ist, erkläre was noch abgewartet werden muss. Sei präzise und direkt.`}
       ]}];
-      const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents})});
+      const vMsg=[{role:'user',content:[{type:'image_url',image_url:{url:ev.target.result}},{type:'text',text:contents[0].parts[1].text}]}];
+      const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:vMsg,temperature:0.7,max_tokens:1200})});
       if(!r.ok)throw new Error('HTTP '+r.status);
       const d=await r.json();
-      const rep=d.candidates?.[0]?.content?.parts?.[0]?.text||'Keine Analyse möglich.';
+      const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
       res.innerHTML='<div class="ki-result-box">'+rep.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>';
     }catch(err){res.innerHTML='<div style="color:var(--danger);margin-top:10px">Fehler bei der Chart-Analyse. Bitte erneut versuchen.</div>';}
   };
