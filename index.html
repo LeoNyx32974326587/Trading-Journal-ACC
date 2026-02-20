@@ -848,6 +848,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
     <div class="settings-list-item" style="flex-direction:column;align-items:stretch;gap:8px"><span style="font-weight:700">Design</span><div style="display:flex;gap:6px;flex-wrap:wrap" id="theme-selector"><button class="filter-pill active" onclick="setTheme('dark')" data-theme="dark">Dark</button><button class="filter-pill" onclick="setTheme('light')" data-theme="light">Light</button><button class="filter-pill" onclick="setTheme('neon')" data-theme="neon">Neon</button><button class="filter-pill" onclick="setTheme('black')" data-theme="black">Black</button><button class="filter-pill" onclick="setTheme('grey')" data-theme="grey">Grey</button><button class="filter-pill" onclick="setTheme('scifi')" data-theme="scifi">Sci-Fi</button></div></div>
     <div class="settings-list-item"><span>Coach Feedback erlauben</span><label class="switch"><input type="checkbox" id="feedback-toggle" onchange="toggleFeedback(this.checked)" checked><span class="slider round"></span></label></div>
     <div class="settings-list-item"><span>Statistik sichtbar fuer andere</span><label class="switch"><input type="checkbox" id="stats-visible-toggle" onchange="toggleStatsVisible(this.checked)" checked><span class="slider round"></span></label></div>
+    <div class="settings-list-item"><span>News-Countdown auf Dashboard</span><label class="switch"><input type="checkbox" id="dashboard-news-toggle" onchange="toggleDashboardNews(this.checked)" checked><span class="slider round"></span></label></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:30px;border-top:1px solid var(--border);padding-top:20px">
       <h3 style="margin:0">Journal Verwaltung</h3>
       <button class="btn-icon" style="padding:8px 12px;font-size:1.3rem;background:var(--accent);color:#000;border:none" onclick="openCreateJournal()" title="Neues Journal">&#x2795;</button>
@@ -936,6 +937,7 @@ const auth=firebase.auth(),db=firebase.firestore(),storage=firebase.storage();
 let trades=[],journals=[],chartInstances={},dayChart=null,assetCI=null,weekCI=null,hourCI=null,adminCI=null;
 let calDate=new Date(),privacyMode=false,activeJournal=null,editingJournalId=null;
 let currentUserName="User",isAdmin=false,isCoach=false,userStatus="test";
+let showDashboardNews=localStorage.getItem('dashboardNews')!=='false';
 const ADMIN_EMAIL="leon.luca.lauterbach@gmail.com";
 let notifications=[],upgradeRequests=[];
 let jFilters={},jCustomDates={},shareTradeId=null,shareType=null,msgDelId=null,configJId=null;
@@ -1028,6 +1030,7 @@ async function finishLogin(user){
   const spn=document.getElementById("settings-prof-name");if(spn)spn.innerText=user.displayName||"User";
   const spe=document.getElementById("settings-prof-email");if(spe)spe.innerText=user.email||"";
   const spa=document.getElementById("settings-prof-avatar");if(spa)spa.innerText=(user.displayName||"U").charAt(0).toUpperCase();
+  const dnt=document.getElementById("dashboard-news-toggle");if(dnt)dnt.checked=showDashboardNews;
   applyRestrictions();await loadData();renderChatLobby();loadContactsAndRequests();setupGlobalNotifications();updateNotifDot();
 }
 function applyRestrictions(){
@@ -2439,15 +2442,36 @@ async function pasteTradeImg(field){
 let _newsEvents=[],_newsTick=null;
 const _NEWS_FLAGS={USD:'&#x1F1FA;&#x1F1F8;',EUR:'&#x1F1EA;&#x1F1FA;',GBP:'&#x1F1EC;&#x1F1E7;',JPY:'&#x1F1EF;&#x1F1F5;',CHF:'&#x1F1E8;&#x1F1ED;',CAD:'&#x1F1E8;&#x1F1E6;',AUD:'&#x1F1E6;&#x1F1FA;',NZD:'&#x1F1F3;&#x1F1FF;',CNY:'&#x1F1E8;&#x1F1F3;'};
 const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
+function toggleDashboardNews(val){
+  showDashboardNews=val;
+  localStorage.setItem('dashboardNews',val?'true':'false');
+  const w=document.getElementById('dashboard-news-widget');
+  if(!val){
+    if(_newsTick){clearInterval(_newsTick);_newsTick=null;}
+    if(w)w.innerHTML='';
+  }else{
+    loadDashboardNews();
+  }
+}
 async function loadDashboardNews(){
   const w=document.getElementById('dashboard-news-widget');if(!w)return;
+  if(!showDashboardNews){w.innerHTML='';return;}
   if(_newsTick){clearInterval(_newsTick);_newsTick=null;}
+  w.innerHTML='<div style="color:var(--text-sub);font-size:.75rem;padding:4px 8px">&#x23F3; lädt…</div>';
   try{
-    const r=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'});
-    if(!r.ok)throw new Error();
-    const data=await r.json();
+    const[r1,r2]=await Promise.allSettled([
+      fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'}),
+      fetch('https://nfs.faireconomy.media/ff_calendar_nextweek.json',{cache:'no-cache'})
+    ]);
+    let data=[];
+    if(r1.status==='fulfilled'&&r1.value.ok)data=data.concat(await r1.value.json());
+    if(r2.status==='fulfilled'&&r2.value.ok)data=data.concat(await r2.value.json());
+    if(!data.length)throw new Error('no data');
     const now=Date.now();
-    _newsEvents=data.filter(e=>e.impact!=='Holiday'&&new Date(e.date).getTime()>now).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+    _newsEvents=data
+      .filter(e=>e.impact!=='Holiday'&&new Date(e.date).getTime()>now)
+      .sort((a,b)=>new Date(a.date)-new Date(b.date))
+      .slice(0,3);
     if(!_newsEvents.length){w.innerHTML='';return;}
     _renderNewsWidget();
     _newsTick=setInterval(_renderNewsWidget,1000);
