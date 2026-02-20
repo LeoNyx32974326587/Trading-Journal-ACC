@@ -2204,7 +2204,11 @@ function _kiTradeCtx(){
 
 async function _gemini(contents){
   const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents,generationConfig:{temperature:0.7,maxOutputTokens:1200}})});
-  if(!r.ok)throw new Error('HTTP '+r.status);
+  if(!r.ok){
+    let errMsg='HTTP '+r.status;
+    try{const ed=await r.json();errMsg+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}
+    throw new Error(errMsg);
+  }
   const d=await r.json();
   return d.candidates?.[0]?.content?.parts?.[0]?.text||'Keine Antwort erhalten.';
 }
@@ -2228,7 +2232,7 @@ async function sendKIChat(){
     _kiHistory.push({role:'model',parts:[{text:rep}]});
   }catch(e){
     document.getElementById('ki-dot')?.remove();
-    _kiAppend('Fehler: KI nicht erreichbar. Bitte API-Key prüfen.','ai');
+    _kiAppend('Fehler: '+(e.message||'KI nicht erreichbar'),'ai');
   }
 }
 
@@ -2259,7 +2263,7 @@ async function analyzeMyTrades(){
   try{
     const rep=await _gemini([{role:'user',parts:[{text:prompt}]}]);
     res.innerHTML='<div class="ki-result-box">'+rep.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>';
-  }catch(e){res.innerHTML='<div style="color:var(--danger);margin-top:12px">Fehler bei der Analyse. Bitte nochmal versuchen.</div>';}
+  }catch(e){res.innerHTML='<div style="color:var(--danger);margin-top:12px">Fehler: '+(e.message||'Analyse fehlgeschlagen')+'</div>';}
   btn.disabled=false;btn.textContent='&#x1F4CA; Erneut analysieren';
 }
 
