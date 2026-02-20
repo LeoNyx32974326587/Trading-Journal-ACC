@@ -331,7 +331,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .ki-typing span{width:7px;height:7px;background:var(--text-sub);border-radius:50%;animation:kiDot 1.2s infinite}
 .ki-typing span:nth-child(2){animation-delay:.2s}.ki-typing span:nth-child(3){animation-delay:.4s}
 @keyframes kiDot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-.ki-input-row{display:flex;gap:8px}
+.ki-input-row{display:flex;gap:8px;align-items:flex-end}.ki-input-row textarea{margin-bottom:0;width:auto;line-height:1.5;font-family:inherit;font-size:.95rem}
 .ki-result-box{background:var(--cell-bg);border:1px solid var(--border);border-radius:12px;padding:16px;white-space:pre-wrap;line-height:1.75;font-size:.9rem;margin-top:16px}
 .ki-chart-drop{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.25s}
 .ki-chart-drop:hover{border-color:var(--accent);background:rgba(0,0,0,.05)}
@@ -871,14 +871,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
       <div class="ki-msg ai">Hallo! Ich bin dein KI-Trading-Assistent. Ich kenne deine Trades und kann dir helfen, Muster zu erkennen, Fehler zu vermeiden und besser zu werden. Was möchtest du wissen?</div>
     </div>
     <div class="ki-input-row">
-      <input type="text" id="ki-chat-input" placeholder="Frag mich etwas zu deinen Trades..." style="flex:1" onkeydown="if(event.key==='Enter')sendKIChat()">
+      <textarea id="ki-chat-input" placeholder="Frag mich etwas zu deinen Trades..." style="flex:1;resize:none;min-height:60px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendKIChat()}"></textarea>
       <button class="btn-primary" onclick="sendKIChat()" style="white-space:nowrap">Senden</button>
     </div>
   </div>
   <!-- Analyse -->
   <div id="ki-panel-analyse" class="card hidden">
-    <h4 style="margin-top:0">Portfolio-Analyse</h4>
-    <p style="color:var(--text-sub);font-size:.9rem;margin-bottom:20px">Die KI analysiert all deine Trades und gibt dir gezieltes Feedback zu Stärken, Schwächen und konkreten Verbesserungen.</p>
+    <h4 style="margin-top:0">Trade-Analyse</h4>
+    <p style="color:var(--text-sub);font-size:.9rem;margin-bottom:16px">W&#228;hle einen einzelnen Trade aus oder analysiere alle Trades auf einmal.</p>
+    <div style="margin-bottom:16px">
+      <label style="font-size:.8rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Trade ausw&#228;hlen</label>
+      <select id="ki-trade-select" style="width:100%;padding:12px;background:var(--cell-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;font-size:.95rem;cursor:pointer;box-sizing:border-box">
+        <option value="">&#x1F4CA; Alle Trades (Portfolio-Analyse)</option>
+      </select>
+    </div>
     <button class="btn-primary" onclick="analyzeMyTrades()" style="width:100%" id="ki-analyse-btn">&#x1F4CA; Jetzt analysieren</button>
     <div id="ki-analyse-result"></div>
   </div>
@@ -2165,6 +2171,25 @@ function switchKITab(tab){
     document.getElementById('ki-tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('ki-panel-'+t).classList.toggle('hidden',t!==tab);
   });
+  if(tab==='analyse')_kiPopulateTradeSelect();
+}
+
+function _kiPopulateTradeSelect(){
+  const sel=document.getElementById('ki-trade-select');
+  if(!sel)return;
+  const all=window.allTrades||window.trades||[];
+  const sorted=[...all].filter(t=>t.status==='Geschlossen'||!t.status).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const prev=sel.value;
+  sel.innerHTML='<option value="">&#x1F4CA; Alle Trades (Portfolio-Analyse)</option>';
+  sorted.forEach(t=>{
+    const pnl=parseFloat(t.pnl)||0;
+    const icon=pnl>0?'\u2705':'\u274C';
+    const opt=document.createElement('option');
+    opt.value=t.id;
+    opt.textContent=icon+' '+(t.date||'-')+' | '+(t.asset||'-')+' '+(t.direction||'-')+' | PnL: '+pnl.toFixed(2)+'\u20AC';
+    sel.appendChild(opt);
+  });
+  if(prev)sel.value=prev;
 }
 
 function _kiTradeCtx(){
@@ -2217,10 +2242,20 @@ function _kiAppend(text,role){
 async function analyzeMyTrades(){
   const btn=document.getElementById('ki-analyse-btn');
   const res=document.getElementById('ki-analyse-result');
-  btn.disabled=true;btn.textContent='Analysiere…';res.innerHTML='';
+  btn.disabled=true;btn.textContent='Analysiere\u2026';res.innerHTML='';
   const all=window.allTrades||window.trades||[];
-  const detail=all.slice(-30).map(t=>`Asset:${t.asset||'-'} Richtung:${t.direction||'-'} PnL:${t.pnl||0} Datum:${t.date||'-'} Setup:${t.setup||'-'}`).join('\n');
-  const prompt=`Du bist ein professioneller Trading-Coach. Analysiere die Trading-Daten des Nutzers strikt anhand seiner SMC-Strategie und gib ausführliches Feedback auf Deutsch.\n\n${_STRATEGY}\n\nTrading-Übersicht:\n${_kiTradeCtx()}\n\nDetaillierte Trades (letzte 30):\n${detail}\n\nBitte analysiere genau anhand der Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry):\n1. STRATEGIE-COMPLIANCE — Wie konsequent folgt der Nutzer seinen eigenen Regeln? Wie oft wurde der Sweep korrekt abgewartet? Wurde der BOS als Bestätigung genutzt? Wurde beim 0.618 oder 0.718 Fib eingestiegen?\n2. STÄRKEN — Was läuft strategiekonform gut?\n3. SCHWÄCHEN — Wo wird von der Strategie abgewichen (z.B. Entry ohne Sweep, kein BOS abgewartet, falsches Fib-Level)?\n4. MUSTER BEI VERLUST-TRADES — Welcher Strategieschritt fehlt typischerweise bei Verlustern?\n5. KONKRETE HANDLUNGSEMPFEHLUNGEN — Spezifisch für Liquidity Sweep, BOS-Erkennung und Fib-Entry\n6. PSYCHOLOGIE — Wird ungeduldig eingestiegen bevor alle 3 Bedingungen erfüllt sind?\n\nStrukturiere die Antwort klar mit Überschriften. Sei direkt und konkret.`;
+  const sel=document.getElementById('ki-trade-select');
+  const selectedId=sel?sel.value:'';
+  let prompt;
+  if(selectedId){
+    const t=all.find(x=>x.id===selectedId);
+    if(!t){res.innerHTML='<div style="color:var(--danger);margin-top:12px">Trade nicht gefunden.</div>';btn.disabled=false;btn.textContent='&#x1F4CA; Erneut analysieren';return;}
+    const detail=`Asset: ${t.asset||'-'} | Richtung: ${t.direction||'-'} | PnL: ${t.pnl||0}\u20AC | Datum: ${t.date||'-'} | Setup: ${t.setup||'-'} | RRR: ${t.rrr||'-'} | Anmerkungen: ${t.notes||t.comment||'-'}`;
+    prompt=`Du bist ein professioneller Trading-Coach. Analysiere diesen einzelnen Trade strikt anhand der SMC-Strategie und gib ausf\u00FChrliches Feedback auf Deutsch.\n\n${_STRATEGY}\n\nTrade-Details:\n${detail}\n\nBitte analysiere genau anhand der Strategie (Liquidity Sweep \u2192 BOS \u2192 0.618/0.718 Fib-Entry):\n1. STRATEGIE-COMPLIANCE \u2014 Entspricht dieser Trade der Strategie? Was wurde richtig/falsch gemacht?\n2. EINSTIEG \u2014 War der Entry korrekt (beim 0.618 oder 0.718 Fib nach BOS)?\n3. SETUP-QUALIT\u00C4T \u2014 Wie klar war das Setup? Wurde auf alle 3 Bedingungen gewartet?\n4. ERGEBNIS-ANALYSE \u2014 Was hat zu diesem PnL gef\u00FChrt?\n5. KONKRETE VERBESSERUNGEN \u2014 Was h\u00E4tte bei diesem Trade besser gemacht werden k\u00F6nnen?\n6. LERNPUNKTE \u2014 Was kann der Nutzer aus diesem Trade mitnehmen?\n\nSei direkt, konkret und lehrreich.`;
+  } else {
+    const detail=all.slice(-30).map(t=>`Asset:${t.asset||'-'} Richtung:${t.direction||'-'} PnL:${t.pnl||0} Datum:${t.date||'-'} Setup:${t.setup||'-'}`).join('\n');
+    prompt=`Du bist ein professioneller Trading-Coach. Analysiere die Trading-Daten des Nutzers strikt anhand seiner SMC-Strategie und gib ausf\u00FChrliches Feedback auf Deutsch.\n\n${_STRATEGY}\n\nTrading-\u00DCbersicht:\n${_kiTradeCtx()}\n\nDetaillierte Trades (letzte 30):\n${detail}\n\nBitte analysiere genau anhand der Strategie (Liquidity Sweep \u2192 BOS \u2192 0.618/0.718 Fib-Entry):\n1. STRATEGIE-COMPLIANCE \u2014 Wie konsequent folgt der Nutzer seinen eigenen Regeln?\n2. ST\u00C4RKEN \u2014 Was l\u00E4uft strategiekonform gut?\n3. SCHW\u00C4CHEN \u2014 Wo wird von der Strategie abgewichen?\n4. MUSTER BEI VERLUST-TRADES \u2014 Welcher Strategieschritt fehlt typischerweise bei Verlustern?\n5. KONKRETE HANDLUNGSEMPFEHLUNGEN \u2014 Spezifisch f\u00FCr Liquidity Sweep, BOS-Erkennung und Fib-Entry\n6. PSYCHOLOGIE \u2014 Wird ungeduldig eingestiegen bevor alle 3 Bedingungen erf\u00FCllt sind?\n\nStrukturiere die Antwort klar mit \u00DCberschriften. Sei direkt und konkret.`;
+  }
   try{
     const rep=await _gemini([{role:'user',parts:[{text:prompt}]}]);
     res.innerHTML='<div class="ki-result-box">'+rep.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>';
