@@ -2397,7 +2397,7 @@ function loadTradeImgFromBlob(blob,field){
 async function autoFillTradeFields(dataUrl){
   const hint=document.getElementById('tradeImgAiHint');
   if(hint)hint.innerHTML='<span style="color:var(--text-sub);font-size:.82rem">&#x23F3; KI erkennt Entry, SL &amp; TPs…</span>';
-  const prompt='Analyze this trading chart screenshot. Extract the Entry price, Stop Loss (SL), and Take Profit levels (TP1, TP2, TP3) that are visible or drawn on the chart.\nReply ONLY with this JSON, no other text:\n{"entry":null,"sl":null,"tp1":null,"tp2":null,"tp3":null}\nUse the exact price numbers shown in the chart. Set null if a value is not clearly visible.';
+  const prompt='Analyze this trading chart screenshot. Extract ONLY the explicitly labeled Entry price, Stop Loss (SL), and Take Profit levels (TP1, TP2, TP3).\nIMPORTANT: IGNORE all Fibonacci retracement and extension lines — especially gray/white lines labeled with ratios like 0, 0.236, 0.382, 0.5, 0.618, 0.705, 0.786, 1, -0.27, -0.618 etc. Do NOT use those as Entry, SL or TP values.\nOnly extract levels that are clearly and explicitly marked as Entry, SL, Stop Loss, TP, Take Profit, or similar trade-setup labels.\nReply ONLY with this JSON, no other text:\n{"entry":null,"sl":null,"tp1":null,"tp2":null,"tp3":null}\nUse the exact price numbers. Set null if a value is not clearly visible.';
   try{
     const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:dataUrl}},{type:'text',text:prompt}]}],temperature:0.1,max_tokens:150})});
     if(!r.ok)throw new Error('HTTP '+r.status);
