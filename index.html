@@ -334,9 +334,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .ki-input-row{display:flex;flex-direction:column;gap:8px}.ki-input-row textarea{margin-bottom:0;width:100%;box-sizing:border-box;line-height:1.5;font-family:inherit;font-size:.95rem}.ki-input-actions{display:flex;justify-content:flex-end}.ki-send-btn{background:var(--gradient);color:#fff;padding:10px 22px;border:none;font-weight:700;border-radius:10px;cursor:pointer;white-space:nowrap;font-size:.95rem;box-shadow:0 4px 15px rgba(187,134,252,.25)}
 .ki-result-box{background:var(--cell-bg);border:1px solid var(--border);border-radius:12px;padding:16px;white-space:pre-wrap;line-height:1.75;font-size:.9rem;margin-top:16px}
 .news-pill{display:flex;align-items:center;gap:5px;background:var(--cell-bg);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:.75rem;white-space:nowrap;overflow:hidden}
-.news-pill .np-name{color:var(--text-main);font-weight:600;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.news-pill .np-cur{font-weight:800;font-size:.78rem;color:var(--text-main);flex-shrink:0}
+.news-pill .np-name{color:var(--text-sub);overflow:hidden;text-overflow:ellipsis;max-width:90px}
+.news-pill .np-time{font-family:monospace;color:var(--text-sub);font-size:.72rem;flex-shrink:0}
 .news-pill .np-timer{font-family:monospace;color:var(--accent);font-weight:700;font-size:.72rem;flex-shrink:0}
-@media(max-width:480px){.news-pill .np-name{display:none}.news-pill{padding:4px 8px}}
+@media(max-width:480px){.news-pill .np-name{display:none}.news-pill .np-time{display:none}.news-pill{padding:4px 8px}}
 .ki-chart-drop{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.25s}
 .ki-chart-drop:hover{border-color:var(--accent);background:rgba(0,0,0,.05)}
 .trade-img-drop{border:1.5px dashed var(--border);border-radius:10px;padding:11px 16px;text-align:center;cursor:pointer;transition:.2s;font-size:.88rem;color:var(--text-sub)}
@@ -2488,7 +2490,7 @@ async function loadDashboardNews(){
     if(!_newsEvents.length){w.innerHTML='';return;}
     _renderNewsWidget();
     _newsTick=setInterval(_renderNewsWidget,1000);
-  }catch(_){w.innerHTML='';}
+  }catch(err){w.innerHTML='<div style="color:var(--text-sub);font-size:.72rem;padding:4px 8px">⚠ News nicht verfügbar</div>';}
 }
 function _renderNewsWidget(){
   const w=document.getElementById('dashboard-news-widget');if(!w)return;
@@ -2499,11 +2501,13 @@ function _renderNewsWidget(){
     _newsEvents.slice(0,3).map(e=>{
       const diff=new Date(e.date).getTime()-now;
       const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
-      const timer=h>=24?`${Math.floor(h/24)}T&nbsp;${h%24}h`:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const countdown=h>=24?`${Math.floor(h/24)}T ${h%24}h`:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const d=new Date(e.date);
+      const hhmm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
       const flag=_NEWS_FLAGS[e.country]||'&#x1F310;';
       const dot=`<span style="width:7px;height:7px;border-radius:50%;background:${_NEWS_IMP[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
-      const name=e.title.length>20?e.title.slice(0,18)+'…':e.title;
-      return `<div class="news-pill">${dot}<span style="font-size:.85rem">${flag}</span><span class="np-name">${name}</span><span class="np-timer">${timer}</span></div>`;
+      const name=e.title.length>18?e.title.slice(0,16)+'…':e.title;
+      return `<div class="news-pill">${dot}<span style="font-size:.8rem">${flag}</span><span class="np-cur">${e.country}</span><span class="np-name">${name}</span><span class="np-time">${hhmm}</span><span class="np-timer">-${countdown}</span></div>`;
     }).join('')+'</div>';
 }
 </script></body></html>
