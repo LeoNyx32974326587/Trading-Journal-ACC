@@ -2453,23 +2453,31 @@ function toggleDashboardNews(val){
     loadDashboardNews();
   }
 }
+async function _ffFetch(slug){
+  const base='https://nfs.faireconomy.media/ff_calendar_'+slug+'.json';
+  const proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(base);
+  // try direct first (works if server sends CORS headers), then proxy
+  for(const url of [base,proxy]){
+    try{
+      const r=await fetch(url,{cache:'no-cache'});
+      if(r.ok)return await r.json();
+    }catch(_){}
+  }
+  return [];
+}
 async function loadDashboardNews(){
   const w=document.getElementById('dashboard-news-widget');if(!w)return;
   if(!showDashboardNews){w.innerHTML='';return;}
   if(_newsTick){clearInterval(_newsTick);_newsTick=null;}
   w.innerHTML='<div style="color:var(--text-sub);font-size:.75rem;padding:4px 8px">&#x23F3; lädt…</div>';
   try{
-    const[r1,r2]=await Promise.allSettled([
-      fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'}),
-      fetch('https://nfs.faireconomy.media/ff_calendar_nextweek.json',{cache:'no-cache'})
-    ]);
-    let data=[];
-    if(r1.status==='fulfilled'&&r1.value.ok)data=data.concat(await r1.value.json());
-    if(r2.status==='fulfilled'&&r2.value.ok)data=data.concat(await r2.value.json());
+    const[tw,nw]=await Promise.all([_ffFetch('thisweek'),_ffFetch('nextweek')]);
+    const data=[...tw,...nw];
     if(!data.length)throw new Error('no data');
     const now=Date.now();
     _newsEvents=data
-      .filter(e=>e.impact!=='Holiday'&&new Date(e.date).getTime()>now)
+      .filter(e=>e.impact==='High'||e.impact==='Medium')
+      .filter(e=>new Date(e.date).getTime()>now)
       .sort((a,b)=>new Date(a.date)-new Date(b.date))
       .slice(0,3);
     if(!_newsEvents.length){w.innerHTML='';return;}
