@@ -2288,11 +2288,11 @@ async function handleChartUpload(e){
       ]}];
       const vMsg=[{role:'user',content:[{type:'image_url',image_url:{url:ev.target.result}},{type:'text',text:contents[0].parts[1].text}]}];
       const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:vMsg,temperature:0.7,max_tokens:1200})});
-      if(!r.ok)throw new Error('HTTP '+r.status);
+      if(!r.ok){let em='HTTP '+r.status;try{const ed=await r.json();em+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}throw new Error(em);}
       const d=await r.json();
       const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
       res.innerHTML='<div class="ki-result-box">'+rep.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>';
-    }catch(err){res.innerHTML='<div style="color:var(--danger);margin-top:10px">Fehler bei der Chart-Analyse. Bitte erneut versuchen.</div>';}
+    }catch(err){res.innerHTML='<div style="color:var(--danger);margin-top:10px">Fehler: '+(err.message||'Analyse fehlgeschlagen')+'</div>';}
   };
   reader.readAsDataURL(file);
 }
