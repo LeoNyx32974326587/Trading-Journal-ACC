@@ -388,7 +388,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
       <button type="button" onclick="pasteTradeImg('setup')" class="trade-img-paste-btn">&#x1F4CB; Aus Zwischenablage</button>
       <input type="file" id="setupImgFile" accept="image/*" style="display:none" onchange="handleTradeImgUpload(event,'setup')">
       <div id="setupImgPreview"></div>
-      <div id="tradeImgAiHint" style="min-height:18px;margin-top:4px;text-align:center"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:24px;margin-top:6px;gap:8px">
+        <div id="tradeImgAiHint" style="font-size:.82rem;flex:1"></div>
+        <button type="button" id="tradeChartAnalyseBtn" onclick="analyzeTradeSetupImg()" style="display:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:8px;padding:4px 10px;font-size:.78rem;cursor:pointer;white-space:nowrap;flex-shrink:0">&#x1F50D; KI-Analyse</button>
+      </div>
+      <div id="tradeChartResult" style="display:none;margin-top:8px"></div>
     </div>
     <input type="hidden" id="imgSetup">
     <label>Notiz</label><textarea id="note" rows="2"></textarea>
@@ -2339,14 +2343,35 @@ function _renderKIResult(text){
     .replace(/\*([^*\n]+)\*/g,'$1')
     .replace(/^#{1,4}\s*/gm,'')
     .trim();
-  const ICONS=['🌊','📐','🎯','📈','🔍','💡','📋','💪','⚠️','📉','🔧'];
-  const COLORS=['#5ac8fa','#30d158','#ffd60a','#bf5af2','#64d2ff','var(--accent)','#5ac8fa','#30d158','#ff9f0a','#ff453a','#bf5af2'];
+  const TITLE_MAP={
+    'SWEEP':          {icon:'🌊',color:'#5ac8fa'},
+    'BOS':            {icon:'📐',color:'#30d158'},
+    'FIB-ENTRY':      {icon:'🎯',color:'#ffd60a'},
+    'TREND':          {icon:'📈',color:'#bf5af2'},
+    'BESTÄTIGUNGEN':  {icon:'🔍',color:'#64d2ff'},
+    'NEWS-RISIKO':    {icon:'📰',color:'#ff9f0a'},
+    'FAZIT':          {icon:'💡',color:'var(--accent)'},
+    'STRATEGIE-COMPLIANCE':{icon:'📋',color:'#5ac8fa'},
+    'EINSTIEG':       {icon:'🎯',color:'#30d158'},
+    'SETUP-QUALITÄT': {icon:'⭐',color:'#ffd60a'},
+    'ERGEBNIS-ANALYSE':{icon:'📊',color:'#ff9f0a'},
+    'KONKRETE VERBESSERUNGEN':{icon:'🔧',color:'#ff453a'},
+    'LERNPUNKTE':     {icon:'💡',color:'#bf5af2'},
+    'STÄRKEN':        {icon:'💪',color:'#30d158'},
+    'SCHWÄCHEN':      {icon:'⚠️',color:'#ff9f0a'},
+    'PSYCHOLOGIE':    {icon:'🧠',color:'#bf5af2'},
+    'MUSTER BEI VERLUST-TRADES':{icon:'📉',color:'#ff453a'},
+    'KONKRETE HANDLUNGSEMPFEHLUNGEN':{icon:'🎯',color:'#5ac8fa'},
+  };
+  const FALLBACK_ICONS=['🌊','📐','🎯','📈','🔍','📰','💡','📋','💪','⚠️','📉'];
+  const FALLBACK_COLORS=['#5ac8fa','#30d158','#ffd60a','#bf5af2','#64d2ff','#ff9f0a','var(--accent)','#5ac8fa','#30d158','#ff9f0a','#ff453a'];
   // Parse numbered sections: "1. TITLE – content" or "1. TITLE\ncontent"
   const lines=t.split('\n');
   let html='',cur=null;
   function flush(){
     if(!cur)return;
-    const i=cur.n-1,ic=ICONS[i]||'●',cl=COLORS[i]||'var(--accent)';
+    const tm=TITLE_MAP[cur.title]||{};
+    const i=cur.n-1,ic=tm.icon||FALLBACK_ICONS[i]||'●',cl=tm.color||FALLBACK_COLORS[i]||'var(--accent)';
     html+=`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 14px;margin-bottom:8px;border-left:3px solid ${cl}">
       <div style="color:${cl};font-size:.7rem;font-weight:700;letter-spacing:.7px;margin-bottom:5px;text-transform:uppercase">${ic} ${cur.title}</div>
       <div style="font-size:.87rem;line-height:1.58;color:var(--text)">${cur.body.filter(Boolean).join('<br>')}</div>
@@ -2367,7 +2392,7 @@ function _renderKIResult(text){
   flush();
   // Highlight FAZIT card based on 3-level trade quality verdict
   html=html.replace(
-    /(<div style="background[^>]*border-left:3px solid var\(--accent\)[^>]*>)\s*(<div[^>]*>💡 FAZIT<\/div>)\s*(<div[^>]*>)(.*?)(<\/div>\s*<\/div>)/s,
+    /(<div style="background[^>]*border-left:3px solid [^"]+[^>]*>)\s*(<div[^>]*>💡 FAZIT<\/div>)\s*(<div[^>]*>)(.*?)(<\/div>\s*<\/div>)/s,
     (match,wrap,label,contentDiv,body,close)=>{
       const isGood=/GUTER\s+TRADE/i.test(body);
       const isRisky=/RISKANTER\s+TRADE/i.test(body);
@@ -2384,7 +2409,8 @@ function _renderKIResult(text){
         .replace(/RISKANTER\s+TRADE[,.\s–—]*/i,'')
         .replace(/SCHLECHTER\s+TRADE[,.\s–—]*/i,'')
         .trim();
-      return wrap.replace('var(--accent)',cl)+label.replace('var(--accent)',cl)+contentDiv+badge+cleanBody+close;
+      const origColor=wrap.match(/border-left:3px solid ([^"]+)/)?.[1]||'var(--accent)';
+      return wrap.replace(origColor,cl)+label.replace(origColor,cl)+contentDiv+badge+cleanBody+close;
     }
   );
   return html||`<div style="font-size:.87rem;line-height:1.6">${t.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
@@ -2413,18 +2439,67 @@ async function analyzeMyTrades(){
   btn.disabled=false;btn.textContent='&#x1F4CA; Erneut analysieren';
 }
 
+async function _getNewsCtx(asset=''){
+  try{
+    const data=await _calCached();
+    const now=Date.now();
+    const up=asset.toUpperCase();
+    const ccys=['USD','EUR','GBP','JPY','CHF','CAD','AUD','NZD','CNY'];
+    const rel=asset
+      ? ccys.filter(c=>up.includes(c)||(up.includes('XAU')&&c==='USD')||(up.replace(/\d+/g,'').endsWith('US')&&c==='USD'))
+      : null;
+    const evts=data
+      .filter(e=>rel?rel.includes(e.country):e.impact==='High')
+      .filter(e=>new Date(e.date).getTime()>now)
+      .slice(0,5);
+    if(!evts.length)return '';
+    return evts.map(e=>{
+      const diff=Math.round((new Date(e.date).getTime()-now)/60000);
+      const when=diff<60?`in ${diff} Min.`:diff<1440?`in ${Math.round(diff/60)}h`
+        :new Date(e.date).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})+' '+new Date(e.date).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      return `[${e.impact}] ${e.title} (${e.country}) – ${when}`;
+    }).join('\n');
+  }catch(_){return '';}
+}
+function _buildChartPrompt(newsCtx=''){
+  const fazitN=newsCtx?7:6;
+  const newsPoint=newsCtx
+    ?`\n6. NEWS-RISIKO – Folgende relevante Nachrichten stehen bevor:\n${newsCtx}\nBewerte kurz das Risiko für diesen Trade (High-Impact vor Entry = hohes Risiko).`
+    :'';
+  return `Du bist ein SMC-Chart-Analyst. Analysiere diesen Chart kurz und präzise auf Deutsch.\n\n${_STRATEGY}\n\nBeantworte in genau ${fazitN} knappen Punkten:\n1. SWEEP – Buy-Side oder Sell-Side? Kurz beschreiben.\n2. BOS – Vorhanden / ausstehend?\n3. FIB-ENTRY – 0.618 oder 0.718 Level erreicht oder noch nicht?\n4. TREND – Übergeordneter Trend bullisch oder bärisch? Passt das Setup zur Trendrichtung?\n5. BESTÄTIGUNGEN – Order Block (OB) und/oder Fair Value Gap (FVG) im Entry-Bereich vorhanden? Wenn ja, kurz wo.${newsPoint}\n${fazitN}. FAZIT – Beginne mit genau einem dieser Begriffe: "GUTER TRADE", "RISKANTER TRADE" oder "SCHLECHTER TRADE". GUTER TRADE: alle 5 Bedingungen erfüllt. RISKANTER TRADE: Sweep+BOS+Fib vorhanden, aber Trend oder OB/FVG fehlt. SCHLECHTER TRADE: Sweep, BOS oder Fib fehlt. Dann 1 Satz was jetzt zu tun ist.\n\nKeine langen Erklärungen. Direkt und kompakt.`;
+}
 async function analyzeChartImage(dataUrl){
   const res=document.getElementById('ki-chart-result');
   res.innerHTML='<div style="color:var(--text-sub);font-size:.9rem;margin-top:10px">&#x1F50D; Analysiere Chart…</div>';
-  const prompt=`Du bist ein SMC-Chart-Analyst. Analysiere diesen Chart kurz und präzise auf Deutsch.\n\n${_STRATEGY}\n\nBeantworte in genau 6 knappen Punkten:\n1. SWEEP – Buy-Side oder Sell-Side? Kurz beschreiben.\n2. BOS – Vorhanden / ausstehend?\n3. FIB-ENTRY – 0.618 oder 0.718 Level erreicht oder noch nicht?\n4. TREND – Übergeordneter Trend bullisch oder bärisch? Passt das Setup zur Trendrichtung?\n5. BESTÄTIGUNGEN – Order Block (OB) und/oder Fair Value Gap (FVG) im Entry-Bereich vorhanden? Wenn ja, kurz wo.\n6. FAZIT – Beginne mit genau einem dieser Begriffe: "GUTER TRADE", "RISKANTER TRADE" oder "SCHLECHTER TRADE". GUTER TRADE: alle 5 Bedingungen erfüllt. RISKANTER TRADE: Sweep+BOS+Fib vorhanden, aber Trend oder OB/FVG fehlt. SCHLECHTER TRADE: Sweep, BOS oder Fib fehlt. Dann 1 Satz was jetzt zu tun ist.\n\nKeine langen Erklärungen. Direkt und kompakt.`;
+  const newsCtx=await _getNewsCtx();
+  const prompt=_buildChartPrompt(newsCtx);
   try{
     const img=await _compressImg(dataUrl);
-    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:prompt}]}],temperature:0.5,max_tokens:580})});
+    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:prompt}]}],temperature:0.5,max_tokens:newsCtx?680:580})});
     if(!r.ok){let em='HTTP '+r.status;try{const ed=await r.json();em+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}throw new Error(em);}
     const d=await r.json();
     const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
     res.innerHTML='<div style="margin-top:12px">'+_renderKIResult(rep)+'</div>';
   }catch(err){console.error('[ChartAnalyse] Fehler:',err);res.innerHTML='<div style="color:var(--danger);margin-top:10px">Fehler: '+(err.message||'Analyse fehlgeschlagen')+'</div>';}
+}
+async function analyzeTradeSetupImg(){
+  const dataUrl=document.getElementById('imgSetup').value;
+  if(!dataUrl)return;
+  const res=document.getElementById('tradeChartResult');
+  if(!res)return;
+  res.style.display='block';
+  res.innerHTML='<div style="color:var(--text-sub);font-size:.85rem;padding:8px 0">&#x23F3; KI analysiert Chart + News…</div>';
+  const asset=(document.getElementById('assetInput')?.value||'').trim();
+  const newsCtx=await _getNewsCtx(asset);
+  const prompt=_buildChartPrompt(newsCtx);
+  try{
+    const img=await _compressImg(dataUrl);
+    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:prompt}]}],temperature:0.5,max_tokens:newsCtx?680:580})});
+    if(!r.ok){let em='HTTP '+r.status;try{const ed=await r.json();em+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}throw new Error(em);}
+    const d=await r.json();
+    const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
+    res.innerHTML=_renderKIResult(rep);
+  }catch(err){console.error('[TradeAnalyse] Fehler:',err);res.innerHTML='<div style="color:var(--danger);font-size:.85rem">Fehler: '+(err.message||'Analyse fehlgeschlagen')+'</div>';}
 }
 function processChartBlob(blob){
   const prev=document.getElementById('ki-chart-preview');
@@ -2473,14 +2548,21 @@ function clearTradeImg(field){
   document.getElementById('img'+(field==='setup'?'Setup':'Result')).value='';
   document.getElementById(field+'ImgPreview').innerHTML='';
   const fi=document.getElementById(field+'ImgFile');if(fi)fi.value='';
-  if(field==='setup'){const h=document.getElementById('tradeImgAiHint');if(h)h.innerHTML='';}
+  if(field==='setup'){
+    const h=document.getElementById('tradeImgAiHint');if(h)h.innerHTML='';
+    const btn=document.getElementById('tradeChartAnalyseBtn');if(btn)btn.style.display='none';
+    const r=document.getElementById('tradeChartResult');if(r){r.style.display='none';r.innerHTML='';}
+  }
 }
 function loadTradeImgFromBlob(blob,field){
   const reader=new FileReader();
   reader.onload=ev=>{
     document.getElementById('img'+(field==='setup'?'Setup':'Result')).value=ev.target.result;
     showTradeImgPreview(field,ev.target.result);
-    if(field==='setup')autoFillTradeFields(ev.target.result);
+    if(field==='setup'){
+      autoFillTradeFields(ev.target.result);
+      const btn=document.getElementById('tradeChartAnalyseBtn');if(btn)btn.style.display='';
+    }
   };
   reader.readAsDataURL(blob);
 }
