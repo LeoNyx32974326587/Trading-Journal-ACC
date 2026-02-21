@@ -2580,6 +2580,18 @@ function _compressImg(dataUrl,maxW=1800,quality=0.82){
     img.src=dataUrl;
   });
 }
+function _cleanModelJSON(raw){
+  let s=raw.replace(/```[\w]*\s*/g,'').replace(/```/g,'').trim();
+  const m=s.match(/\{[\s\S]*\}/);if(!m)return null;s=m[0];
+  s=s
+    .replace(/,\s*([}\]])/g,'$1')
+    .replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g,'$1"$2":')
+    .replace(/:\s*'([^']*)'/g,':"$1"')
+    .replace(/:\s*None\b/gi,':null')
+    .replace(/:\s*undefined\b/gi,':null');
+  try{return JSON.parse(s);}
+  catch(e){console.error('[AutoFill] JSON parse:',s,'|',e.message);return null;}
+}
 async function autoFillTradeFields(dataUrl){
   const hint=document.getElementById('tradeImgAiHint');
   if(hint)hint.innerHTML='<span style="color:var(--text-sub);font-size:.82rem">&#x23F3; KI erkennt Entry, SL &amp; TPs…</span>';
@@ -2594,14 +2606,11 @@ async function autoFillTradeFields(dataUrl){
       throw new Error('HTTP '+r.status);
     }
     const d=await r.json();
-    const raw=d.choices?.[0]?.message?.content||'';
-    // Extract JSON even if model wraps it in code fences
-    const match=raw.match(/\{[^{}]*\}/);
-    if(!match){
+    const vals=_cleanModelJSON(d.choices?.[0]?.message?.content||'');
+    if(!vals){
       if(hint)hint.innerHTML='<span style="color:var(--text-sub);font-size:.82rem">Keine Labels erkannt – Entry/SL/TP sichtbar?</span>';
       return;
     }
-    const vals=JSON.parse(match[0]);
     const map={entry:'inpEntry',sl:'inpSL',tp1:'inpTP1',tp2:'inpTP2',tp3:'inpTP3'};
     let filled=0;
     Object.entries(map).forEach(([k,id])=>{
