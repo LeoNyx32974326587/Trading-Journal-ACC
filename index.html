@@ -2450,9 +2450,9 @@ function _renderKIResult(text){
     if(!cur)return;
     const tm=TITLE_MAP[cur.title]||{};
     const i=cur.n-1,ic=tm.icon||FALLBACK_ICONS[i]||'●',cl=tm.color||FALLBACK_COLORS[i]||'var(--accent)';
-    html+=`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 14px;margin-bottom:8px;border-left:3px solid ${cl}">
-      <div style="color:${cl};font-size:.7rem;font-weight:700;letter-spacing:.7px;margin-bottom:5px;text-transform:uppercase">${ic} ${cur.title}</div>
-      <div style="font-size:.87rem;line-height:1.58;color:var(--text)">${cur.body.filter(Boolean).join('<br>')}</div>
+    html+=`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 14px;margin-bottom:8px;border-left:3px solid ${cl};box-sizing:border-box;max-width:100%;overflow:hidden">
+      <div style="color:${cl};font-size:.7rem;font-weight:700;letter-spacing:.7px;margin-bottom:5px;text-transform:uppercase;word-break:break-word;overflow-wrap:break-word">${ic} ${cur.title}</div>
+      <div style="font-size:.87rem;line-height:1.58;color:var(--text);word-break:break-word;overflow-wrap:break-word;white-space:normal">${cur.body.filter(Boolean).join('<br>')}</div>
     </div>`;
     cur=null;
   }
@@ -2464,7 +2464,7 @@ function _renderKIResult(text){
     }else if(cur){
       const s=line.trim();if(s)cur.body.push(s);
     }else{
-      const s=line.trim();if(s)html+=`<p style="font-size:.87rem;line-height:1.58;margin:0 0 6px">${s}</p>`;
+      const s=line.trim();if(s)html+=`<p style="font-size:.87rem;line-height:1.58;margin:0 0 6px;word-break:break-word;overflow-wrap:break-word">${s}</p>`;
     }
   }
   flush();
@@ -2491,7 +2491,7 @@ function _renderKIResult(text){
       return wrap.replace(origColor,cl)+label.replace(origColor,cl)+contentDiv+badge+cleanBody+close;
     }
   );
-  return html||`<div style="font-size:.87rem;line-height:1.6">${t.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
+  return html||`<div style="font-size:.87rem;line-height:1.6;word-break:break-word;overflow-wrap:break-word;white-space:normal">${t.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
 }
 async function analyzeMyTrades(){
   const btn=document.getElementById('ki-analyse-btn');
