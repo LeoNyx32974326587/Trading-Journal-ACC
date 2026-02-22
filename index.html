@@ -2206,7 +2206,7 @@ function showAssetDropdown(input,ddId){
   dd.classList.add("open");
   input.onblur=function(){setTimeout(()=>dd.classList.remove("open"),150);};
 }
-function selectAsset(inputId,symbol,ddId){document.getElementById(inputId).value=symbol;document.getElementById(ddId).classList.remove("open");}
+function selectAsset(inputId,symbol,ddId){document.getElementById(inputId).value=symbol;document.getElementById(ddId).classList.remove("open");if(inputId==='assetInput')_checkPairNews(symbol);}
 
 // ─── KI-ASSISTENT (Gemini) ───────────────────────────────────────────────────
 const _GK='gsk_kdobgI6P6Z6yjxMpvwTk'+'WGdyb3FYz0bVlUXloHlUXCJ4cePBLHsc';
