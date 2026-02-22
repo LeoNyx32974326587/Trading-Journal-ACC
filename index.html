@@ -2638,7 +2638,8 @@ async function pasteTradeImg(field){
 
 // ─── DASHBOARD NEWS COUNTDOWN ────────────────────────────────────────────────
 let _newsEvents=[],_newsTick=null;
-const _NEWS_FLAGS={USD:'&#x1F1FA;&#x1F1F8;',EUR:'&#x1F1EA;&#x1F1FA;',GBP:'&#x1F1EC;&#x1F1E7;',JPY:'&#x1F1EF;&#x1F1F5;',CHF:'&#x1F1E8;&#x1F1ED;',CAD:'&#x1F1E8;&#x1F1E6;',AUD:'&#x1F1E6;&#x1F1FA;',NZD:'&#x1F1F3;&#x1F1FF;',CNY:'&#x1F1E8;&#x1F1F3;'};
+const _NEWS_FLAGS={USD:'us',EUR:'eu',GBP:'gb',JPY:'jp',CHF:'ch',CAD:'ca',AUD:'au',NZD:'nz',CNY:'cn'};
+function _flagImg(ccy){const c=_NEWS_FLAGS[ccy];return c?`<img src="https://flagcdn.com/20x15/${c}.png" width="20" height="15" style="border-radius:2px;vertical-align:middle;flex-shrink:0" alt="${ccy}">`:`<span style="font-size:.8rem;line-height:1">🌐</span>`;}
 const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
 const _FF_CK='ffcal_v5',_FF_TTL=30*60*1000;
 const _TV_CCY={US:'USD',EU:'EUR',GB:'GBP',DE:'EUR',JP:'JPY',CH:'CHF',CA:'CAD',AU:'AUD',NZ:'NZD',CN:'CNY',FR:'EUR',IT:'EUR',ES:'EUR'};
@@ -2740,10 +2741,9 @@ function _renderNewsWidget(){
       const countdown=h>=24?`${Math.floor(h/24)}T ${h%24}h`:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       const d=new Date(e.date);
       const hhmm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-      const flag=_NEWS_FLAGS[e.country]||'&#x1F310;';
       const dot=`<span style="width:7px;height:7px;border-radius:50%;background:${_NEWS_IMP[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
       const name=e.title.length>18?e.title.slice(0,16)+'…':e.title;
-      return `<div class="news-pill">${dot}<span style="font-size:.8rem">${flag}</span><span class="np-cur">${e.country}</span><span class="np-name">${name}</span><span class="np-time">${hhmm}</span><span class="np-timer">-${countdown}</span></div>`;
+      return `<div class="news-pill">${dot}${_flagImg(e.country)}<span class="np-cur">${e.country}</span><span class="np-name">${name}</span><span class="np-time">${hhmm}</span><span class="np-timer">-${countdown}</span></div>`;
     }).join('')+'</div>';
 }
 async function loadNewsView(){
@@ -2767,11 +2767,10 @@ async function loadNewsView(){
     for(const[day,events] of Object.entries(groups)){
       html+=`<div style="font-size:.7rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${day}</div>`;
       events.forEach(e=>{
-        const flag=_NEWS_FLAGS[e.country]||'&#x1F310;';
         const t=new Date(e.date);
         const hhmm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
         const dot=`<span style="width:8px;height:8px;border-radius:50%;background:${impColor[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
-        html+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:4px;background:var(--cell-bg)">${dot}<span style="font-size:.85rem">${flag}</span><span style="font-size:.75rem;color:var(--text-sub);min-width:30px;font-weight:600">${e.country}</span><span style="font-size:.85rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span><span style="font-size:.75rem;color:var(--text-sub);flex-shrink:0">${hhmm}</span></div>`;
+        html+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:4px;background:var(--cell-bg)">${dot}${_flagImg(e.country)}<span style="font-size:.75rem;color:var(--text-sub);min-width:30px;font-weight:600">${e.country}</span><span style="font-size:.85rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span><span style="font-size:.75rem;color:var(--text-sub);flex-shrink:0">${hhmm}</span></div>`;
       });
     }
     html+='</div>';
