@@ -2654,7 +2654,8 @@ function toggleDashboardNews(val){
   }
 }
 async function _tvCalFetch(){
-  const from=new Date().toISOString();
+  const _tod=new Date();_tod.setHours(0,0,0,0);
+  const from=_tod.toISOString();
   const to=new Date(Date.now()+30*24*3600*1000).toISOString();
   const r=await fetch(`https://economic-calendar.tradingview.com/events?from=${from}&to=${to}&countries=US,EU,GB,DE,JP,CH,CA,AU,NZ,CN,FR,IT,ES&minImportance=0`,{cache:'no-cache'});
   if(!r.ok)throw 0;
