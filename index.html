@@ -346,8 +346,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 @keyframes newsLivePulse{0%,100%{border-color:rgba(255,59,48,.5)}50%{border-color:rgba(255,59,48,1)}}
 .news-countdown{font-family:monospace;font-size:.72rem;font-weight:700;color:#ff9f0a;flex-shrink:0;min-width:44px;text-align:right}
 .news-row.live .news-countdown{color:#ff453a}
-.news-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:12000;display:flex;align-items:flex-end;justify-content:center}
-.news-detail-sheet{background:#1c1c1e;border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:520px;width:100%;max-height:82vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.7)}
+.news-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:12000;display:flex;align-items:center;justify-content:center;padding:20px}
+.news-detail-sheet{background:#1c1c1e;border-radius:18px;padding:20px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 48px rgba(0,0,0,.8)}
 .news-detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.85rem}
 .news-detail-row:last-child{border-bottom:none}
 .news-detail-label{color:var(--text-sub);font-size:.78rem}
