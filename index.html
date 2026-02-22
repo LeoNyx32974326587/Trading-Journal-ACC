@@ -2695,11 +2695,11 @@ function _cleanModelJSON(raw){
 async function autoFillTradeFields(dataUrl){
   const hint=document.getElementById('tradeImgAiHint');
   if(hint)hint.innerHTML='<span style="color:var(--text-sub);font-size:.82rem">&#x23F3; KI erkennt Entry, SL &amp; TPs…</span>';
-  const sysMsg='You are a trading chart price extractor. You ALWAYS respond with valid JSON only — no markdown, no explanation, no code fences.';
-  const userMsg='Look at this trading chart. Find price levels explicitly labeled as Entry, Stop Loss (SL), TP1, TP2, TP3. IGNORE Fibonacci ratio lines (0.618, 0.786 etc.). Return ONLY this JSON with exact numbers or null:\n{"entry":null,"sl":null,"tp1":null,"tp2":null,"tp3":null}';
+  const sysMsg='You are a trading chart price extractor. Output ONLY raw JSON — no text before or after, no markdown, no code fences, no explanation.';
+  const userMsg='Scan this trading chart for price labels: Entry, Stop Loss (SL), TP1, TP2, TP3. IGNORE Fibonacci ratios (0.618, 0.786 etc.) and price axis ticks. Output ONLY this JSON object with the exact numeric values you find, or null if not visible:\n{"entry":null,"sl":null,"tp1":null,"tp2":null,"tp3":null}';
   try{
     const img=await _compressImg(dataUrl);
-    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'system',content:sysMsg},{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:userMsg}]}],temperature:0,max_tokens:80})});
+    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:_GMV,messages:[{role:'system',content:sysMsg},{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:userMsg}]}],temperature:0,max_tokens:120})});
     if(!r.ok){
       const eb=await r.json().catch(()=>({}));
       console.error('[AutoFill] Groq',r.status,(eb.error?.message)||'');
