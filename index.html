@@ -925,6 +925,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
   <!-- Chart -->
   <div id="ki-panel-chart" class="card hidden">
     <h4 style="margin-top:0">Chart-Analyse</h4>
+    <div id="ki-chart-news" style="margin-bottom:12px"></div>
     <p style="color:var(--text-sub);font-size:.9rem;margin-bottom:12px">Lade einen Chart-Screenshot hoch oder füge ihn aus der Zwischenablage ein — die KI erkennt Muster, Trends und mögliche Setups.</p>
     <div class="ki-chart-drop" onclick="document.getElementById('ki-chart-file').click()">
       <div style="font-size:2.5rem;margin-bottom:8px">&#x1F4C8;</div>
@@ -2271,12 +2272,33 @@ Beurteile JEDEN Aspekt immer anhand dieser Strategie. Wenn Trades oder Charts an
 prüfe ob Liquidity Sweep, BOS, das 0.618/0.718 Fib-Level, der Trend-Kontext und OB/FVG-Bestätigungen vorhanden sind.
 `;
 
+async function _loadChartPanelNews(){
+  const b=document.getElementById('ki-chart-news');if(!b)return;
+  b.innerHTML='<div style="font-size:.75rem;color:var(--text-sub)">&#x23F3; Lade heutige News\u2026</div>';
+  try{
+    const data=await _calCached();
+    const now=Date.now();
+    const sod=new Date();sod.setHours(0,0,0,0);
+    const eod=new Date();eod.setHours(23,59,59,999);
+    const evts=data.filter(e=>{const t=new Date(e.date).getTime();return t>=sod.getTime()&&t<=eod.getTime();}).sort((a,c)=>new Date(a.date)-new Date(c.date));
+    if(!evts.length){b.innerHTML='<div style="font-size:.8rem;color:var(--text-sub);padding:4px 0">Keine News heute.</div>';return;}
+    const ic={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
+    let html=`<div style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--cell-bg)"><div style="font-size:.72rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">&#x1F4C5; Heutige News</div>`;
+    evts.forEach(e=>{
+      const dt=new Date(e.date);const past=dt.getTime()<now;
+      const hhmm=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+      html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:${past?.45:1}"><span style="width:7px;height:7px;border-radius:50%;background:${ic[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>${_flagImg(e.country)}<span style="font-size:.72rem;color:var(--text-sub);flex-shrink:0;min-width:32px">${hhmm}</span><span style="font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap${past?';text-decoration:line-through':''}">${e.title||''}</span><span style="font-size:.7rem;color:${ic[e.impact]||'#8e8e93'};flex-shrink:0">${e.impact}</span></div>`;
+    });
+    b.innerHTML=html+'</div>';
+  }catch(_){b.innerHTML='';}
+}
 function switchKITab(tab){
   ['chat','analyse','chart'].forEach(t=>{
     document.getElementById('ki-tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('ki-panel-'+t).classList.toggle('hidden',t!==tab);
   });
   if(tab==='analyse')_kiPopulateTradeSelect();
+  if(tab==='chart')_loadChartPanelNews();
 }
 
 async function kiRateNewTrade(data){
@@ -2490,9 +2512,10 @@ async function _getNewsCtx(asset=''){
     const rel=asset
       ? ccys.filter(c=>up.includes(c)||(up.includes('XAU')&&c==='USD')||(up.replace(/\d+/g,'').endsWith('US')&&c==='USD'))
       : null;
+    const eod=new Date();eod.setHours(23,59,59,999);
     const evts=data
+      .filter(e=>{const t=new Date(e.date).getTime();return t>now&&t<=eod.getTime();})
       .filter(e=>rel?rel.includes(e.country):e.impact==='High')
-      .filter(e=>new Date(e.date).getTime()>now)
       .slice(0,5);
     if(!evts.length)return '';
     return evts.map(e=>{
