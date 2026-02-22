@@ -2640,7 +2640,7 @@ async function pasteTradeImg(field){
 let _newsEvents=[],_newsTick=null;
 const _NEWS_FLAGS={USD:'&#x1F1FA;&#x1F1F8;',EUR:'&#x1F1EA;&#x1F1FA;',GBP:'&#x1F1EC;&#x1F1E7;',JPY:'&#x1F1EF;&#x1F1F5;',CHF:'&#x1F1E8;&#x1F1ED;',CAD:'&#x1F1E8;&#x1F1E6;',AUD:'&#x1F1E6;&#x1F1FA;',NZD:'&#x1F1F3;&#x1F1FF;',CNY:'&#x1F1E8;&#x1F1F3;'};
 const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
-const _FF_CK='ffcal_v4',_FF_TTL=30*60*1000;
+const _FF_CK='ffcal_v5',_FF_TTL=30*60*1000;
 const _TV_CCY={US:'USD',EU:'EUR',GB:'GBP',DE:'EUR',JP:'JPY',CH:'CHF',CA:'CAD',AU:'AUD',NZ:'NZD',CN:'CNY',FR:'EUR',IT:'EUR',ES:'EUR'};
 function toggleDashboardNews(val){
   showDashboardNews=val;
@@ -2655,7 +2655,7 @@ function toggleDashboardNews(val){
 }
 async function _tvCalFetch(){
   const from=new Date().toISOString();
-  const to=new Date(Date.now()+14*24*3600*1000).toISOString();
+  const to=new Date(Date.now()+30*24*3600*1000).toISOString();
   const r=await fetch(`https://economic-calendar.tradingview.com/events?from=${from}&to=${to}&countries=US,EU,GB,DE,JP,CH,CA,AU,NZ,CN,FR,IT,ES&minImportance=0`,{cache:'no-cache'});
   if(!r.ok)throw 0;
   const json=await r.json();
@@ -2678,9 +2678,18 @@ async function _ffFetch(slug){
   return [];
 }
 async function _fetchAllCalData(){
-  try{const d=await _tvCalFetch();if(d.length)return d;}catch(_){}
-  const[tw,nw]=await Promise.all([_ffFetch('thisweek'),_ffFetch('nextweek')]);
-  return[...tw,...nw];
+  const[tvData,tw,nw]=await Promise.allSettled([_tvCalFetch(),_ffFetch('thisweek'),_ffFetch('nextweek')]);
+  const tv=tvData.status==='fulfilled'?tvData.value:[];
+  const ff=[...(tw.status==='fulfilled'?tw.value:[]),...(nw.status==='fulfilled'?nw.value:[])];
+  if(!tv.length&&!ff.length)return[];
+  // merge: TV primary, fill gaps with FF entries not already in TV (match by title+day)
+  const seen=new Set(tv.map(e=>e.title+'|'+new Date(e.date).toDateString()));
+  const extra=ff.filter(e=>{
+    const d=e.date?new Date(e.date):null;
+    if(!d||isNaN(d))return false;
+    return!seen.has((e.title||'')+'|'+d.toDateString());
+  }).map(e=>({title:e.title||'',country:e.country||'',date:e.date,impact:e.impact||'Low'}));
+  return[...tv,...extra];
 }
 async function _calCached(){
   const now=Date.now();
@@ -2742,7 +2751,9 @@ async function loadNewsView(){
   try{
     const data=await _calCached();
     if(!data.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine Events verfügbar</div>';return;}
-    const sorted=data.slice().sort((a,c)=>new Date(a.date)-new Date(c.date));
+    const startOfToday=new Date();startOfToday.setHours(0,0,0,0);
+    const sorted=data.filter(e=>{const d=new Date(e.date);return!isNaN(d)&&d>=startOfToday;}).sort((a,c)=>new Date(a.date)-new Date(c.date));
+    if(!sorted.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine zukünftigen Events gefunden</div>';return;}
     const groups={};
     sorted.forEach(e=>{
       const d=new Date(e.date);
