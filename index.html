@@ -2763,7 +2763,11 @@ async function loadNewsView(){
       groups[key].push(e);
     });
     const impColor={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
-    let html='<div style="overflow-y:auto;height:100%;padding:16px;box-sizing:border-box">';
+    const legend=`<div style="display:flex;align-items:center;gap:14px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--cell-bg);margin-bottom:12px;flex-wrap:wrap">`+
+      [['High','Hoch'],['Medium','Mittel'],['Low','Niedrig']].map(([k,l])=>
+        `<span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:${impColor[k]};display:inline-block;flex-shrink:0"></span><span style="font-size:.75rem;color:var(--text-sub)">${l}</span></span>`
+      ).join('')+'</div>';
+    let html='<div style="overflow-y:auto;height:100%;padding:16px;box-sizing:border-box">'+legend;
     for(const[day,events] of Object.entries(groups)){
       html+=`<div style="font-size:.7rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${day}</div>`;
       events.forEach(e=>{
