@@ -2640,7 +2640,7 @@ async function pasteTradeImg(field){
 let _newsEvents=[],_newsTick=null;
 const _NEWS_FLAGS={USD:'&#x1F1FA;&#x1F1F8;',EUR:'&#x1F1EA;&#x1F1FA;',GBP:'&#x1F1EC;&#x1F1E7;',JPY:'&#x1F1EF;&#x1F1F5;',CHF:'&#x1F1E8;&#x1F1ED;',CAD:'&#x1F1E8;&#x1F1E6;',AUD:'&#x1F1E6;&#x1F1FA;',NZD:'&#x1F1F3;&#x1F1FF;',CNY:'&#x1F1E8;&#x1F1F3;'};
 const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
-const _FF_CK='ffcal_v3',_FF_TTL=30*60*1000;
+const _FF_CK='ffcal_v4',_FF_TTL=30*60*1000;
 const _TV_CCY={US:'USD',EU:'EUR',GB:'GBP',DE:'EUR',JP:'JPY',CH:'CHF',CA:'CAD',AU:'AUD',NZ:'NZD',CN:'CNY',FR:'EUR',IT:'EUR',ES:'EUR'};
 function toggleDashboardNews(val){
   showDashboardNews=val;
@@ -2656,7 +2656,7 @@ function toggleDashboardNews(val){
 async function _tvCalFetch(){
   const from=new Date().toISOString();
   const to=new Date(Date.now()+14*24*3600*1000).toISOString();
-  const r=await fetch(`https://economic-calendar.tradingview.com/events?from=${from}&to=${to}&countries=US,EU,GB,DE,JP,CH,CA,AU,NZ,CN,FR,IT,ES&minImportance=1`,{cache:'no-cache'});
+  const r=await fetch(`https://economic-calendar.tradingview.com/events?from=${from}&to=${to}&countries=US,EU,GB,DE,JP,CH,CA,AU,NZ,CN,FR,IT,ES&minImportance=0`,{cache:'no-cache'});
   if(!r.ok)throw 0;
   const json=await r.json();
   return(json.result||[]).map(e=>({title:e.title,country:_TV_CCY[e.country]||e.country,date:e.date,impact:e.importance>=2?'High':e.importance>=1?'Medium':'Low'}));
