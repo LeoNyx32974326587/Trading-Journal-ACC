@@ -339,6 +339,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .news-pill .np-time{font-family:monospace;color:var(--text-sub);font-size:.72rem;flex-shrink:0}
 .news-pill .np-timer{font-family:monospace;color:var(--accent);font-weight:700;font-size:.72rem;flex-shrink:0}
 @media(max-width:480px){.news-pill .np-name{display:none}.news-pill .np-time{display:none}.news-pill{padding:4px 8px}}
+.news-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:5px;background:var(--cell-bg);cursor:pointer;transition:background .15s,border-color .15s;user-select:none}
+.news-row:active{opacity:.75}
+.news-row.upcoming{background:rgba(255,159,10,.1);border-color:rgba(255,159,10,.4)}
+.news-row.live{background:rgba(255,59,48,.11);border-color:rgba(255,59,48,.5);animation:newsLivePulse 1.8s ease-in-out infinite}
+@keyframes newsLivePulse{0%,100%{border-color:rgba(255,59,48,.5)}50%{border-color:rgba(255,59,48,1)}}
+.news-countdown{font-family:monospace;font-size:.72rem;font-weight:700;color:#ff9f0a;flex-shrink:0;min-width:44px;text-align:right}
+.news-row.live .news-countdown{color:#ff453a}
+.news-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:12000;display:flex;align-items:flex-end;justify-content:center}
+.news-detail-sheet{background:#1c1c1e;border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:520px;width:100%;max-height:82vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.7)}
+.news-detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.85rem}
+.news-detail-row:last-child{border-bottom:none}
+.news-detail-label{color:var(--text-sub);font-size:.78rem}
 .ki-chart-drop{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.25s}
 .ki-chart-drop:hover{border-color:var(--accent);background:rgba(0,0,0,.05)}
 .trade-img-drop{border:1.5px dashed var(--border);border-radius:10px;padding:11px 16px;text-align:center;cursor:pointer;transition:.2s;font-size:.88rem;color:var(--text-sub)}
@@ -828,6 +840,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
   </div>
 </section>
 <section id="view-News" class="view-section"><div class="card" style="height:600px;padding:0"><div id="news-box" style="height:100%"></div></div></section>
+<div id="news-detail-overlay" class="news-detail-overlay" style="display:none" onclick="if(event.target===this)closeNewsDetail()">
+  <div class="news-detail-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-weight:800;font-size:1.05rem" id="nd-title">—</div>
+      <button onclick="closeNewsDetail()" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:1rem;line-height:1;flex-shrink:0">&#x2715;</button>
+    </div>
+    <div id="nd-body"></div>
+  </div>
+</div>
 <section id="view-Kurse" class="view-section">
   <div class="card" style="border-radius:18px;overflow:hidden;padding:0">
     <div style="padding:20px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)">
@@ -1618,6 +1639,7 @@ function showView(v){
   if(v==="Einstellungen"&&isAdmin&&!isCoach){loadAdminFeedback();loadAdminZentrale();loadUpgradeRequests();}
   if(v==="Einstellungen"&&isAdmin&&isCoach){loadAdminFeedback();}
   if(v==="Uebersicht")renderDashboard();if(v==="Kalender")renderCalendar();if(v==="Historie")renderHistory();if(v==="Statistik")renderStatistics();if(v==="Einstellungen")renderSettingsList();if(v==="Kurse")loadCourses();
+  if(v!=='News'&&_newsViewTick){clearInterval(_newsViewTick);_newsViewTick=null;}
   if(v==="News"){loadNewsView();}
   if(v==="TradingView")setTimeout(renderTradingViewWidget,50);
 }
@@ -2738,6 +2760,7 @@ async function pasteTradeImg(field){
 
 // ─── DASHBOARD NEWS COUNTDOWN ────────────────────────────────────────────────
 let _newsEvents=[],_newsTick=null;
+let _newsViewData=[],_newsViewTick=null;
 const _NEWS_FLAGS={USD:'us',EUR:'eu',GBP:'gb',JPY:'jp',CHF:'ch',CAD:'ca',AUD:'au',NZD:'nz',CNY:'cn'};
 function _flagImg(ccy){const c=_NEWS_FLAGS[ccy];return c?`<img src="https://flagcdn.com/20x15/${c}.png" width="20" height="15" style="border-radius:2px;vertical-align:middle;flex-shrink:0" alt="${ccy}">`:`<span style="font-size:.8rem;line-height:1">🌐</span>`;}
 const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
@@ -2761,7 +2784,7 @@ async function _tvCalFetch(){
   const r=await fetch(`https://economic-calendar.tradingview.com/events?from=${from}&to=${to}&countries=US,EU,GB,DE,JP,CH,CA,AU,NZ,CN,FR,IT,ES&minImportance=-1`,{cache:'no-cache'});
   if(!r.ok)throw 0;
   const json=await r.json();
-  return(json.result||[]).map(e=>({title:e.title,country:_TV_CCY[e.country]||e.country,date:e.date,impact:e.importance>=1?'High':e.importance>=0?'Medium':'Low'}));
+  return(json.result||[]).map(e=>({title:e.title,country:_TV_CCY[e.country]||e.country,date:e.date,impact:e.importance>=1?'High':e.importance>=0?'Medium':'Low',forecast:e.forecast_value??null,previous:e.previous_value??null,actual:e.actual_value??null}));
 }
 async function _ffFetch(slug){
   const base='https://nfs.faireconomy.media/ff_calendar_'+slug+'.json';
@@ -2790,7 +2813,7 @@ async function _fetchAllCalData(){
     const d=e.date?new Date(e.date):null;
     if(!d||isNaN(d))return false;
     return!seen.has((e.title||'')+'|'+d.toDateString());
-  }).map(e=>({title:e.title||'',country:e.country||'',date:e.date,impact:e.impact||'Low'}));
+  }).map(e=>({title:e.title||'',country:e.country||'',date:e.date,impact:e.impact||'Low',forecast:e.forecast||null,previous:e.previous||null,actual:e.actual||null}));
   return[...tv,...extra];
 }
 async function _calCached(){
@@ -2866,38 +2889,87 @@ async function _checkPairNews(asset,targetId='news-warning-banner'){
 }
 async function loadNewsView(){
   const b=document.getElementById('news-box');if(!b)return;
-  b.innerHTML='<div style="padding:24px;color:var(--text-sub);font-size:.9rem">&#x23F3; Lädt Wirtschaftskalender…</div>';
+  if(_newsViewTick){clearInterval(_newsViewTick);_newsViewTick=null;}
+  b.innerHTML='<div style="padding:24px;color:var(--text-sub);font-size:.9rem">&#x23F3; L\xe4dt Wirtschaftskalender\u2026</div>';
   try{
     const data=await _calCached();
-    if(!data.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine Events verfügbar</div>';return;}
+    if(!data.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine Events verf\xfcgbar</div>';return;}
     const startOfToday=new Date();startOfToday.setHours(0,0,0,0);
-    const sorted=data.filter(e=>{const d=new Date(e.date);return!isNaN(d)&&d>=startOfToday;}).sort((a,c)=>new Date(a.date)-new Date(c.date));
-    if(!sorted.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine zukünftigen Events gefunden</div>';return;}
-    const todayDateStr=new Date().toDateString();
-    const groups={};
-    sorted.forEach(e=>{
-      const d=new Date(e.date);
-      const key=d.toDateString()===todayDateStr?'Heute':d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-      if(!groups[key])groups[key]=[];
-      groups[key].push(e);
-    });
-    const impColor={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
-    const legend=`<div style="display:flex;align-items:center;gap:14px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--cell-bg);margin-bottom:12px;flex-wrap:wrap">`+
-      [['High','Hoch'],['Medium','Mittel'],['Low','Niedrig']].map(([k,l])=>
-        `<span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:${impColor[k]};display:inline-block;flex-shrink:0"></span><span style="font-size:.75rem;color:var(--text-sub)">${l}</span></span>`
-      ).join('')+'</div>';
-    let html='<div style="overflow-y:auto;height:100%;padding:16px;box-sizing:border-box">'+legend;
-    for(const[day,events] of Object.entries(groups)){
-      html+=`<div style="font-size:.7rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${day}</div>`;
-      events.forEach(e=>{
-        const t=new Date(e.date);
-        const hhmm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
-        const dot=`<span style="width:8px;height:8px;border-radius:50%;background:${impColor[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
-        html+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:4px;background:var(--cell-bg)">${dot}${_flagImg(e.country)}<span style="font-size:.75rem;color:var(--text-sub);min-width:30px;font-weight:600">${e.country}</span><span style="font-size:.85rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span><span style="font-size:.75rem;color:var(--text-sub);flex-shrink:0">${hhmm}</span></div>`;
-      });
-    }
-    html+='</div>';
-    b.innerHTML=html;
-  }catch(err){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x26A0; Kalender nicht verfügbar</div>';}
+    _newsViewData=data.filter(e=>{const d=new Date(e.date);return!isNaN(d)&&d>=startOfToday;}).sort((a,c)=>new Date(a.date)-new Date(c.date));
+    if(!_newsViewData.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine zuk\xfcnftigen Events gefunden</div>';return;}
+    _renderNewsViewContent();
+    _newsViewTick=setInterval(_renderNewsViewContent,1000);
+  }catch(err){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x26A0; Kalender nicht verf\xfcgbar</div>';}
 }
+function _renderNewsViewContent(){
+  const b=document.getElementById('news-box');
+  if(!b){if(_newsViewTick){clearInterval(_newsViewTick);_newsViewTick=null;}return;}
+  const now=Date.now();
+  const todayDateStr=new Date().toDateString();
+  const impColor={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
+  const legend='<div style="display:flex;align-items:center;gap:14px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--cell-bg);margin-bottom:12px;flex-wrap:wrap">'+
+    [['High','Hoch'],['Medium','Mittel'],['Low','Niedrig']].map(([k,l])=>
+      `<span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:${impColor[k]};display:inline-block;flex-shrink:0"></span><span style="font-size:.75rem;color:var(--text-sub)">${l}</span></span>`
+    ).join('')+
+    '<span style="display:flex;align-items:center;gap:5px;margin-left:auto"><span style="width:10px;height:10px;border-radius:2px;background:rgba(255,159,10,.3);display:inline-block"></span><span style="font-size:.75rem;color:var(--text-sub)">&lt;1h</span></span>'+
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(255,59,48,.3);display:inline-block"></span><span style="font-size:.75rem;color:var(--text-sub)">&lt;5min</span></span>'+
+    '</div>';
+  const groups={};
+  _newsViewData.forEach((e,i)=>{
+    const d=new Date(e.date);
+    const key=d.toDateString()===todayDateStr?'Heute':d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    if(!groups[key])groups[key]=[];
+    groups[key].push({e,i});
+  });
+  let html='<div style="overflow-y:auto;height:100%;padding:16px;box-sizing:border-box">'+legend;
+  for(const[day,items] of Object.entries(groups)){
+    html+=`<div style="font-size:.7rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${day}</div>`;
+    items.forEach(({e,i})=>{
+      const t=new Date(e.date).getTime();
+      const diff=t-now;
+      const hhmm=new Date(e.date).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      const dot=`<span style="width:8px;height:8px;border-radius:50%;background:${impColor[e.impact]||'#8e8e93'};flex-shrink:0;display:inline-block"></span>`;
+      let rowClass='news-row';
+      let countdownHtml='';
+      if(diff>0&&diff<=300000){rowClass+=' live';const mm=Math.floor(diff/60000);const ss=Math.floor((diff%60000)/1000);countdownHtml=`<span class="news-countdown">${mm}:${String(ss).padStart(2,'0')}</span>`;}
+      else if(diff>0&&diff<=3600000){rowClass+=' upcoming';const mm=Math.floor(diff/60000);const ss=Math.floor((diff%60000)/1000);countdownHtml=`<span class="news-countdown">${mm}:${String(ss).padStart(2,'0')}</span>`;}
+      else if(diff<=0&&diff>=-300000){rowClass+=' live';countdownHtml='<span class="news-countdown">LIVE</span>';}
+      html+=`<div class="${rowClass}" onclick="openNewsDetail(${i})">${dot}${_flagImg(e.country)}<span style="font-size:.75rem;color:var(--text-sub);font-weight:600;flex-shrink:0;min-width:30px">${e.country}</span><span style="font-size:.85rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span><span style="font-size:.75rem;color:var(--text-sub);flex-shrink:0;min-width:36px;text-align:right">${hhmm}</span>${countdownHtml}</div>`;
+    });
+  }
+  html+='</div>';
+  const scroller=b.firstElementChild;
+  const savedScroll=scroller?scroller.scrollTop:0;
+  b.innerHTML=html;
+  if(b.firstElementChild)b.firstElementChild.scrollTop=savedScroll;
+}
+function openNewsDetail(idx){
+  const e=_newsViewData[idx];if(!e)return;
+  const now=Date.now();
+  const t=new Date(e.date);
+  const diff=t.getTime()-now;
+  const impColor={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
+  const impLabel={High:'&#x1F534; Hoch (High Impact)',Medium:'&#x1F7E0; Mittel (Medium Impact)',Low:'&#x26AA; Niedrig (Low Impact)'};
+  const hhmm=t.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const dateStr=t.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('nd-title').textContent=e.title||'Event';
+  let rows=`<div class="news-detail-row"><span class="news-detail-label">W\xe4hrung</span><span style="display:flex;align-items:center;gap:6px;font-weight:700">${_flagImg(e.country)} ${e.country}</span></div>`+
+    `<div class="news-detail-row"><span class="news-detail-label">Datum &amp; Zeit</span><span>${dateStr}, ${hhmm} Uhr</span></div>`+
+    `<div class="news-detail-row"><span class="news-detail-label">Auswirkung</span><span style="color:${impColor[e.impact]||'#8e8e93'};font-weight:700">${impLabel[e.impact]||e.impact}</span></div>`;
+  if(diff>0){
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    const cd=h>0?`${h}h ${m}min`:m>0?`${m}:${String(s).padStart(2,'0')} min`:`${s}s`;
+    rows+=`<div class="news-detail-row"><span class="news-detail-label">Startet in</span><span style="font-family:monospace;font-weight:700;color:${diff<=300000?'#ff453a':'#ff9f0a'}">${cd}</span></div>`;
+  }else if(diff>-300000){
+    rows+=`<div class="news-detail-row"><span class="news-detail-label">Status</span><span style="color:#ff453a;font-weight:700">&#x1F534; JETZT AKTIV</span></div>`;
+  }
+  if(e.forecast!=null&&e.forecast!=='')rows+=`<div class="news-detail-row"><span class="news-detail-label">Prognose</span><span style="font-weight:600">${e.forecast}</span></div>`;
+  if(e.previous!=null&&e.previous!=='')rows+=`<div class="news-detail-row"><span class="news-detail-label">Vorheriger Wert</span><span>${e.previous}</span></div>`;
+  if(e.actual!=null&&e.actual!=='')rows+=`<div class="news-detail-row"><span class="news-detail-label">Aktueller Wert</span><span style="font-weight:700;color:${impColor[e.impact]||'#fff'}">${e.actual}</span></div>`;
+  const tip=e.impact==='High'?'High-Impact: Kein Trade 15&thinsp;min vor/nach dieser Meldung empfohlen &mdash; starke Kursausschl\xe4ge m\xf6glich.':e.impact==='Medium'?'Medium-Impact: Kurzfristige Volatilit\xe4t m\xf6glich. Beim Entry vorsichtig sein.':'Low-Impact: Geringe Marktreaktion erwartet.';
+  rows+=`<div style="margin-top:14px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05);font-size:.78rem;color:var(--text-sub);line-height:1.55">&#x26A0;&#xFE0E; ${tip}</div>`;
+  document.getElementById('nd-body').innerHTML=rows;
+  document.getElementById('news-detail-overlay').style.display='flex';
+}
+function closeNewsDetail(){document.getElementById('news-detail-overlay').style.display='none';}
 </script></body></html>
