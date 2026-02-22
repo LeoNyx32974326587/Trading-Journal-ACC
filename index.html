@@ -339,6 +339,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .news-pill .np-time{font-family:monospace;color:var(--text-sub);font-size:.72rem;flex-shrink:0}
 .news-pill .np-timer{font-family:monospace;color:var(--accent);font-weight:700;font-size:.72rem;flex-shrink:0}
 @media(max-width:480px){.news-pill .np-name{display:none}.news-pill .np-time{display:none}.news-pill{padding:4px 8px}}
+.news-pill.upcoming{background:rgba(255,159,10,.15);border-color:rgba(255,159,10,.5)}
+.news-pill.live{background:rgba(255,59,48,.15);border-color:rgba(255,59,48,.6);animation:newsLivePulse 1.8s ease-in-out infinite}
+.news-pill.imp-high{background:rgba(255,59,48,.08);border-color:rgba(255,59,48,.3)}
+.news-pill.imp-medium{background:rgba(255,159,10,.08);border-color:rgba(255,159,10,.3)}
 .news-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:5px;background:var(--cell-bg);cursor:pointer;transition:background .15s,border-color .15s;user-select:none}
 .news-row:active{opacity:.75}
 .news-row.upcoming{background:rgba(255,159,10,.1);border-color:rgba(255,159,10,.4)}
@@ -2868,7 +2872,8 @@ function _renderNewsWidget(){
       const hhmm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
       const dot=`<span style="width:7px;height:7px;border-radius:50%;background:${_NEWS_IMP[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
       const name=e.title.length>18?e.title.slice(0,16)+'…':e.title;
-      return `<div class="news-pill">${dot}${_flagImg(e.country)}<span class="np-cur">${e.country}</span><span class="np-name">${name}</span><span class="np-time">${hhmm}</span><span class="np-timer">-${countdown}</span></div>`;
+      const pillCls=diff<=300000?'news-pill live':diff<=3600000?'news-pill upcoming':e.impact==='High'?'news-pill imp-high':e.impact==='Medium'?'news-pill imp-medium':'news-pill';
+      return `<div class="${pillCls}">${dot}${_flagImg(e.country)}<span class="np-cur">${e.country}</span><span class="np-name">${name}</span><span class="np-time">${hhmm}</span><span class="np-timer">-${countdown}</span></div>`;
     }).join('')+'</div>';
 }
 async function _checkPairNews(asset,targetId='news-warning-banner'){
