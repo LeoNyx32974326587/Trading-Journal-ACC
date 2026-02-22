@@ -1338,6 +1338,44 @@ async function confirmShare(){
   await db.collection("chat").add({senderName:currentUserName,senderId:auth.currentUser.uid,senderEmail:auth.currentUser.email.toLowerCase(),isCoach:isCoach,type:"trade",tradeData:tc2,sharedImage:si,channel:tc,timestamp:firebase.firestore.FieldValue.serverTimestamp(),readBy:{}});
   closePopup();const tm={"public":"Public Chat","signals":"Signale","pro_signal":"Pro Signal"};enterChat(tc,tm[tc]||"Chat");navGuard("Chat");
 }
+async function _loadTradeNewsAnalysis(t){
+  const b=document.getElementById('td-news-analysis');if(!b)return;
+  const pair=(t.asset||'').toUpperCase().replace(/[^A-Z]/g,'');
+  if(pair.length<6){b.innerHTML='';return;}
+  const base=pair.slice(0,3),quote=pair.slice(3,6);
+  const openTime=t.date?new Date(t.date):null;
+  if(!openTime||isNaN(openTime)){b.innerHTML='';return;}
+  const closeTime=t.closedAt?new Date(t.closedAt):new Date(openTime.getTime()+48*3600*1000);
+  const from=new Date(openTime.getTime()-2*3600*1000);
+  const to=new Date(closeTime.getTime()+1*3600*1000);
+  try{
+    const r=await fetch(`https://economic-calendar.tradingview.com/events?from=${from.toISOString()}&to=${to.toISOString()}&countries=US,EU,GB,DE,JP,CH,CA,AU,NZ,CN,FR,IT,ES&minImportance=-1`,{cache:'no-cache'});
+    if(!r.ok){b.innerHTML='';return;}
+    const json=await r.json();
+    const ic={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
+    const hits=(json.result||[])
+      .map(e=>({title:e.title,country:_TV_CCY[e.country]||e.country,date:e.date,impact:e.importance>=1?'High':e.importance>=0?'Medium':'Low'}))
+      .filter(e=>e.country===base||e.country===quote)
+      .sort((a,c)=>new Date(a.date)-new Date(c.date));
+    if(!hits.length){b.innerHTML='';return;}
+    let html=`<div style="margin-top:2px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--cell-bg)">`;
+    html+=`<div style="font-size:.73rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">&#x1F4F0; News w&auml;hrend des Trades &bull; ${base}/${quote}</div>`;
+    hits.forEach(e=>{
+      const dt=new Date(e.date);
+      const isKontext=dt<openTime||dt>closeTime;
+      const timeStr=dt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+      html+=`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:${isKontext?.55:1}">`;
+      html+=`<span style="width:7px;height:7px;border-radius:50%;background:${ic[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>`;
+      html+=`${_flagImg(e.country)}<span style="font-size:.72rem;color:var(--text-sub);flex-shrink:0;min-width:76px">${timeStr}</span>`;
+      html+=`<span style="font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span>`;
+      html+=`<span style="font-size:.7rem;color:${ic[e.impact]||'#8e8e93'};flex-shrink:0;margin-left:4px">${e.impact}</span>`;
+      if(isKontext)html+=`<span style="font-size:.65rem;color:var(--text-sub);flex-shrink:0;margin-left:4px">(Kontext)</span>`;
+      html+='</div>';
+    });
+    html+='</div>';
+    b.innerHTML=html;
+  }catch(e){b.innerHTML='';}
+}
 function openSignalDetail(tde,iue){
   const t=JSON.parse(decodeURIComponent(tde));curDetailId=t.id;
   const _tdO1=document.getElementById("popup-overlay");
@@ -1359,7 +1397,10 @@ function openSignalDetail(tde,iue){
   if(t.imgSetup)html+=`<div class="td-img-box"><span class="td-img-label">&#x1F4F7; Setup</span><img src="${t.imgSetup}" class="td-img-thumb" style="height:200px;border-radius:12px;border:2px solid #333;box-shadow:0 4px 15px rgba(0,0,0,.5)" onclick="window.open('${t.imgSetup}','_blank')"></div>`;
   if(t.imgResult)html+=`<div class="td-img-box"><span class="td-img-label">&#x1F3AF; Ergebnis</span><img src="${t.imgResult}" class="td-img-thumb" style="height:200px;border-radius:12px;border:2px solid #333;box-shadow:0 4px 15px rgba(0,0,0,.5)" onclick="window.open('${t.imgResult}','_blank')"></div>`;
   if(isOwnTrade&&t.status!=='Aktiv')html+=`<button onclick="analyzeTradeFromDetail('${t.id}')" style="width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,var(--accent),#7b2fff);color:#000;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-size:.95rem">&#x1F916; KI Trade-Analyse</button>`;
+  const _pairLen=(t.asset||'').replace(/[^A-Za-z]/g,'').length;
+  if(_pairLen>=6)html+=`<div id="td-news-analysis" style="margin-top:14px"><div style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--cell-bg);font-size:.78rem;color:var(--text-sub)">&#x23F3; Lade News-Analyse…</div></div>`;
   document.getElementById("td-content").innerHTML=html;
+  if(_pairLen>=6)_loadTradeNewsAnalysis(t);
 }
 async function submitAdminFeedback(){const text=document.getElementById("adm-feedback-text").value;if(curDetailId&&text){await db.collection("trades").doc(curDetailId).update({adminFeedback:text,feedbackRead:false});alert("Feedback gesendet!");closeTradeDetail();}}
 async function openMemberDetail(id,email){
