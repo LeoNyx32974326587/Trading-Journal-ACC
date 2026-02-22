@@ -409,7 +409,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
       <input type="hidden" id="imgResult">
     </div>
     <div id="admin-feedback-container" class="hidden" style="margin-top:20px;border-top:1px solid #333;padding-top:15px"><label style="color:var(--accent)">Coach Feedback</label><textarea id="inpAdminFeedback" rows="2" style="border-color:var(--accent)" placeholder="Tipp fuer den User..."></textarea></div>
-    <button onclick="saveTrade()" class="btn-primary" style="margin-top:15px">SPEICHERN</button>
+    <div id="trade-ki-preview" style="display:none;margin-top:12px"></div>
+    <button type="button" onclick="showTradeRatingPreview()" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--cell-bg);color:var(--text-sub);font-weight:600;cursor:pointer;font-size:.88rem">&#x1F916; KI-Bewertung Vorschau</button>
+    <button onclick="saveTrade()" class="btn-primary" style="margin-top:8px">SPEICHERN</button>
   </div>
 </div>
 <div id="add-contact-modal" class="modal-base hidden">
@@ -1495,7 +1497,7 @@ function prepareCreateView(){
   document.getElementById("editId").value="";const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());document.getElementById("datetime").value=now.toISOString().slice(0,16);
   ["assetInput","pnl","note","inpEntry","inpSL","inpTP1","inpTP2","inpTP3","imgSetup","imgResult","inpAdminFeedback"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   clearTradeImg('setup');clearTradeImg('result');
-  if(activeJournal)document.getElementById("inpJournalSelect").value=activeJournal;document.getElementById("admin-feedback-container").classList.add("hidden");document.getElementById("status").value="Aktiv";toggleFormFields();document.getElementById("form-title").innerText="Neuer Trade";document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");_checkPairNews('');_calCached();
+  if(activeJournal)document.getElementById("inpJournalSelect").value=activeJournal;document.getElementById("admin-feedback-container").classList.add("hidden");document.getElementById("status").value="Aktiv";toggleFormFields();document.getElementById("form-title").innerText="Neuer Trade";document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");const _kip=document.getElementById('trade-ki-preview');if(_kip){_kip.style.display='none';_kip.innerHTML='';}  _checkPairNews('');_calCached();
 }
 async function saveTrade(){
   const id=document.getElementById("editId").value;const asset=document.getElementById("assetInput").value.toUpperCase();if(!asset){alert("Asset fehlt!");return;}
@@ -2301,8 +2303,32 @@ function switchKITab(tab){
   if(tab==='chart')_loadChartPanelNews();
 }
 
+async function showTradeRatingPreview(){
+  const box=document.getElementById('trade-ki-preview');
+  const asset=document.getElementById('assetInput').value.toUpperCase();
+  if(!asset){box.style.display='block';box.innerHTML='<div style="font-size:.83rem;color:var(--danger)">Bitte zuerst Asset eingeben.</div>';return;}
+  box.style.display='block';
+  box.innerHTML='<div style="font-size:.83rem;color:var(--text-sub);padding:8px 0">&#x23F3; KI bewertet Trade inkl. News\u2026</div>';
+  const newsCtx=await _getNewsCtx(asset);
+  const newsNote=newsCtx?`\n\nHeutige relevante News:\n${newsCtx}`:'';
+  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${asset} | Entry: ${document.getElementById('inpEntry').value||'-'} | SL: ${document.getElementById('inpSL').value||'-'} | TP1: ${document.getElementById('inpTP1').value||'-'} | Notiz: ${document.getElementById('note').value||'-'}${newsNote}\n\nBewerte ob der Trade die Strategie erfüllt. Antworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 2 Sätze, beziehe News mit ein falls vorhanden)`;
+  const imgSetup=document.getElementById('imgSetup').value;
+  let msgContent=imgSetup?[{type:'image_url',image_url:{url:await _compressImg(imgSetup)}},{type:'text',text:promptText}]:promptText;
+  try{
+    const r=await fetch(_GU,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_GK},body:JSON.stringify({model:imgSetup?_GMV:_GM,messages:[{role:'user',content:msgContent}],temperature:0.3,max_tokens:130})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const txt=d.choices?.[0]?.message?.content||'';
+    const isGood=txt.includes('GUTER_TRADE');
+    const grund=(txt.split('GRUND:')[1]||'').trim();
+    const col=isGood?'#30d158':'#ff453a';
+    box.innerHTML=`<div style="background:${isGood?'rgba(48,209,88,.1)':'rgba(255,69,58,.1)'};border:1px solid ${col};border-radius:9px;padding:10px 12px"><div style="font-weight:700;color:${col};margin-bottom:5px">${isGood?'&#x2705; GUTER TRADE':'&#x274C; SCHLECHTER TRADE'}</div><div style="font-size:.83rem;line-height:1.45">${grund}</div>${newsCtx?`<div style="margin-top:7px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);font-size:.72rem;color:var(--text-sub)">&#x1F4F0; News ber&uuml;cksichtigt</div>`:''}</div>`;
+  }catch(e){box.innerHTML=`<div style="color:var(--danger);font-size:.83rem">Fehler: ${e.message}</div>`;}
+}
 async function kiRateNewTrade(data){
-  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${data.asset} | Status: ${data.status} | PnL: ${data.pnl}€ | Entry: ${data.entry||'-'} | SL: ${data.sl||'-'} | TP1: ${data.tp1||'-'} | Notiz: ${data.note||'-'}\n\nAnalysiere die beigefügten Chart-Screenshots (falls vorhanden) und bewerte ob der Trade die Strategie erfüllt.\n\nAntworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 1 Satz)`;
+  const newsCtx=await _getNewsCtx(data.asset||'');
+  const newsNote=newsCtx?`\n\nHeutige relevante News:\n${newsCtx}`:'';
+  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${data.asset} | Status: ${data.status} | PnL: ${data.pnl}€ | Entry: ${data.entry||'-'} | SL: ${data.sl||'-'} | TP1: ${data.tp1||'-'} | Notiz: ${data.note||'-'}${newsNote}\n\nAnalysiere die beigefügten Chart-Screenshots (falls vorhanden) und bewerte ob der Trade die Strategie erfüllt.\n\nAntworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 1 Satz)`;
   const rawImgs=[data.imgSetup,data.imgResult].filter(Boolean);
   const useVision=rawImgs.length>0;
   let msgContent;
