@@ -2854,7 +2854,8 @@ async function _checkPairNews(asset,targetId='news-warning-banner'){
   if(!hits.length){b.style.display='none';return;}
   const ic={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
   let html=`<div style="font-size:.78rem;font-weight:700;color:#ff9f0a;margin-bottom:6px">&#x26A0;&#xFE0E; News in den n\xe4chsten 24h f\xfcr ${base}/${quote}</div>`;
-  hits.forEach(e=>{const t=new Date(e.date);const hhmm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');html+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:7px;height:7px;border-radius:50%;background:${ic[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>${_flagImg(e.country)}<span style="font-size:.73rem;color:var(--text-sub);flex-shrink:0;min-width:28px">${hhmm}</span><span style="font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span><span style="font-size:.7rem;color:${ic[e.impact]||'#8e8e93'};flex-shrink:0;margin-left:4px">${e.impact}</span></div>`;});
+  const todayStr=new Date().toDateString();
+  hits.forEach(e=>{const t=new Date(e.date);const hhmm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');const isToday=t.toDateString()===todayStr;const when=isToday?`Heute ${hhmm}`:(String(t.getDate()).padStart(2,'0')+'.'+String(t.getMonth()+1).padStart(2,'0')+`. ${hhmm}`);html+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:7px;height:7px;border-radius:50%;background:${ic[e.impact]||'#8e8e93'};display:inline-block;flex-shrink:0"></span>${_flagImg(e.country)}<span style="font-size:.73rem;color:var(--text-sub);flex-shrink:0;min-width:64px">${when}</span><span style="font-size:.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title||''}</span><span style="font-size:.7rem;color:${ic[e.impact]||'#8e8e93'};flex-shrink:0;margin-left:4px">${e.impact}</span></div>`;});
   b.innerHTML=html;b.style.display='block';
 }
 async function loadNewsView(){
@@ -2866,10 +2867,11 @@ async function loadNewsView(){
     const startOfToday=new Date();startOfToday.setHours(0,0,0,0);
     const sorted=data.filter(e=>{const d=new Date(e.date);return!isNaN(d)&&d>=startOfToday;}).sort((a,c)=>new Date(a.date)-new Date(c.date));
     if(!sorted.length){b.innerHTML='<div style="padding:24px;color:var(--text-sub)">&#x1F4C5; Keine zukünftigen Events gefunden</div>';return;}
+    const todayDateStr=new Date().toDateString();
     const groups={};
     sorted.forEach(e=>{
       const d=new Date(e.date);
-      const key=d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      const key=d.toDateString()===todayDateStr?'Heute':d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       if(!groups[key])groups[key]=[];
       groups[key].push(e);
     });
