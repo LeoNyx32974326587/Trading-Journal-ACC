@@ -2249,29 +2249,29 @@ BEISPIEL SHORT-SETUP:
   2. Starker Absturz → BOS nach unten (bearishes Momentum)
   3. Retracement zurück auf 0.618 oder 0.718 Fib der letzten Abwärtsbewegung = ENTRY SHORT
 
-ZUSÄTZLICHE BESTÄTIGUNGEN (erhöhen die Setup-Qualität):
-
-TREND-KONTEXT:
+TREND-KONTEXT (empfohlen, aber kein Pflichtkriterium):
   Identifiziere den übergeordneten Trend (Higher Highs & Higher Lows = bullish / Lower Highs & Lower Lows = bearish).
-  Ein Long-Setup ist nur in einem bullischen Trend valide. Ein Short-Setup nur in einem bärischen Trend.
-  Counter-Trend-Setups gelten automatisch als schwächer und riskanter.
+  Ein Long-Setup im bullischen Trend bzw. Short im bärischen Trend ist stärker. Counter-Trend-Setups sind riskanter, aber nicht automatisch schlecht.
+
+ZUSÄTZLICHE BESTÄTIGUNGEN (optional – erhöhen die Setup-Qualität, sind aber KEIN Pflichtkriterium):
 
 ORDER BLOCK (OB):
   Eine Order Block Zone ist die letzte bearishe Candle vor einer starken bullischen Bewegung (Bullisher OB)
   bzw. die letzte bullishe Candle vor einer starken bärischen Bewegung (Bärischer OB).
-  Ein Entry im Bereich des 0.618/0.718 Fib, der auch mit einem OB übereinstimmt, ist eine sehr starke Bestätigung.
+  Ein Entry im Bereich des 0.618/0.718 Fib, der auch mit einem OB übereinstimmt, ist eine sehr starke Zusatzbestätigung.
 
 FAIR VALUE GAP (FVG):
   Ein FVG entsteht, wenn zwischen drei Kerzen eine Lücke bleibt (die Dochte der ersten und dritten Kerze überschneiden sich nicht).
-  Läuft der Preis in einen FVG im Bereich des Fib-Entrys zurück, ist das eine starke Bestätigung für den Entry.
+  Läuft der Preis in einen FVG im Bereich des Fib-Entrys zurück, ist das eine starke Zusatzbestätigung für den Entry.
 
 BEWERTUNGSSTUFEN:
-  GUTER TRADE      – Alle 5 erfüllt: Sweep + BOS + Fib-Entry + Trend passt + mind. OB oder FVG vorhanden.
-  RISKANTER TRADE  – Kernbedingungen (Sweep, BOS, Fib) erfüllt, aber Trend oder OB/FVG fehlen (3–4 von 5).
-  SCHLECHTER TRADE – Mindestens eine Kernbedingung (Sweep, BOS oder Fib) fehlt.
+  GUTER TRADE      – Kernbedingungen erfüllt: Sweep + BOS + Fib-Entry. OB und/oder FVG sind Bonusbestätigungen – ihr Fehlen macht den Trade NICHT schlechter.
+  SCHLECHTER TRADE – Mindestens eine Kernbedingung (Sweep, BOS oder Fib-Entry) fehlt.
+
+WICHTIG: OB und FVG sind reine Zusatzbestätigungen. Ein Trade ohne OB/FVG ist trotzdem ein GUTER TRADE, solange Sweep, BOS und Fib-Entry vorhanden sind.
 
 Beurteile JEDEN Aspekt immer anhand dieser Strategie. Wenn Trades oder Charts analysiert werden,
-prüfe ob Liquidity Sweep, BOS, das 0.618/0.718 Fib-Level, der Trend-Kontext und OB/FVG-Bestätigungen vorhanden sind.
+prüfe ob Liquidity Sweep, BOS und das 0.618/0.718 Fib-Level vorhanden sind. OB/FVG werden als positive Extras erwähnt, falls erkennbar.
 `;
 
 function switchKITab(tab){
@@ -2539,7 +2539,7 @@ function _buildChartPrompt(newsCtx=''){
   const newsPoint=newsCtx
     ?`\n6. NEWS-RISIKO – Heutige relevante Nachrichten (vergangene und bevorstehende):\n${newsCtx}\nBewerte kurz das Risiko: Bereits veröffentlichte High-Impact-News können den Markt schon bewegt haben; bevorstehende erhöhen die Volatilität.`
     :'';
-  return `Du bist ein SMC-Chart-Analyst. Analysiere diesen Chart kurz und präzise auf Deutsch.\n\n${_STRATEGY}\n\nBeantworte in genau ${fazitN} knappen Punkten:\n1. SWEEP – Buy-Side oder Sell-Side? Kurz beschreiben.\n2. BOS – Vorhanden / ausstehend?\n3. FIB-ENTRY – 0.618 oder 0.718 Level erreicht oder noch nicht?\n4. TREND – Übergeordneter Trend bullisch oder bärisch? Passt das Setup zur Trendrichtung?\n5. BESTÄTIGUNGEN – Order Block (OB) und/oder Fair Value Gap (FVG) im Entry-Bereich vorhanden? Wenn ja, kurz wo.${newsPoint}\n${fazitN}. FAZIT – Beginne mit genau einem dieser Begriffe: "GUTER TRADE", "RISKANTER TRADE" oder "SCHLECHTER TRADE". GUTER TRADE: alle 5 Bedingungen erfüllt. RISKANTER TRADE: Sweep+BOS+Fib vorhanden, aber Trend oder OB/FVG fehlt. SCHLECHTER TRADE: Sweep, BOS oder Fib fehlt. Dann 1 Satz was jetzt zu tun ist.\n\nKeine langen Erklärungen. Direkt und kompakt.`;
+  return `Du bist ein SMC-Chart-Analyst. Analysiere diesen Chart kurz und präzise auf Deutsch.\n\n${_STRATEGY}\n\nBeantworte in genau ${fazitN} knappen Punkten:\n1. SWEEP – Buy-Side oder Sell-Side? Kurz beschreiben.\n2. BOS – Vorhanden / ausstehend?\n3. FIB-ENTRY – 0.618 oder 0.718 Level erreicht oder noch nicht?\n4. TREND – Übergeordneter Trend bullisch oder bärisch? Passt das Setup zur Trendrichtung?\n5. BESTÄTIGUNGEN – Order Block (OB) und/oder Fair Value Gap (FVG) im Entry-Bereich vorhanden? (Optional – nur erwähnen falls erkennbar, kein Pflichtkriterium.)${newsPoint}\n${fazitN}. FAZIT – Beginne mit genau einem dieser Begriffe: "GUTER TRADE" oder "SCHLECHTER TRADE". GUTER TRADE: Sweep + BOS + Fib-Entry vorhanden (OB/FVG egal). SCHLECHTER TRADE: Sweep, BOS oder Fib-Entry fehlt. Dann 1 Satz was jetzt zu tun ist.\n\nKeine langen Erklärungen. Direkt und kompakt.`;
 }
 async function analyzeChartImage(dataUrl){
   const res=document.getElementById('ki-chart-result');
