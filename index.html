@@ -2265,13 +2265,14 @@ FAIR VALUE GAP (FVG):
   Läuft der Preis in einen FVG im Bereich des Fib-Entrys zurück, ist das eine starke Zusatzbestätigung für den Entry.
 
 BEWERTUNGSSTUFEN:
-  GUTER TRADE      – Kernbedingungen erfüllt: Sweep + BOS + Fib-Entry. OB und/oder FVG sind Bonusbestätigungen – ihr Fehlen macht den Trade NICHT schlechter.
+  SEHR GUTER TRADE – Kernbedingungen erfüllt (Sweep + BOS + Fib-Entry) UND mindestens eine Zusatzbestätigung (OB oder FVG) vorhanden.
+  GUTER TRADE      – Kernbedingungen erfüllt: Sweep + BOS + Fib-Entry. Kein OB/FVG vorhanden oder erkennbar.
   SCHLECHTER TRADE – Mindestens eine Kernbedingung (Sweep, BOS oder Fib-Entry) fehlt.
 
-WICHTIG: OB und FVG sind reine Zusatzbestätigungen. Ein Trade ohne OB/FVG ist trotzdem ein GUTER TRADE, solange Sweep, BOS und Fib-Entry vorhanden sind.
+WICHTIG: OB und FVG sind reine Zusatzbestätigungen. Ein Trade ohne OB/FVG ist trotzdem ein GUTER TRADE. Sind OB oder FVG zusätzlich vorhanden, wird er zu einem SEHR GUTEN TRADE.
 
 Beurteile JEDEN Aspekt immer anhand dieser Strategie. Wenn Trades oder Charts analysiert werden,
-prüfe ob Liquidity Sweep, BOS und das 0.618/0.718 Fib-Level vorhanden sind. OB/FVG werden als positive Extras erwähnt, falls erkennbar.
+prüfe ob Liquidity Sweep, BOS und das 0.618/0.718 Fib-Level vorhanden sind. OB/FVG heben die Bewertung auf SEHR GUTER TRADE, falls erkennbar.
 `;
 
 function switchKITab(tab){
@@ -2290,7 +2291,7 @@ async function showTradeRatingPreview(){
   box.innerHTML='<div style="font-size:.83rem;color:var(--text-sub);padding:8px 0">&#x23F3; KI bewertet Trade\u2026</div>';
   const newsCtx=await _getNewsCtx(asset);
   const newsNote=newsCtx?`\n\nHeutige relevante News:\n${newsCtx}`:'';
-  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${asset} | Entry: ${document.getElementById('inpEntry').value||'-'} | SL: ${document.getElementById('inpSL').value||'-'} | TP1: ${document.getElementById('inpTP1').value||'-'} | Notiz: ${document.getElementById('note').value||'-'}${newsNote}\n\nBewerte ob der Trade die Strategie erfüllt. Antworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 2 Sätze, beziehe News mit ein falls vorhanden)`;
+  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${asset} | Entry: ${document.getElementById('inpEntry').value||'-'} | SL: ${document.getElementById('inpSL').value||'-'} | TP1: ${document.getElementById('inpTP1').value||'-'} | Notiz: ${document.getElementById('note').value||'-'}${newsNote}\n\nBewerte ob der Trade die Strategie erfüllt. Antworte NUR in diesem Format:\nBEWERTUNG: SEHR_GUTER_TRADE oder GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 2 Sätze, beziehe News mit ein falls vorhanden)`;
   const imgSetup=document.getElementById('imgSetup').value;
   let msgContent=imgSetup?[{type:'image_url',image_url:{url:await _compressImg(imgSetup)}},{type:'text',text:promptText}]:promptText;
   try{
@@ -2298,16 +2299,19 @@ async function showTradeRatingPreview(){
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
     const txt=d.choices?.[0]?.message?.content||'';
-    const isGood=txt.includes('GUTER_TRADE');
+    const isSehrGut=txt.includes('SEHR_GUTER_TRADE');
+    const isGut=!isSehrGut&&txt.includes('GUTER_TRADE');
     const grund=(txt.split('GRUND:')[1]||'').trim();
-    const col=isGood?'#30d158':'#ff453a';
-    box.innerHTML=`<div style="background:${isGood?'rgba(48,209,88,.1)':'rgba(255,69,58,.1)'};border:1px solid ${col};border-radius:9px;padding:10px 12px"><div style="font-weight:700;color:${col};margin-bottom:5px">${isGood?'&#x2705; GUTER TRADE':'&#x274C; SCHLECHTER TRADE'}</div><div style="font-size:.83rem;line-height:1.45">${grund}</div></div>`;
+    const col=isSehrGut?'#ffd60a':isGut?'#30d158':'#ff453a';
+    const bg=isSehrGut?'rgba(255,214,10,.1)':isGut?'rgba(48,209,88,.1)':'rgba(255,69,58,.1)';
+    const label=isSehrGut?'&#x2B50; SEHR GUTER TRADE':isGut?'&#x2705; GUTER TRADE':'&#x274C; SCHLECHTER TRADE';
+    box.innerHTML=`<div style="background:${bg};border:1px solid ${col};border-radius:9px;padding:10px 12px"><div style="font-weight:700;color:${col};margin-bottom:5px">${label}</div><div style="font-size:.83rem;line-height:1.45">${grund}</div></div>`;
   }catch(e){box.innerHTML=`<div style="color:var(--danger);font-size:.83rem">Fehler: ${e.message}</div>`;}
 }
 async function kiRateNewTrade(data){
   const newsCtx=await _getNewsCtx(data.asset||'');
   const newsNote=newsCtx?`\n\nHeutige relevante News:\n${newsCtx}`:'';
-  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${data.asset} | Status: ${data.status} | PnL: ${data.pnl}€ | Entry: ${data.entry||'-'} | SL: ${data.sl||'-'} | TP1: ${data.tp1||'-'} | Notiz: ${data.note||'-'}${newsNote}\n\nAnalysiere die beigefügten Chart-Screenshots (falls vorhanden) und bewerte ob der Trade die Strategie erfüllt.\n\nAntworte NUR in diesem Format:\nBEWERTUNG: GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 1 Satz)`;
+  const promptText=`Du bist ein Trading-Coach. Bewerte diesen Trade anhand der SMC-Strategie (Liquidity Sweep → BOS → 0.618/0.718 Fib-Entry).\n\n${_STRATEGY}\n\nTrade-Daten: Asset: ${data.asset} | Status: ${data.status} | PnL: ${data.pnl}€ | Entry: ${data.entry||'-'} | SL: ${data.sl||'-'} | TP1: ${data.tp1||'-'} | Notiz: ${data.note||'-'}${newsNote}\n\nAnalysiere die beigefügten Chart-Screenshots (falls vorhanden) und bewerte ob der Trade die Strategie erfüllt.\n\nAntworte NUR in diesem Format:\nBEWERTUNG: SEHR_GUTER_TRADE oder GUTER_TRADE oder SCHLECHTER_TRADE\nGRUND: (max. 1 Satz)`;
   const rawImgs=[data.imgSetup,data.imgResult].filter(Boolean);
   const useVision=rawImgs.length>0;
   let msgContent;
@@ -2323,15 +2327,20 @@ async function kiRateNewTrade(data){
     if(!r.ok){console.error('[KiRate] Groq error:',r.status);return;}
     const d=await r.json();
     const txt=d.choices?.[0]?.message?.content||'';
-    const isGood=txt.includes('GUTER_TRADE');
+    const isSehrGut=txt.includes('SEHR_GUTER_TRADE');
+    const isGut=!isSehrGut&&txt.includes('GUTER_TRADE');
     const grund=(txt.split('GRUND:')[1]||'').trim();
-    _showKIToast(isGood?'✅ Guter Trade':'❌ Schlechter Trade',grund,isGood);
+    const level=isSehrGut?'sehr_gut':isGut?'gut':'schlecht';
+    const title=isSehrGut?'⭐ Sehr guter Trade':isGut?'✅ Guter Trade':'❌ Schlechter Trade';
+    _showKIToast(title,grund,level);
   }catch(e){console.error('[KiRate] Fehler:',e);}
 }
-function _showKIToast(title,text,isGood){
+function _showKIToast(title,text,level){
   const ex=document.getElementById('ki-toast');if(ex)ex.remove();
+  const col=level==='sehr_gut'?'#ffd60a':level==='gut'?'#30d158':'#ff453a';
+  const bg=level==='sehr_gut'?'rgba(255,214,10,.15)':level==='gut'?'rgba(48,209,88,.15)':'rgba(255,69,58,.15)';
   const t=document.createElement('div');t.id='ki-toast';
-  t.style.cssText=`position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:${isGood?'rgba(48,209,88,.15)':'rgba(255,69,58,.15)'};border:2px solid ${isGood?'#30d158':'#ff453a'};color:#fff;padding:14px 22px;border-radius:16px;z-index:9999;text-align:center;max-width:88vw;box-shadow:0 4px 24px rgba(0,0,0,.6);animation:fadeIn .3s`;
+  t.style.cssText=`position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:${bg};border:2px solid ${col};color:#fff;padding:14px 22px;border-radius:16px;z-index:9999;text-align:center;max-width:88vw;box-shadow:0 4px 24px rgba(0,0,0,.6);animation:fadeIn .3s`;
   t.innerHTML=`<div style="font-weight:800;font-size:1.05rem;margin-bottom:4px">${title}</div><div style="font-size:.85rem;opacity:.8">${text}</div>`;
   document.body.appendChild(t);setTimeout(()=>t.remove(),6000);
 }
@@ -2539,7 +2548,7 @@ function _buildChartPrompt(newsCtx=''){
   const newsPoint=newsCtx
     ?`\n6. NEWS-RISIKO – Heutige relevante Nachrichten (vergangene und bevorstehende):\n${newsCtx}\nBewerte kurz das Risiko: Bereits veröffentlichte High-Impact-News können den Markt schon bewegt haben; bevorstehende erhöhen die Volatilität.`
     :'';
-  return `Du bist ein SMC-Chart-Analyst. Analysiere diesen Chart kurz und präzise auf Deutsch.\n\n${_STRATEGY}\n\nBeantworte in genau ${fazitN} knappen Punkten:\n1. SWEEP – Buy-Side oder Sell-Side? Kurz beschreiben.\n2. BOS – Vorhanden / ausstehend?\n3. FIB-ENTRY – 0.618 oder 0.718 Level erreicht oder noch nicht?\n4. TREND – Übergeordneter Trend bullisch oder bärisch? Passt das Setup zur Trendrichtung?\n5. BESTÄTIGUNGEN – Order Block (OB) und/oder Fair Value Gap (FVG) im Entry-Bereich vorhanden? (Optional – nur erwähnen falls erkennbar, kein Pflichtkriterium.)${newsPoint}\n${fazitN}. FAZIT – Beginne mit genau einem dieser Begriffe: "GUTER TRADE" oder "SCHLECHTER TRADE". GUTER TRADE: Sweep + BOS + Fib-Entry vorhanden (OB/FVG egal). SCHLECHTER TRADE: Sweep, BOS oder Fib-Entry fehlt. Dann 1 Satz was jetzt zu tun ist.\n\nKeine langen Erklärungen. Direkt und kompakt.`;
+  return `Du bist ein SMC-Chart-Analyst. Analysiere diesen Chart kurz und präzise auf Deutsch.\n\n${_STRATEGY}\n\nBeantworte in genau ${fazitN} knappen Punkten:\n1. SWEEP – Buy-Side oder Sell-Side? Kurz beschreiben.\n2. BOS – Vorhanden / ausstehend?\n3. FIB-ENTRY – 0.618 oder 0.718 Level erreicht oder noch nicht?\n4. TREND – Übergeordneter Trend bullisch oder bärisch? Passt das Setup zur Trendrichtung?\n5. BESTÄTIGUNGEN – Order Block (OB) und/oder Fair Value Gap (FVG) im Entry-Bereich vorhanden? (Optional – nur erwähnen falls erkennbar.)${newsPoint}\n${fazitN}. FAZIT – Beginne mit genau einem dieser Begriffe: "SEHR GUTER TRADE", "GUTER TRADE" oder "SCHLECHTER TRADE". SEHR GUTER TRADE: Sweep+BOS+Fib vorhanden UND mind. OB oder FVG erkennbar. GUTER TRADE: Sweep+BOS+Fib vorhanden, kein OB/FVG. SCHLECHTER TRADE: Sweep, BOS oder Fib fehlt. Dann 1 Satz was jetzt zu tun ist.\n\nKeine langen Erklärungen. Direkt und kompakt.`;
 }
 async function analyzeChartImage(dataUrl){
   const res=document.getElementById('ki-chart-result');
