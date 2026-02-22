@@ -1494,7 +1494,7 @@ function prepareCreateView(){
   document.getElementById("editId").value="";const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());document.getElementById("datetime").value=now.toISOString().slice(0,16);
   ["assetInput","pnl","note","inpEntry","inpSL","inpTP1","inpTP2","inpTP3","imgSetup","imgResult","inpAdminFeedback"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   clearTradeImg('setup');clearTradeImg('result');
-  if(activeJournal)document.getElementById("inpJournalSelect").value=activeJournal;document.getElementById("admin-feedback-container").classList.add("hidden");document.getElementById("status").value="Aktiv";toggleFormFields();document.getElementById("form-title").innerText="Neuer Trade";document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");_checkPairNews('');
+  if(activeJournal)document.getElementById("inpJournalSelect").value=activeJournal;document.getElementById("admin-feedback-container").classList.add("hidden");document.getElementById("status").value="Aktiv";toggleFormFields();document.getElementById("form-title").innerText="Neuer Trade";document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");_checkPairNews('');_calCached();
 }
 async function saveTrade(){
   const id=document.getElementById("editId").value;const asset=document.getElementById("assetInput").value.toUpperCase();if(!asset){alert("Asset fehlt!");return;}
@@ -1505,7 +1505,7 @@ async function saveTrade(){
   if(tradeStatus==="Geschlossen"){const existing=id?trades.find(t=>t.id===id):null;if(!existing||!existing.closedAt){const cn=new Date();cn.setMinutes(cn.getMinutes()-cn.getTimezoneOffset());data.closedAt=cn.toISOString().slice(0,16);}}
   if(id)await db.collection("trades").doc(id).update(data);else{await db.collection("trades").add(data);kiRateNewTrade(data);}await loadData();closePopup();
 }
-function editTrade(id,cn){const t=trades.find(x=>x.id===id);if(!t)return;document.getElementById("editId").value=t.id;document.getElementById("datetime").value=t.date;document.getElementById("assetInput").value=t.asset;document.getElementById("inpJournalSelect").value=t.journal||(journals[0]?journals[0].name:"Main");document.getElementById("status").value=cn?"Geschlossen":t.status;document.getElementById("pnl").value=t.pnl;document.getElementById("imgSetup").value=t.imgSetup||"";document.getElementById("imgResult").value=t.imgResult||"";if(t.imgSetup)showTradeImgPreview('setup',t.imgSetup);else clearTradeImg('setup');if(t.imgResult)showTradeImgPreview('result',t.imgResult);else clearTradeImg('result');document.getElementById("note").value=t.note||"";document.getElementById("inpEntry").value=t.entry||"";document.getElementById("inpSL").value=t.sl||"";document.getElementById("inpTP1").value=t.tp1||"";document.getElementById("inpTP2").value=t.tp2||"";document.getElementById("inpTP3").value=t.tp3||"";document.getElementById("inpAdminFeedback").value=t.adminFeedback||"";document.getElementById("admin-feedback-container").classList.toggle("hidden",!isAdmin);document.getElementById("form-title").innerText="Trade Bearbeiten";toggleFormFields();document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");_checkPairNews(t.asset);}
+function editTrade(id,cn){const t=trades.find(x=>x.id===id);if(!t)return;document.getElementById("editId").value=t.id;document.getElementById("datetime").value=t.date;document.getElementById("assetInput").value=t.asset;document.getElementById("inpJournalSelect").value=t.journal||(journals[0]?journals[0].name:"Main");document.getElementById("status").value=cn?"Geschlossen":t.status;document.getElementById("pnl").value=t.pnl;document.getElementById("imgSetup").value=t.imgSetup||"";document.getElementById("imgResult").value=t.imgResult||"";if(t.imgSetup)showTradeImgPreview('setup',t.imgSetup);else clearTradeImg('setup');if(t.imgResult)showTradeImgPreview('result',t.imgResult);else clearTradeImg('result');document.getElementById("note").value=t.note||"";document.getElementById("inpEntry").value=t.entry||"";document.getElementById("inpSL").value=t.sl||"";document.getElementById("inpTP1").value=t.tp1||"";document.getElementById("inpTP2").value=t.tp2||"";document.getElementById("inpTP3").value=t.tp3||"";document.getElementById("inpAdminFeedback").value=t.adminFeedback||"";document.getElementById("admin-feedback-container").classList.toggle("hidden",!isAdmin);document.getElementById("form-title").innerText="Trade Bearbeiten";toggleFormFields();document.getElementById("trade-form-modal").classList.remove("hidden");document.getElementById("popup-overlay").classList.add("open");_calCached();_checkPairNews(t.asset);}
 async function delTrade(id){if(confirm("Loeschen?")){await db.collection("trades").doc(id).delete();await loadData();showView("Historie");}}
 function toggleFormFields(){const s=document.getElementById("status").value;document.getElementById("closedFields").classList.toggle("hidden",s==="Aktiv");}
 function openCreateJournal(){
@@ -2683,7 +2683,7 @@ let _newsEvents=[],_newsTick=null;
 const _NEWS_FLAGS={USD:'us',EUR:'eu',GBP:'gb',JPY:'jp',CHF:'ch',CAD:'ca',AUD:'au',NZD:'nz',CNY:'cn'};
 function _flagImg(ccy){const c=_NEWS_FLAGS[ccy];return c?`<img src="https://flagcdn.com/20x15/${c}.png" width="20" height="15" style="border-radius:2px;vertical-align:middle;flex-shrink:0" alt="${ccy}">`:`<span style="font-size:.8rem;line-height:1">🌐</span>`;}
 const _NEWS_IMP={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
-const _FF_CK='ffcal_v6',_FF_TTL=30*60*1000;
+const _FF_CK='ffcal_v6',_FF_TTL=30*60*1000;let _calFetchP=null;
 const _TV_CCY={US:'USD',EU:'EUR',GB:'GBP',DE:'EUR',JP:'JPY',CH:'CHF',CA:'CAD',AU:'AUD',NZ:'NZD',CN:'CNY',FR:'EUR',IT:'EUR',ES:'EUR'};
 function toggleDashboardNews(val){
   showDashboardNews=val;
@@ -2745,8 +2745,10 @@ async function _calCached(){
       if(now-ts<_FF_TTL&&hasFuture)return data;
     }
   }catch(_){}
-  const data=await _fetchAllCalData();
-  if(data.length){try{localStorage.setItem(_FF_CK,JSON.stringify({ts:now,data}));}catch(_){}}
+  if(!_calFetchP)_calFetchP=_fetchAllCalData();
+  const data=await _calFetchP;
+  _calFetchP=null;
+  if(data.length){try{localStorage.setItem(_FF_CK,JSON.stringify({ts:Date.now(),data}));}catch(_){}}
   return data;
 }
 async function loadDashboardNews(){
@@ -2794,7 +2796,8 @@ async function _checkPairNews(asset){
   if(pair.length<6){b.style.display='none';return;}
   const base=pair.slice(0,3),quote=pair.slice(3,6);
   const now=Date.now(),in24h=now+24*3600*1000;
-  let data;try{data=await _calCached();}catch(e){return;}
+  b.style.display='block';b.innerHTML='<div style="font-size:.75rem;color:var(--text-sub)">&#x23F3; Pr\xFCfe News\u2026</div>';
+  let data;try{data=await _calCached();}catch(e){b.style.display='none';return;}
   const hits=data.filter(e=>{const t=new Date(e.date).getTime();return!isNaN(t)&&t>=now&&t<=in24h&&(e.country===base||e.country===quote);}).sort((a,c)=>new Date(a.date)-new Date(c.date));
   if(!hits.length){b.style.display='none';return;}
   const ic={High:'#ff3b30',Medium:'#ff9f0a',Low:'#8e8e93'};
