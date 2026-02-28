@@ -2675,20 +2675,26 @@ async function analyzeChartImage(dataUrl){
   const strip=document.getElementById('ki-news-strip');
   if(strip){strip.style.display='none';strip.innerHTML='';}
   const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+_GK};
+  _lastAnnotatedImg=null;
   res.innerHTML='<div style="margin-top:14px"><div class="ki-progress-wrap"><div class="ki-progress-bar" id="ki-chart-prog" style="width:5%"></div></div><div class="ki-progress-label" id="ki-chart-prog-lbl">Erkenne Asset aus Chart\u2026</div></div>';
   const _p=(pct,lbl)=>_setKIProg(pct,lbl,'ki-chart-prog','ki-chart-prog-lbl');
   const img=await _compressImg(dataUrl);
-  // Phase 1: Asset aus Bild erkennen
+  // Phase 1: Asset erkennen
   let detectedAsset='';
   try{
     const r1=await fetch(_GU,{method:'POST',headers:hdrs,body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:'What is the trading asset or currency pair shown in this chart? Reply with ONLY the symbol, e.g. EURUSD, XAUUSD, BTCUSDT, NAS100. If unclear, reply UNKNOWN.'}]}],temperature:0.1,max_tokens:15})});
     if(r1.ok){const d1=await r1.json();const sym=(d1.choices?.[0]?.message?.content||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(sym&&sym!=='UNKNOWN')detectedAsset=sym;}
   }catch(_){}
-  // Phase 2: News anzeigen + Analyse vorbereiten
-  _p(35,`News werden geladen${detectedAsset?' ('+detectedAsset+')':''}\u2026`);
   if(detectedAsset)_checkPairNews(detectedAsset,'ki-news-strip');
-  const newsCtx=await _getNewsCtx(detectedAsset);
-  _p(65,`Analysiere${detectedAsset?' '+detectedAsset:''}\u2026`);
+  // Phase 2: SMC-Annotation + News parallel
+  _p(25,`Erkenne SMC-Elemente${detectedAsset?' ('+detectedAsset+')':''}\u2026`);
+  const [newsCtx,annotated]=await Promise.all([
+    _getNewsCtx(detectedAsset),
+    _annotateTradeChart(dataUrl).catch(()=>null)
+  ]);
+  _lastAnnotatedImg=annotated;
+  // Phase 3: Text-Analyse
+  _p(72,`Analysiere${detectedAsset?' '+detectedAsset:''}\u2026`);
   const prompt=_buildChartPrompt(newsCtx);
   try{
     const r=await fetch(_GU,{method:'POST',headers:hdrs,body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:prompt}]}],temperature:0.5,max_tokens:newsCtx?1000:900})});
@@ -2696,7 +2702,11 @@ async function analyzeChartImage(dataUrl){
     const d=await r.json();
     _p(100,'Fertig');
     const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
-    res.innerHTML='<div style="margin-top:12px">'+_renderKIResult(rep)+'</div>';
+    const imgHtml=_lastAnnotatedImg
+      ?`<div style="margin-bottom:16px;padding:12px;background:var(--cell-bg);border:1px solid var(--border);border-radius:12px"><div style="font-size:.72rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">&#x1F4CD; SMC-Elemente eingezeichnet</div><img id="ki-chart-ann-img" style="width:100%;border-radius:8px;cursor:zoom-in;display:block" onclick="if(_lastAnnotatedImg)window.open(_lastAnnotatedImg,'_blank')"><div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap"><span style="font-size:.75rem;color:#ff9f0a;display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:rgba(255,159,10,.4);border:1px solid #ff9f0a;display:inline-block;border-radius:2px"></span>Sweep</span><span style="font-size:.75rem;color:#0a84ff;display:flex;align-items:center;gap:4px"><span style="width:10px;height:2px;background:#0a84ff;display:inline-block"></span>BOS</span><span style="font-size:.75rem;color:#30d158;display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:rgba(48,209,88,.3);border:1px solid #30d158;display:inline-block;border-radius:2px"></span>Entry Zone</span></div></div>`
+      :'';
+    res.innerHTML='<div style="margin-top:12px">'+imgHtml+_renderKIResult(rep)+'</div>';
+    if(_lastAnnotatedImg){const el=document.getElementById('ki-chart-ann-img');if(el)el.src=_lastAnnotatedImg;}
   }catch(err){console.error('[ChartAnalyse] Fehler:',err);res.innerHTML='<div style="color:var(--danger);margin-top:10px">Fehler: '+(err.message||'Analyse fehlgeschlagen')+'</div>';}
 }
 async function analyzeTradeSetupImg(){
