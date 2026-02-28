@@ -2537,8 +2537,8 @@ function _renderKIResult(text){
   );
   return html||`<div style="font-size:.87rem;line-height:1.6;word-break:break-word;overflow-wrap:break-word;white-space:normal">${t.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
 }
-function _setKIProg(pct,label){
-  const bar=document.getElementById('ki-prog');const lbl=document.getElementById('ki-prog-lbl');
+function _setKIProg(pct,label,barId='ki-prog',lblId='ki-prog-lbl'){
+  const bar=document.getElementById(barId);const lbl=document.getElementById(lblId);
   if(bar)bar.style.width=pct+'%';if(lbl)lbl.textContent=label;
 }
 async function analyzeMyTrades(){
@@ -2675,7 +2675,8 @@ async function analyzeChartImage(dataUrl){
   const strip=document.getElementById('ki-news-strip');
   if(strip){strip.style.display='none';strip.innerHTML='';}
   const hdrs={'Content-Type':'application/json','Authorization':'Bearer '+_GK};
-  res.innerHTML='<div style="color:var(--text-sub);font-size:.9rem;margin-top:10px">&#x1F50D; Erkenne Asset aus Chart\u2026</div>';
+  res.innerHTML='<div style="margin-top:14px"><div class="ki-progress-wrap"><div class="ki-progress-bar" id="ki-chart-prog" style="width:5%"></div></div><div class="ki-progress-label" id="ki-chart-prog-lbl">Erkenne Asset aus Chart\u2026</div></div>';
+  const _p=(pct,lbl)=>_setKIProg(pct,lbl,'ki-chart-prog','ki-chart-prog-lbl');
   const img=await _compressImg(dataUrl);
   // Phase 1: Asset aus Bild erkennen
   let detectedAsset='';
@@ -2684,14 +2685,16 @@ async function analyzeChartImage(dataUrl){
     if(r1.ok){const d1=await r1.json();const sym=(d1.choices?.[0]?.message?.content||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(sym&&sym!=='UNKNOWN')detectedAsset=sym;}
   }catch(_){}
   // Phase 2: News anzeigen + Analyse vorbereiten
+  _p(35,`News werden geladen${detectedAsset?' ('+detectedAsset+')':''}\u2026`);
   if(detectedAsset)_checkPairNews(detectedAsset,'ki-news-strip');
-  res.innerHTML=`<div style="color:var(--text-sub);font-size:.9rem;margin-top:10px">&#x1F4C8; Analysiere${detectedAsset?' '+detectedAsset:''}\u2026</div>`;
   const newsCtx=await _getNewsCtx(detectedAsset);
+  _p(65,`Analysiere${detectedAsset?' '+detectedAsset:''}\u2026`);
   const prompt=_buildChartPrompt(newsCtx);
   try{
     const r=await fetch(_GU,{method:'POST',headers:hdrs,body:JSON.stringify({model:_GMV,messages:[{role:'user',content:[{type:'image_url',image_url:{url:img}},{type:'text',text:prompt}]}],temperature:0.5,max_tokens:newsCtx?1000:900})});
     if(!r.ok){let em='HTTP '+r.status;try{const ed=await r.json();em+=' – '+(ed?.error?.message||JSON.stringify(ed));}catch(_){}throw new Error(em);}
     const d=await r.json();
+    _p(100,'Fertig');
     const rep=d.choices?.[0]?.message?.content||'Keine Analyse möglich.';
     res.innerHTML='<div style="margin-top:12px">'+_renderKIResult(rep)+'</div>';
   }catch(err){console.error('[ChartAnalyse] Fehler:',err);res.innerHTML='<div style="color:var(--danger);margin-top:10px">Fehler: '+(err.message||'Analyse fehlgeschlagen')+'</div>';}
